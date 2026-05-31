@@ -1,0 +1,9 @@
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\obj\Debug\net8.0\Finanzas.csproj.AssemblyReference.cache
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\obj\Debug\net8.0\Finanzas.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\obj\Debug\net8.0\Finanzas.AssemblyInfoInputs.cache
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\obj\Debug\net8.0\Finanzas.AssemblyInfo.cs
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\obj\Debug\net8.0\Finanzas.csproj.CoreCompileInputs.cache
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\obj\Debug\net8.0\Finanzas.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\obj\Debug\net8.0\Finanzas.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\obj\Debug\net8.0\Finanzas.sourcelink.json
