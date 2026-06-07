@@ -1,4 +1,4 @@
-﻿using Finanzas.Application.Interfaces;
+using Finanzas.Application.Interfaces;
 using Finanzas.Domain.Entities;
 using Finanzas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -9,15 +9,20 @@ namespace Finanzas.Infrastructure.Repositories
     {
         private readonly AppDbContext _db = db;
 
-        public async Task<IEnumerable<Gasto>> GetByMesAsync(int mes, int anio) =>
+        public async Task<IEnumerable<Gasto>> GetByMesAsync(int mes, int anio, Guid userId) =>
             await _db.Gastos
-                .Where(g => g.Mes == mes && g.Anio == anio)
+                .Where(g => g.Mes == mes && g.Anio == anio && g.UserId == userId)
                 .OrderBy(g => g.Tipo)
                 .ThenBy(g => g.Categoria)
                 .ToListAsync();
 
-        public async Task<Gasto?> GetByIdAsync(int id) =>
-            await _db.Gastos.FindAsync(id);
+        public async Task<IEnumerable<Gasto>> GetByAnioAsync(int anio, Guid userId) =>
+            await _db.Gastos
+                .Where(g => g.Anio == anio && g.UserId == userId)
+                .ToListAsync();
+
+        public async Task<Gasto?> GetByIdAsync(Guid id, Guid userId) =>
+            await _db.Gastos.FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
 
         public async Task<Gasto> CreateAsync(Gasto gasto)
         {
@@ -33,7 +38,7 @@ namespace Finanzas.Infrastructure.Repositories
             return gasto;
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
             var gasto = await _db.Gastos.FindAsync(id);
             if (gasto is not null)

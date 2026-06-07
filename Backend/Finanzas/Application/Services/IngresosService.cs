@@ -5,33 +5,28 @@ using Finanzas.Domain.Entities;
 
 namespace Finanzas.Application.Services;
 
-public class IngresosService
+public class IngresosService(IIngresosRepository repo, IMapper mapper)
 {
-    private readonly IIngresosRepository _repo;
-    private readonly IMapper _mapper;
+    private readonly IIngresosRepository _repo = repo;
+    private readonly IMapper _mapper = mapper;
 
-    public IngresosService(IIngresosRepository repo, IMapper mapper)
+    public async Task<IEnumerable<IngresoDto>> GetByMesAsync(int mes, int anio, Guid userId)
     {
-        _repo = repo;
-        _mapper = mapper;
-    }
-
-    public async Task<IEnumerable<IngresoDto>> GetByMesAsync(int mes, int anio)
-    {
-        var ingresos = await _repo.GetByMesAsync(mes, anio);
+        var ingresos = await _repo.GetByMesAsync(mes, anio, userId);
         return _mapper.Map<IEnumerable<IngresoDto>>(ingresos);
     }
 
-    public async Task<IngresoDto> CreateAsync(CrearIngresoDto dto)
+    public async Task<IngresoDto> CreateAsync(CrearIngresoDto dto, Guid userId)
     {
         var ingreso = _mapper.Map<Ingreso>(dto);
+        ingreso.UserId = userId;
         var creado = await _repo.CreateAsync(ingreso);
         return _mapper.Map<IngresoDto>(creado);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(Guid id, Guid userId)
     {
-        var existente = await _repo.GetByIdAsync(id);
+        var existente = await _repo.GetByIdAsync(id, userId);
         if (existente is null) return false;
 
         await _repo.DeleteAsync(id);

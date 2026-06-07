@@ -11,7 +11,8 @@
     </div>
     <div class="row-right">
       <span class="row-monto">{{ fmt(gasto.monto) }}</span>
-      <button class="icon-btn" title="Eliminar" @click="emit('delete', gasto.id!)">&#10005;</button>
+       <button class="icon-btn" title="Editar" @click="emit('edit', gasto)">✎</button>
+      <button class="icon-btn danger" title="Eliminar" @click="emit('delete', gasto.id!)">&#10005;</button>
     </div>
   </div>
 </template>
@@ -20,7 +21,7 @@
 import type { Gasto } from '@/types'
 
 defineProps<{ gasto: Gasto }>()
-const emit = defineEmits<{ delete: [id: number] }>()
+const emit = defineEmits<{ delete: [id: number], edit: [gasto: Gasto] }>()
 
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-CO')
 </script>
@@ -39,15 +40,7 @@ const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-CO')
 .row-det  { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.1rem; }
 .row-right { display: flex; align-items: center; gap: 0.75rem; }
 .row-monto { font-size: 0.78rem; color: var(--text-primary); }
-.icon-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 0.7rem;
-  padding: 2px 4px;
-  border-radius: 3px;
-  transition: all 0.2s;
-}
-.icon-btn:hover { color: var(--red); background: rgba(248,113,113,0.08); }
+.icon-btn     { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; padding: 3px 6px; border-radius: 3px; transition: all 0.2s; }
+.icon-btn:hover       { color: var(--accent); background: rgba(99,179,255,0.08); }
+.icon-btn.danger:hover { color: var(--red);   background: rgba(248,113,113,0.08); }
 </style>

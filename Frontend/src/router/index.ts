@@ -1,15 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Dashboard from '@/views/Dashboard.vue'
-import Gastos from '@/views/Gastos.vue'
-import Ingresos from '@/views/Ingresos.vue'
-import Categirias from '@/views/Categorias.vue'
+import { useAuthStore } from '@/stores/auth'
+import Routes from './routes'
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory(),
-  routes: [
-    { path: '/', component: Dashboard, meta: { title: 'Dashboard' } },
-    { path: '/gastos', component: Gastos, meta: { title: 'Gastos' } },
-    { path: '/ingresos', component: Ingresos, meta: { title: 'Ingresos' } },
-    { path: '/Categorias', component: Categirias, meta: { title: 'Categorías' } }
-  ]
+  routes: Routes
 })
+
+router.beforeEach((to) => {
+  const auth = useAuthStore()
+  if (to.meta.requiresAuth && !auth.isAuthenticated) return '/login'
+  if (to.meta.guest && auth.isAuthenticated) return '/dashboard'
+})
+
+export default router

@@ -15,7 +15,7 @@
 
     <!-- Formulario -->
     <div v-if="showForm" class="card" style="margin-bottom: 1rem;">
-      <GastoForm :loading="saving" @submit="onSubmit" @cancel="showForm = false" />
+      <GastoForm :key="editando?.id ?? 'new'" :gasto="editando ?? undefined" :loading="saving" @submit="onSubmit" @cancel="cerrarForm" />
     </div>
 
     <div v-if="store.loading" class="empty">Cargando...</div>
@@ -32,6 +32,7 @@
           v-for="g in store.gastosFijos"
           :key="g.id"
           :gasto="g"
+          @edit="abrirForm"
           @delete="onDelete"
         />
       </div>
@@ -47,6 +48,7 @@
           v-for="g in store.gastosVariables"
           :key="g.id"
           :gasto="g"
+          @edit="abrirForm"
           @delete="onDelete"
         />
       </div>
@@ -80,6 +82,7 @@ const showForm = ref(false)
 const saving = ref(false)
 const showConfirm = ref(false)
 const pendingDeleteId = ref<number | null>(null)
+const editando = ref<Gasto | null>(null)
 
 const totalFijos = computed(() => store.gastosFijos.reduce((s, g) => s + g.monto, 0))
 const totalVariables = computed(() => store.gastosVariables.reduce((s, g) => s + g.monto, 0))
@@ -87,14 +90,28 @@ const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-CO')
 
 async function onSubmit(gasto: Omit<Gasto, 'id'>) {
   saving.value = true
-  await store.agregarGasto(gasto)
+  if (editando.value?.id != null) {
+    await store.editarGasto(editando.value.id, gasto)
+  } else {
+    await store.agregarGasto(gasto)
+  }
   saving.value = false
+  cerrarForm()
+}
+
+function cerrarForm() {
   showForm.value = false
+  editando.value = null
 }
 
 function onDelete(id: number) {
   pendingDeleteId.value = id
   showConfirm.value = true
+}
+
+function abrirForm(gasto: Gasto) {
+  editando.value = gasto
+  showForm.value = true
 }
 
 async function confirmDelete() {
@@ -104,7 +121,7 @@ async function confirmDelete() {
   }
 }
 
-onMounted(() => store.cargarDatos())
+onMounted(() => { store.cargarDatos(); store.cargarCategorias() })
 </script>
 
 <style scoped>

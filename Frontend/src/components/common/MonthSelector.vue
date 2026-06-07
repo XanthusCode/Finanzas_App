@@ -1,16 +1,23 @@
 <template>
   <div class="month-selector">
     <button class="arrow" @click="prev">&#8249;</button>
-    <span class="label">{{ MESES[mes - 1] }} {{ anio }}</span>
+    <span class="label">{{ label }}</span>
     <button class="arrow" @click="next">&#8250;</button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { MESES } from '@/types'
+import { computed } from 'vue'
+import { format } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 const props = defineProps<{ mes: number; anio: number }>()
 const emit = defineEmits<{ change: [mes: number, anio: number] }>()
+
+const label = computed(() => {
+  const s = format(new Date(props.anio, props.mes - 1, 1), 'MMMM yyyy', { locale: es })
+  return s.charAt(0).toUpperCase() + s.slice(1)
+})
 
 function prev() {
   if (props.mes === 1) emit('change', 12, props.anio - 1)

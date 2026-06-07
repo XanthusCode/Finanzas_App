@@ -48,3 +48,9 @@ C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_A
 C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\obj\Debug\net10.0\Finanzas.API.pdb
 C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\obj\Debug\net10.0\Finanzas.API.genruntimeconfig.cache
 C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\obj\Debug\net10.0\ref\Finanzas.API.dll
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\bin\Debug\net10.0\BCrypt-Net-Next.dll
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\bin\Debug\net10.0\Microsoft.Bcl.Cryptography.dll
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\bin\Debug\net10.0\System.IdentityModel.Tokens.Jwt.dll

@@ -1,5 +1,5 @@
 export interface Gasto {
-  id?: number
+  id?: string
   categoria: string
   detalle: string
   monto: number
@@ -9,7 +9,7 @@ export interface Gasto {
 }
 
 export interface Ingreso {
-  id?: number
+  id?: string
   concepto: string
   monto: number
   mes: number
@@ -27,24 +27,9 @@ export interface Resumen {
   pctAhorro: number
 }
 
-export interface categoria {
-  id?: number
-  categoryName: string
-  CategoryType: 'FIJO' | 'VARIABLE'
-  createdAt: Date
-  updateAt: Date
+export interface Categoria {
+  id?: string
+  nombre: string
+  tipo: 'FIJO' | 'VARIABLE'
+  activa: boolean
 }
-
-export const MESES = [
-  'Enero','Febrero','Marzo','Abril','Mayo','Junio',
-  'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'
-]
-
-export const CATEGORIAS_FIJAS = [
-  'Hogar','Gimnasio','Universidad','Moto','Higiene',
-  'Celular','Netflix','Agentes IA','Otros'
-]
-
-export const CATEGORIAS_VARIABLES = [
-  'Juegos','Regalos','Accesorios','Comida','Salidas','Otros'
-]

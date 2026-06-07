@@ -4,39 +4,44 @@ using Finanzas.Domain.Entities;
 
 namespace Finanzas.Application.Services;
 
-public class ResumenService
+public class ResumenService(IGastosRepository gastosRepo, IIngresosRepository ingresosRepo)
 {
-    private readonly IGastosRepository _gastosRepo;
-    private readonly IIngresosRepository _ingresosRepo;
+    private readonly IGastosRepository _gastosRepo = gastosRepo;
+    private readonly IIngresosRepository _ingresosRepo = ingresosRepo;
 
-    public ResumenService(IGastosRepository gastosRepo, IIngresosRepository ingresosRepo)
+    public async Task<ResumenDto> GetAnualAsync(int anio, Guid userId)
     {
-        _gastosRepo = gastosRepo;
-        _ingresosRepo = ingresosRepo;
+        var gastos   = await _gastosRepo.GetByAnioAsync(anio, userId);
+        var ingresos = await _ingresosRepo.GetByAnioAsync(anio, userId);
+        return Calcular(gastos, ingresos, 0, anio);
     }
 
-    public async Task<ResumenDto> GetAsync(int mes, int anio)
+    public async Task<ResumenDto> GetAsync(int mes, int anio, Guid userId)
     {
-        var gastos = await _gastosRepo.GetByMesAsync(mes, anio);
-        var ingresos = await _ingresosRepo.GetByMesAsync(mes, anio);
+        var gastos   = await _gastosRepo.GetByMesAsync(mes, anio, userId);
+        var ingresos = await _ingresosRepo.GetByMesAsync(mes, anio, userId);
+        return Calcular(gastos, ingresos, mes, anio);
+    }
 
-        var totalIngresos = ingresos.Sum(i => i.Monto);
-        var totalFijos = gastos.Where(g => g.Tipo == TipoGasto.FIJO).Sum(g => g.Monto);
+    private static ResumenDto Calcular(IEnumerable<Gasto> gastos, IEnumerable<Ingreso> ingresos, int mes, int anio)
+    {
+        var totalIngresos  = ingresos.Sum(i => i.Monto);
+        var totalFijos     = gastos.Where(g => g.Tipo == TipoGasto.FIJO).Sum(g => g.Monto);
         var totalVariables = gastos.Where(g => g.Tipo == TipoGasto.VARIABLE).Sum(g => g.Monto);
-        var totalGastos = totalFijos + totalVariables;
-        var ahorro = totalIngresos - totalGastos;
-        var pctAhorro = totalIngresos > 0 ? (int)Math.Round(ahorro / totalIngresos * 100) : 0;
+        var totalGastos    = totalFijos + totalVariables;
+        var ahorro         = totalIngresos - totalGastos;
+        var pctAhorro      = totalIngresos > 0 ? (int)Math.Round(ahorro / totalIngresos * 100) : 0;
 
         return new ResumenDto
         {
-            Mes = mes,
-            Anio = anio,
-            TotalIngresos = totalIngresos,
-            TotalFijos = totalFijos,
+            Mes            = mes,
+            Anio           = anio,
+            TotalIngresos  = totalIngresos,
+            TotalFijos     = totalFijos,
             TotalVariables = totalVariables,
-            TotalGastos = totalGastos,
-            Ahorro = ahorro,
-            PctAhorro = pctAhorro,
+            TotalGastos    = totalGastos,
+            Ahorro         = ahorro,
+            PctAhorro      = pctAhorro,
         };
     }
 }
