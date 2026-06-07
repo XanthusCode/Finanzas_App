@@ -1,4 +1,4 @@
-﻿using Finanzas.Application.Interfaces;
+using Finanzas.Application.Interfaces;
 using Finanzas.Domain.Entities;
 using Finanzas.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -9,15 +9,15 @@ namespace Finanzas.Infrastructure.Repositories
     {
         private readonly AppDbContext _db = db;
 
-        public async Task<IEnumerable<Categoria>> GetAllAsync() =>
+        public async Task<IEnumerable<Categoria>> GetAllAsync(Guid userId) =>
             await _db.Categorias
-                .Where(c => c.Activa)
+                .Where(c => c.Activa && c.UserId == userId)
                 .OrderBy(c => c.Tipo)
                 .ThenBy(c => c.Nombre)
                 .ToListAsync();
 
-        public async Task<Categoria?> GetByIdAsync(int id) =>
-            await _db.Categorias.FindAsync(id);
+        public async Task<Categoria?> GetByIdAsync(Guid id, Guid userId) =>
+            await _db.Categorias.FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
 
         public async Task<Categoria> CreateAsync(Categoria categoria)
         {
@@ -33,7 +33,7 @@ namespace Finanzas.Infrastructure.Repositories
             return categoria;
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
             var categoria = await _db.Categorias.FindAsync(id);
             if (categoria is not null)

@@ -2,7 +2,7 @@
 {
     public class GastoDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Categoria { get; set; } = string.Empty;
         public string Detalle { get; set; } = string.Empty;
         public decimal Monto { get; set; }

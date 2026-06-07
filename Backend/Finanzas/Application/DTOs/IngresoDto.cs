@@ -2,7 +2,7 @@
 {
     public class IngresoDto
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Concepto { get; set; } = string.Empty;
         public decimal Monto { get; set; }
         public int Mes { get; set; }

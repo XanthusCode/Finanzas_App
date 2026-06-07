@@ -19,15 +19,17 @@
         <div class="form-row">
           <div class="field" style="flex: 2">
             <label>Concepto</label>
-            <input v-model="form.concepto" class="input" placeholder="ej. Salario básico" required />
+            <input v-model="form.concepto" class="input" :class="{ 'input-error': errors.concepto }" placeholder="ej. Salario básico" />
+            <span v-if="errors.concepto" class="field-error">{{ errors.concepto }}</span>
           </div>
           <div class="field">
             <label>Monto (COP)</label>
-            <CurrencyInput v-model="form.monto" placeholder="$ 0" />
+            <CurrencyInput v-model="form.monto" :class="{ 'input-error': errors.monto }" placeholder="$ 0" />
+            <span v-if="errors.monto" class="field-error">{{ errors.monto }}</span>
           </div>
         </div>
         <div class="form-actions">
-          <button type="button" class="btn" @click="showForm = false">Cancelar</button>
+          <button type="button" class="btn" @click="cerrarForm">Cancelar</button>
           <button type="submit" class="btn btn-primary" :disabled="saving">
             {{ saving ? 'Guardando...' : 'Agregar ingreso' }}
           </button>
@@ -45,7 +47,6 @@
             {{ fmt(total) }}
           </span>
         </div>
-        <div v-if="store.ingresos.length === 0" class="empty">Sin ingresos registrados este mes</div>
         <div v-for="i in store.ingresos" :key="i.id" class="ingreso-row">
           <div>
             <div class="row-name">{{ i.concepto }}</div>
@@ -58,8 +59,8 @@
       </div>
     </template>
 
-    <template v-else-if="!showForm && store.ingresos.length === 0">
-      <div class="empty">No hay ingresos registrados para este mes. ¡Agrega uno usando el botón de arriba!</div>  
+    <template v-else-if="!showForm">
+      <div class="empty">No hay ingresos registrados para este mes. ¡Agrega uno usando el botón de arriba!</div>
     </template>
 
     <ConfirmModal
@@ -77,6 +78,7 @@ import { useFinanceStore } from '@/stores/finance'
 import MonthSelector from '@/components/common/MonthSelector.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
+import { ingresoSchema } from '@/schemas'
 
 const store = useFinanceStore()
 const showForm = ref(false)
@@ -85,16 +87,31 @@ const showConfirm = ref(false)
 const pendingDeleteId = ref<number | null>(null)
 
 const form = reactive({ concepto: '', monto: 0 })
+const errors = ref<Partial<Record<'concepto' | 'monto', string>>>({})
 const total = computed(() => store.ingresos.reduce((s, i) => s + i.monto, 0))
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-CO')
 
 async function onSubmit() {
+  errors.value = {}
+  const result = ingresoSchema.safeParse(form)
+  if (!result.success) {
+    result.error.errors.forEach(e => {
+      const field = e.path[0] as 'concepto' | 'monto'
+      errors.value[field] = e.message
+    })
+    return
+  }
   saving.value = true
   await store.agregarIngreso({ ...form, mes: 0, anio: 0 })
   saving.value = false
+  cerrarForm()
+}
+
+function cerrarForm() {
   showForm.value = false
   form.concepto = ''
   form.monto = 0
+  errors.value = {}
 }
 
 function onDelete(id: number) {
@@ -121,6 +138,8 @@ onMounted(() => store.cargarDatos())
 .form-row { display: flex; gap: 0.75rem; }
 .field { display: flex; flex-direction: column; flex: 1; }
 .form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+.field-error { font-size: 0.65rem; color: var(--red); margin-top: 0.2rem; }
+.input-error { border-color: var(--red) !important; }
 .ingreso-row { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--border); }
 .ingreso-row:last-child { border-bottom: none; }
 .row-name  { font-size: 0.78rem; color: var(--text-primary); }

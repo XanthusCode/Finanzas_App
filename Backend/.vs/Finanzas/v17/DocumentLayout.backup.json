@@ -11,16 +11,8 @@
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Finanzas\\API\\ResumenController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\obj\\Debug\\net8.0\\Finanzas.AssemblyInfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Finanzas\\obj\\Debug\\net8.0\\Finanzas.AssemblyInfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\obj\\Debug\\net8.0\\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Finanzas\\obj\\Debug\\net8.0\\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\API\\Finanzas.API.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Finanzas\\API\\Finanzas.API.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\API\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
@@ -122,35 +114,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Finanzas.API.http",
-              "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\API\\Finanzas.API.http",
-              "RelativeDocumentMoniker": "Finanzas\\API\\Finanzas.API.http",
-              "ToolTip": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\API\\Finanzas.API.http",
-              "RelativeToolTip": "Finanzas\\API\\Finanzas.API.http",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
-              "WhenOpened": "2026-05-30T22:52:29.813Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "Finanzas.AssemblyInfo.cs",
-              "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\obj\\Debug\\net8.0\\Finanzas.AssemblyInfo.cs",
-              "RelativeDocumentMoniker": "Finanzas\\obj\\Debug\\net8.0\\Finanzas.AssemblyInfo.cs",
-              "ToolTip": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\obj\\Debug\\net8.0\\Finanzas.AssemblyInfo.cs",
-              "RelativeToolTip": "Finanzas\\obj\\Debug\\net8.0\\Finanzas.AssemblyInfo.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAALAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-30T22:52:15.556Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
               "Title": ".NETCoreApp,Version=v8.0.AssemblyAttributes.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\obj\\Debug\\net8.0\\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs",
               "RelativeDocumentMoniker": "Finanzas\\obj\\Debug\\net8.0\\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs",
@@ -162,7 +130,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 3,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\API\\appsettings.json",
               "RelativeDocumentMoniker": "Finanzas\\API\\appsettings.json",
@@ -199,7 +167,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 4,
               "Title": "CategoriasController.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\API\\CategoriasController.cs",
               "RelativeDocumentMoniker": "Finanzas\\API\\CategoriasController.cs",
@@ -211,7 +179,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 5,
               "Title": "IngresosController.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\API\\IngresosController.cs",
               "RelativeDocumentMoniker": "Finanzas\\API\\IngresosController.cs",
@@ -223,7 +191,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 6,
               "Title": "MappingProfile.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Application\\Mappings\\MappingProfile.cs",
               "RelativeDocumentMoniker": "Finanzas\\Application\\Mappings\\MappingProfile.cs",
@@ -235,7 +203,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 7,
               "Title": "AppDbContext.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Infrastructure\\Data\\AppDbContext.cs",
               "RelativeDocumentMoniker": "Finanzas\\Infrastructure\\Data\\AppDbContext.cs",
@@ -247,7 +215,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 8,
               "Title": "CategoriasRepository.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Infrastructure\\Repositories\\CategoriasRepository.cs",
               "RelativeDocumentMoniker": "Finanzas\\Infrastructure\\Repositories\\CategoriasRepository.cs",
@@ -259,7 +227,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 9,
               "Title": "GastosRepository.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Infrastructure\\Repositories\\GastosRepository.cs",
               "RelativeDocumentMoniker": "Finanzas\\Infrastructure\\Repositories\\GastosRepository.cs",
@@ -271,7 +239,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 10,
               "Title": "GastosController.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\API\\GastosController.cs",
               "RelativeDocumentMoniker": "Finanzas\\API\\GastosController.cs",
@@ -283,7 +251,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 11,
               "Title": "GastoDto.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Application\\DTOs\\GastoDto.cs",
               "RelativeDocumentMoniker": "Finanzas\\Application\\DTOs\\GastoDto.cs",
@@ -295,7 +263,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 12,
               "Title": "CategoriaDto.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Application\\DTOs\\CategoriaDto.cs",
               "RelativeDocumentMoniker": "Finanzas\\Application\\DTOs\\CategoriaDto.cs",
@@ -307,7 +275,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 13,
               "Title": "IIngresosRepository.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Application\\Interfaces\\IIngresosRepository.cs",
               "RelativeDocumentMoniker": "Finanzas\\Application\\Interfaces\\IIngresosRepository.cs",
@@ -319,7 +287,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 14,
               "Title": "IGastosRepository.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Application\\Interfaces\\IGastosRepository.cs",
               "RelativeDocumentMoniker": "Finanzas\\Application\\Interfaces\\IGastosRepository.cs",
@@ -331,7 +299,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 15,
               "Title": "IngresoDto.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Application\\DTOs\\IngresoDto.cs",
               "RelativeDocumentMoniker": "Finanzas\\Application\\DTOs\\IngresoDto.cs",
@@ -343,7 +311,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 16,
               "Title": "ResumenDto.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Application\\DTOs\\ResumenDto.cs",
               "RelativeDocumentMoniker": "Finanzas\\Application\\DTOs\\ResumenDto.cs",
@@ -355,7 +323,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 17,
               "Title": "CategoriasService.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Application\\Services\\CategoriasService.cs",
               "RelativeDocumentMoniker": "Finanzas\\Application\\Services\\CategoriasService.cs",
@@ -367,7 +335,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 18,
               "Title": "GastosService.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Application\\Services\\GastosService.cs",
               "RelativeDocumentMoniker": "Finanzas\\Application\\Services\\GastosService.cs",
@@ -379,7 +347,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 19,
               "Title": "IngresosService.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Application\\Services\\IngresosService.cs",
               "RelativeDocumentMoniker": "Finanzas\\Application\\Services\\IngresosService.cs",
@@ -391,7 +359,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 20,
               "Title": "ResumenService.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Application\\Services\\ResumenService.cs",
               "RelativeDocumentMoniker": "Finanzas\\Application\\Services\\ResumenService.cs",
@@ -403,7 +371,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 21,
               "Title": "ICategoriasRepository.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Application\\Interfaces\\ICategoriasRepository.cs",
               "RelativeDocumentMoniker": "Finanzas\\Application\\Interfaces\\ICategoriasRepository.cs",
@@ -415,7 +383,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 22,
               "Title": "Ingreso.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Domain\\Entities\\Ingreso.cs",
               "RelativeDocumentMoniker": "Finanzas\\Domain\\Entities\\Ingreso.cs",
@@ -427,7 +395,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 23,
               "Title": "Gasto.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Domain\\Entities\\Gasto.cs",
               "RelativeDocumentMoniker": "Finanzas\\Domain\\Entities\\Gasto.cs",
@@ -439,7 +407,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 24,
               "Title": "Categoria.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Domain\\Entities\\Categoria.cs",
               "RelativeDocumentMoniker": "Finanzas\\Domain\\Entities\\Categoria.cs",
@@ -451,7 +419,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 25,
               "Title": "IngresosRepository.cs",
               "DocumentMoniker": "C:\\Users\\Johan\\Documents\\Programaci\u00F3n\\Programaci\u00F3n\\SeparateProjects\\Finanzas_App\\Backend\\Finanzas\\Infrastructure\\Repositories\\IngresosRepository.cs",
               "RelativeDocumentMoniker": "Finanzas\\Infrastructure\\Repositories\\IngresosRepository.cs",

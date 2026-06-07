@@ -12,6 +12,7 @@ export const useFinanceStore = defineStore('finance', () => {
 
   const mesActual = ref(new Date().getMonth() + 1)
   const anioActual = ref(new Date().getFullYear())
+  const resumenAnual = ref<Resumen | null>(null)
 
   const gastosFijos = computed(() => gastos.value.filter(g => g.tipo === 'FIJO'))
   const gastosVariables = computed(() => gastos.value.filter(g => g.tipo === 'VARIABLE'))
@@ -29,13 +30,13 @@ export const useFinanceStore = defineStore('finance', () => {
     categorias.value.push(data)
   }
  
-  async function actualizarCategoria(id: number, cat: Omit<Categoria, 'id'>) {
+  async function actualizarCategoria(id: string, cat: Omit<Categoria, 'id'>) {
     const { data } = await categoriasService.update(id, cat)
     const idx = categorias.value.findIndex(c => c.id === id)
     if (idx !== -1) categorias.value[idx] = data
   }
  
-  async function eliminarCategoria(id: number) {
+  async function eliminarCategoria(id: string) {
     await categoriasService.delete(id)
     categorias.value = categorias.value.filter(c => c.id !== id)
   }
@@ -92,7 +93,14 @@ export const useFinanceStore = defineStore('finance', () => {
     await cargarResumen()
   }
 
-  async function eliminarGasto(id: number) {
+  async function editarGasto(id: string, gasto: Omit<Gasto, 'id'>) {
+    const { data } = await gastosService.update(id, { ...gasto, id, mes: mesActual.value, anio: anioActual.value })
+    const idx = gastos.value.findIndex(g => g.id === id)
+    if (idx !== -1) gastos.value[idx] = data
+    await cargarResumen()
+  }
+
+  async function eliminarGasto(id: string) {
     await gastosService.delete(id)
     gastos.value = gastos.value.filter(g => g.id !== id)
     await cargarResumen()
@@ -108,7 +116,7 @@ export const useFinanceStore = defineStore('finance', () => {
     await cargarResumen()
   }
 
-  async function eliminarIngreso(id: number) {
+  async function eliminarIngreso(id: string) {
     await ingresosService.delete(id)
     ingresos.value = ingresos.value.filter(i => i.id !== id)
     await cargarResumen()
@@ -117,6 +125,11 @@ export const useFinanceStore = defineStore('finance', () => {
   async function cargarResumen() {
     const { data } = await resumenService.get(mesActual.value, anioActual.value)
     resumen.value = data
+  }
+
+  async function cargarResumenAnual() {
+    const { data } = await resumenService.getAnual(anioActual.value)
+    resumenAnual.value = data
   }
 
   function cambiarMes(mes: number, anio: number) {
@@ -132,7 +145,8 @@ export const useFinanceStore = defineStore('finance', () => {
     categoriasFijas, categoriasVariables, 
     cargarCategorias, agregarCategoria, 
     actualizarCategoria, eliminarCategoria,
-    cargarDatos, agregarGasto, eliminarGasto,
+    resumenAnual, cargarResumenAnual,
+    cargarDatos, agregarGasto, editarGasto, eliminarGasto,
     agregarIngreso, eliminarIngreso, cambiarMes
   }
 })
