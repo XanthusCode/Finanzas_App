@@ -24,7 +24,7 @@ public class CategoriasController(CategoriasService service) : BaseController
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] CrearCategoriaDto dto)
+    public async Task<IActionResult> Update(Guid id, [FromBody] EditarCategoriaDto dto)
     {
         var actualizada = await _service.UpdateAsync(id, dto, UserId);
         if (actualizada is null) return NotFound();

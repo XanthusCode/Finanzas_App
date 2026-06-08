@@ -23,6 +23,14 @@ public class IngresosController(IngresosService service) : BaseController
         return CreatedAtAction(nameof(GetAll), creado);
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] EditarIngresoDto dto)
+    {
+        var actualizada = await _service.UpdateAsync(id, dto, UserId);
+        if (actualizada is null) return NotFound();
+        return Ok(actualizada);
+    }
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {

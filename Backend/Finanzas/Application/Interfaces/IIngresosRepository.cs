@@ -8,6 +8,7 @@ namespace Finanzas.Application.Interfaces
         Task<IEnumerable<Ingreso>> GetByAnioAsync(int anio, Guid userId);
         Task<Ingreso?> GetByIdAsync(Guid id, Guid userId);
         Task<Ingreso> CreateAsync(Ingreso ingreso);
+        Task<Ingreso> UpdateAsync(Ingreso ingreso);
         Task DeleteAsync(Guid id);
     }
 }

@@ -24,6 +24,16 @@ public class IngresosService(IIngresosRepository repo, IMapper mapper)
         return _mapper.Map<IngresoDto>(creado);
     }
 
+    public async Task<IngresoDto?> UpdateAsync(Guid id, EditarIngresoDto dto, Guid userId)
+    {
+        var existente = await _repo.GetByIdAsync(id, userId);
+        if (existente is null) return null;
+
+        _mapper.Map(dto, existente);
+        var actualizada = await _repo.UpdateAsync(existente);
+        return _mapper.Map<IngresoDto>(actualizada);
+    }
+
     public async Task<bool> DeleteAsync(Guid id, Guid userId)
     {
         var existente = await _repo.GetByIdAsync(id, userId);

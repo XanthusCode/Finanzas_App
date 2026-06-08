@@ -42,6 +42,8 @@ export const ingresosService = {
     api.get<Ingreso[]>(`/ingresos?mes=${mes}&anio=${anio}`),
   create: (ingreso: Ingreso) =>
     api.post<Ingreso>('/ingresos', ingreso),
+  update: (id: string, ingreso: Ingreso) =>
+    api.put<Ingreso>(`/ingresos/${id}`, ingreso),
   delete: (id: string) =>
     api.delete(`/ingresos/${id}`)
 }

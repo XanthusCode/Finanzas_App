@@ -30,6 +30,13 @@ namespace Finanzas.Infrastructure.Repositories
             return ingreso;
         }
 
+        public async Task<Ingreso> UpdateAsync(Ingreso ingreso)
+        {
+            _db.Ingresos.Update(ingreso);
+            await _db.SaveChangesAsync();
+            return ingreso;
+        }
+
         public async Task DeleteAsync(Guid id)
         {
             var ingreso = await _db.Ingresos.FindAsync(id);

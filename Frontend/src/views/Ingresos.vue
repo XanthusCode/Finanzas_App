@@ -31,7 +31,7 @@
         <div class="form-actions">
           <button type="button" class="btn" @click="cerrarForm">Cancelar</button>
           <button type="submit" class="btn btn-primary" :disabled="saving">
-            {{ saving ? 'Guardando...' : 'Agregar ingreso' }}
+            {{ saving ? 'Guardando...' : 'Actualizar' }}
           </button>
         </div>
       </form>
@@ -53,7 +53,8 @@
           </div>
           <div style="display: flex; align-items: center; gap: 0.75rem;">
             <span class="row-monto">{{ fmt(i.monto) }}</span>
-            <button class="icon-btn" @click="onDelete(i.id!)">&#10005;</button>
+             <button class="icon-btn" title="Editar" @click="abrirForm(i)">✎</button>
+            <button class="icon-btn danger" @click="onDelete(i.id!)">&#10005;</button>
           </div>
         </div>
       </div>
@@ -79,12 +80,14 @@ import MonthSelector from '@/components/common/MonthSelector.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import { ingresoSchema } from '@/schemas'
+import type { Ingreso } from '@/types'
 
 const store = useFinanceStore()
 const showForm = ref(false)
 const saving = ref(false)
 const showConfirm = ref(false)
-const pendingDeleteId = ref<number | null>(null)
+const pendingDeleteId = ref<string | null>(null)
+  const editando    = ref<Ingreso | null>(null)
 
 const form = reactive({ concepto: '', monto: 0 })
 const errors = ref<Partial<Record<'concepto' | 'monto', string>>>({})
@@ -95,16 +98,28 @@ async function onSubmit() {
   errors.value = {}
   const result = ingresoSchema.safeParse(form)
   if (!result.success) {
-    result.error.errors.forEach(e => {
+    result.error.issues.forEach(e => {
       const field = e.path[0] as 'concepto' | 'monto'
       errors.value[field] = e.message
     })
     return
   }
   saving.value = true
-  await store.agregarIngreso({ ...form, mes: 0, anio: 0 })
+  const payload = { concepto: form.concepto, monto: form.monto }
+  if (editando.value?.id) {
+    await store.editarIngreso(editando.value.id, payload)
+  } else {
+    await store.agregarIngreso(payload)
+  }
   saving.value = false
   cerrarForm()
+}
+
+function abrirForm(ingreso?: Ingreso) {
+  editando.value = ingreso ?? null
+  form.concepto    = ingreso?.concepto ?? ''
+  form.monto      = ingreso?.monto   ?? 0
+  showForm.value = true
 }
 
 function cerrarForm() {
@@ -114,7 +129,7 @@ function cerrarForm() {
   errors.value = {}
 }
 
-function onDelete(id: number) {
+function onDelete(id: string) {
   pendingDeleteId.value = id
   showConfirm.value = true
 }
@@ -145,6 +160,7 @@ onMounted(() => store.cargarDatos())
 .row-name  { font-size: 0.78rem; color: var(--text-primary); }
 .row-monto { font-size: 0.78rem; color: var(--text-primary); }
 .icon-btn  { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.7rem; padding: 2px 4px; border-radius: 3px; transition: all 0.2s; }
-.icon-btn:hover { color: var(--red); background: rgba(248,113,113,0.08); }
+.icon-btn:hover       { color: var(--accent); background: rgba(99,179,255,0.08); }
+.icon-btn.danger:hover { color: var(--red);   background: rgba(248,113,113,0.08); }
 .empty { font-size: 0.72rem; color: var(--text-muted); padding: 1rem 0; text-align: center; }
 </style>

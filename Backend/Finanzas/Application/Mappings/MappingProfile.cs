@@ -17,11 +17,21 @@ public class MappingProfile : Profile
         // Ingreso
         CreateMap<Ingreso, IngresoDto>();
         CreateMap<CrearIngresoDto, Ingreso>();
+        CreateMap<EditarIngresoDto, Ingreso>()
+            .ForMember(d => d.Id,     o => o.Ignore())
+            .ForMember(d => d.Mes,    o => o.Ignore())
+            .ForMember(d => d.Anio,   o => o.Ignore())
+            .ForMember(d => d.UserId, o => o.Ignore());
 
         // Categoria
         CreateMap<Categoria, CategoriaDto>()
             .ForMember(d => d.Tipo, o => o.MapFrom(s => s.Tipo.ToString()));
         CreateMap<CrearCategoriaDto, Categoria>()
             .ForMember(d => d.Tipo, o => o.MapFrom(s => Enum.Parse<TipoGasto>(s.Tipo)));
+        CreateMap<EditarCategoriaDto, Categoria>()
+            .ForMember(d => d.Id,     o => o.Ignore())
+            .ForMember(d => d.UserId, o => o.Ignore())
+            .ForMember(d => d.Activa, o => o.Ignore())
+            .ForMember(d => d.Tipo,   o => o.MapFrom(s => Enum.Parse<TipoGasto>(s.Tipo)));
     }
 }
