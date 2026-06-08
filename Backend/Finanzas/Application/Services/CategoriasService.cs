@@ -24,7 +24,7 @@ public class CategoriasService(ICategoriasRepository repo, IMapper mapper)
         return _mapper.Map<CategoriaDto>(creada);
     }
 
-    public async Task<CategoriaDto?> UpdateAsync(Guid id, CrearCategoriaDto dto, Guid userId)
+    public async Task<CategoriaDto?> UpdateAsync(Guid id, EditarCategoriaDto dto, Guid userId)
     {
         var existente = await _repo.GetByIdAsync(id, userId);
         if (existente is null) return null;

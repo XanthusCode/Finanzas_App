@@ -21,7 +21,7 @@
 import type { Gasto } from '@/types'
 
 defineProps<{ gasto: Gasto }>()
-const emit = defineEmits<{ delete: [id: number], edit: [gasto: Gasto] }>()
+const emit = defineEmits<{ delete: [id: string], edit: [gasto: Gasto] }>()
 
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-CO')
 </script>

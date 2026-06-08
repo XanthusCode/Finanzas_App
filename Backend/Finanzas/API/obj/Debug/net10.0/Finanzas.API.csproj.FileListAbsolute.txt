@@ -54,3 +54,7 @@ C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_A
 C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.dll
 C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\bin\Debug\net10.0\System.IdentityModel.Tokens.Jwt.dll
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\bin\Debug\net10.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\Johan\Documents\Programación\Programación\SeparateProjects\Finanzas_App\Backend\Finanzas\API\bin\Debug\net10.0\Swashbuckle.AspNetCore.SwaggerUI.dll

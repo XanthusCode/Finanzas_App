@@ -17,13 +17,6 @@
             <label>Nombre</label>
             <input v-model="form.nombre" class="input" placeholder="ej. Servicios" required />
           </div>
-          <div class="field">
-            <label>Tipo</label>
-            <select v-model="form.tipo" class="input">
-              <option value="FIJO">Fijo</option>
-              <option value="VARIABLE">Variable</option>
-            </select>
-          </div>
           <div class="field" style="justify-content: flex-end; padding-bottom: 0;">
             <label style="opacity: 0">.</label>
             <div style="display: flex; gap: 0.5rem;">
@@ -39,12 +32,16 @@
 
     <div v-if="store.loading" class="empty">Cargando...</div>
 
-    <template v-else-if="store.categoriasFijas.length + store.categoriasVariables.length > 0">
+    <template v-else>
       <!-- Fijas -->
       <div class="card" style="margin-bottom: 0.75rem;">
         <p class="card-title">Gastos fijos</p>
         <div v-if="store.categoriasFijas.length === 0" class="empty">
           Sin categorías fijas — crea una arriba
+
+          <div class="field" style="justify-content: flex-end; padding-bottom: 0;">
+            <button class="btn btn-primary" @click="abrirForm(undefined, 'FIJO')">+ Nueva categoría</button>
+          </div>
         </div>
         <div v-for="cat in store.categoriasFijas" :key="cat.id" class="cat-row">
           <div class="cat-info">
@@ -56,6 +53,10 @@
             <button class="icon-btn danger" title="Eliminar" @click="onDelete(cat.id!)">✕</button>
           </div>
         </div>
+
+         <div class="field" style="justify-content: flex-end; padding-bottom: 0;">
+            <button class="btn btn-primary" @click="abrirForm(undefined, 'FIJO')">+ Nueva categoría</button>
+          </div>
       </div>
 
       <!-- Variables -->
@@ -63,6 +64,10 @@
         <p class="card-title">Gastos variables</p>
         <div v-if="store.categoriasVariables.length === 0" class="empty">
           Sin categorías variables — crea una arriba
+
+          <div class="field" style="justify-content: flex-end; padding-bottom: 0;">
+             <button class="btn btn-primary" @click="abrirForm(undefined, 'VARIABLE')">+ Nueva categoría</button>
+          </div>
         </div>
         <div v-for="cat in store.categoriasVariables" :key="cat.id" class="cat-row">
           <div class="cat-info">
@@ -74,11 +79,11 @@
             <button class="icon-btn danger" title="Eliminar" @click="onDelete(cat.id!)">✕</button>
           </div>
         </div>
-      </div>
-    </template>
 
-    <template v-else>
-        <div class="empty">No hay categorías creadas aún. ¡Crea una usando el botón de arriba!</div>
+         <div class="field" style="justify-content: flex-end; padding-bottom: 0;">
+            <button class="btn btn-primary" @click="abrirForm(undefined, 'VARIABLE')">+ Nueva categoría</button>
+          </div>
+      </div>
     </template>
 
     <ConfirmModal
@@ -102,16 +107,17 @@ const showForm    = ref(false)
 const saving      = ref(false)
 const editando    = ref<Categoria | null>(null)
 const showConfirm = ref(false)
-const pendingId   = ref<number | null>(null)
+const pendingId   = ref<string | null>(null)
 
 const form = reactive({ nombre: '', tipo: 'FIJO' as 'FIJO' | 'VARIABLE' })
 
-function abrirForm(cat?: Categoria) {
+function abrirForm(cat?: Categoria, tipo?: 'FIJO' | 'VARIABLE') {
   editando.value = cat ?? null
   form.nombre    = cat?.nombre ?? ''
-  form.tipo      = cat?.tipo   ?? 'FIJO'
+  form.tipo      = cat?.tipo ?? tipo ?? 'FIJO'
   showForm.value = true
 }
+
 
 function cancelar() {
   showForm.value = false
@@ -131,7 +137,7 @@ async function guardar() {
   editando.value = null
 }
 
-function onDelete(id: number) {
+function onDelete(id: string) {
   pendingId.value   = id
   showConfirm.value = true
 }

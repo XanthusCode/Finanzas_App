@@ -81,7 +81,7 @@ const store = useFinanceStore()
 const showForm = ref(false)
 const saving = ref(false)
 const showConfirm = ref(false)
-const pendingDeleteId = ref<number | null>(null)
+const pendingDeleteId = ref<string | null>(null)
 const editando = ref<Gasto | null>(null)
 
 const totalFijos = computed(() => store.gastosFijos.reduce((s, g) => s + g.monto, 0))
@@ -104,7 +104,7 @@ function cerrarForm() {
   editando.value = null
 }
 
-function onDelete(id: number) {
+function onDelete(id: string) {
   pendingDeleteId.value = id
   showConfirm.value = true
 }

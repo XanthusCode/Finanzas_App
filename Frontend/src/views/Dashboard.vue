@@ -217,7 +217,6 @@ function countUp(to: number, durationMs: number, delayMs: number, onUpdate: (v: 
 
 watch(() => store.resumen, async (val) => {
   if (!val) return
-  await nextTick()
 
   Object.assign(counters, { ingresos: 0, fijos: 0, variables: 0, ahorro: 0 })
   Object.assign(pcts,     { fijos: 0, variables: 0, ahorro: 0 })
@@ -235,11 +234,10 @@ watch(() => store.resumen, async (val) => {
 
   // 2. Number counters (custom rAF — no Motion types conflict)
   const total = val.totalIngresos
-  countUp(val.totalIngresos,             1100,   0, v => { counters.ingresos  = v })
-  countUp(val.totalFijos,                1100, 100, v => { counters.fijos     = v })
-  countUp(val.totalVariables,            1100, 150, v => { counters.variables = v })
-  countUp(val.ahorro,                    1100, 200, v => { counters.ahorro    = v })
-  countUp(store.resumenAnual?.ahorro ?? 0, 1300, 300, v => { counters.ahorroAnual = v })
+  countUp(val.totalIngresos,  1100,   0, v => { counters.ingresos  = v })
+  countUp(val.totalFijos,     1100, 100, v => { counters.fijos     = v })
+  countUp(val.totalVariables, 1100, 150, v => { counters.variables = v })
+  countUp(val.ahorro,         1100, 200, v => { counters.ahorro    = v })
 
   // 3. KPI mini-bar pct counters
   countUp(pct(val.totalFijos,     total), 1000, 200, v => { pcts.fijos     = v })
@@ -251,12 +249,7 @@ watch(() => store.resumen, async (val) => {
     animate(bannerRef.value, { opacity: [0, 1], x: [-24, 0] } as any, { duration: 0.45, delay: 0.28, ease: 'easeOut' })
   }
 
-  // 5. Annual progress bar — CSS transition driven by reactive ref
-  setTimeout(() => {
-    progressWidth.value = Math.min(store.resumenAnual?.pctAhorro ?? 0, 100)
-  }, 500)
-
-  // 6. Bottom grid cards stagger with manual delay offset
+  // 5. Bottom grid cards stagger with manual delay offset
   if (bottomRef.value) {
     animate(
       Array.from(bottomRef.value.querySelectorAll(':scope > .card')),
@@ -265,7 +258,7 @@ watch(() => store.resumen, async (val) => {
     )
   }
 
-  // 7. Expense rows stagger
+  // 6. Expense rows stagger
   if (bottomRef.value) {
     animate(
       Array.from(bottomRef.value.querySelectorAll('.expense-row')),
@@ -273,7 +266,13 @@ watch(() => store.resumen, async (val) => {
       { delay: (i: number) => 0.65 + i * 0.035, duration: 0.22, ease: 'easeOut' }
     )
   }
-}, { immediate: true })
+}, { flush: 'post' })
+
+watch(() => store.resumenAnual, (val) => {
+  if (!val) return
+  countUp(val.ahorro, 1300, 0, v => { counters.ahorroAnual = v })
+  setTimeout(() => { progressWidth.value = Math.min(val.pctAhorro ?? 0, 100) }, 500)
+}, { flush: 'post' })
 
 const fmt     = (n?: number) => n != null ? '$' + Math.round(n).toLocaleString('es-CO') : '$0'
 const fmtAnim = (n: number)  => '$' + Math.round(n).toLocaleString('es-CO')

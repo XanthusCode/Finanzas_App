@@ -35,7 +35,8 @@ export const useFinanceStore = defineStore('finance', () => {
     const idx = categorias.value.findIndex(c => c.id === id)
     if (idx !== -1) categorias.value[idx] = data
   }
- 
+
+
   async function eliminarCategoria(id: string) {
     await categoriasService.delete(id)
     categorias.value = categorias.value.filter(c => c.id !== id)
@@ -106,13 +107,20 @@ export const useFinanceStore = defineStore('finance', () => {
     await cargarResumen()
   }
 
-  async function agregarIngreso(ingreso: Omit<Ingreso, 'id'>) {
+  async function agregarIngreso(ingreso: Pick<Ingreso, 'concepto' | 'monto'>) {
     const { data } = await ingresosService.create({
       ...ingreso,
       mes: mesActual.value,
       anio: anioActual.value
     })
     ingresos.value.push(data)
+    await cargarResumen()
+  }
+
+  async function editarIngreso(id: string, ingreso: Pick<Ingreso, 'concepto' | 'monto'>) {
+    const { data } = await ingresosService.update(id, { ...ingreso, id, mes: mesActual.value, anio: anioActual.value })
+    const idx = ingresos.value.findIndex(i => i.id === id)
+    if (idx !== -1) ingresos.value[idx] = data
     await cargarResumen()
   }
 
@@ -147,6 +155,6 @@ export const useFinanceStore = defineStore('finance', () => {
     actualizarCategoria, eliminarCategoria,
     resumenAnual, cargarResumenAnual,
     cargarDatos, agregarGasto, editarGasto, eliminarGasto,
-    agregarIngreso, eliminarIngreso, cambiarMes
+    agregarIngreso, editarIngreso, eliminarIngreso, cambiarMes
   }
 })

@@ -75,7 +75,7 @@ function submit() {
   errors.value = {}
   const result = gastoSchema.safeParse(form.value)
   if (!result.success) {
-    result.error.errors.forEach(e => {
+    result.error.issues.forEach(e => {
       const field = e.path[0] as 'categoria' | 'detalle' | 'monto'
       errors.value[field] = e.message
     })
