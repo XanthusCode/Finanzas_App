@@ -1,14 +1,13 @@
 <template>
   <div class="user-menu" ref="menuRef">
-    <button class="avatar-btn" @click="toggleDropdown" :title="auth.user?.nombre">
+    <button class="avatar-btn" @click="toggleDropdown" :title="userFromToken(auth.token ?? '')?.nombre">
       <span class="avatar-initials">{{ initials }}</span>
     </button>
 
     <Transition name="dropdown">
       <div v-if="open" class="dropdown">
         <div class="dropdown-header">
-          <span class="dropdown-name">{{ auth.user?.nombre }}</span>
-          <span class="dropdown-email">{{ auth.user?.email }}</span>
+          <span class="dropdown-name">{{ userFromToken(auth.token ?? '')?.nombre }}</span>
         </div>
         <div class="dropdown-divider" />
         <button class="dropdown-item" @click="openChangePassword">
@@ -98,6 +97,7 @@ import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { z } from 'zod'
+import { userFromToken } from '@/utils/index'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -112,7 +112,7 @@ const form = reactive({ current: '', next: '', confirm: '' })
 const errors = reactive({ current: '', next: '', confirm: '' })
 
 const initials = computed(() => {
-  const name = auth.user?.nombre ?? ''
+  const name = userFromToken(auth.token ?? '')?.nombre ?? ''
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 })
 

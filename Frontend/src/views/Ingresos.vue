@@ -7,14 +7,14 @@
       </div>
       <div style="display: flex; align-items: center; gap: 0.75rem;">
         <MonthSelector :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
-        <button class="btn btn-primary" @click="showForm = !showForm">
+        <button class="btn btn-primary" :disabled="!!editando" @click="showForm ? cerrarForm() : abrirForm()">
           {{ showForm ? '✕ Cancelar' : '+ Agregar' }}
         </button>
       </div>
     </div>
 
     <!-- Formulario -->
-    <div v-if="showForm" class="card" style="margin-bottom: 1rem;">
+    <div v-if="showForm && !editando" class="card" style="margin-bottom: 1rem;">
       <form class="ingreso-form" @submit.prevent="onSubmit">
         <div class="form-row">
           <div class="field" style="flex: 2">
@@ -31,7 +31,7 @@
         <div class="form-actions">
           <button type="button" class="btn" @click="cerrarForm">Cancelar</button>
           <button type="submit" class="btn btn-primary" :disabled="saving">
-            {{ saving ? 'Guardando...' : 'Actualizar' }}
+            Guardar
           </button>
         </div>
       </form>
@@ -47,16 +47,24 @@
             {{ fmt(total) }}
           </span>
         </div>
-        <div v-for="i in store.ingresos" :key="i.id" class="ingreso-row">
-          <div>
-            <div class="row-name">{{ i.concepto }}</div>
+        <template v-for="i in store.ingresos" :key="i.id">
+          <div v-if="editando?.id === i.id" class="inline-form-row">
+            <input v-model="form.concepto" class="input input-inline" @keydown.enter.prevent="onSubmit" @keydown.escape="cerrarForm" autofocus />
+            <CurrencyInput v-model="form.monto" class="input input-inline" style="max-width: 140px" />
+            <button class="btn btn-sm" @click="cerrarForm">Cancelar</button>
+            <button class="btn btn-primary btn-sm" :disabled="saving" @click="onSubmit">{{ saving ? '...' : 'Guardar' }}</button>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span class="row-monto">{{ fmt(i.monto) }}</span>
-             <button class="icon-btn" title="Editar" @click="abrirForm(i)">✎</button>
-            <button class="icon-btn danger" @click="onDelete(i.id!)">&#10005;</button>
+          <div v-else class="ingreso-row">
+            <div>
+              <div class="row-name">{{ i.concepto }}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span class="row-monto">{{ fmt(i.monto) }}</span>
+              <button class="icon-btn" title="Editar" @click="abrirForm(i)">✎</button>
+              <button class="icon-btn danger" @click="onDelete(i.id!)">&#10005;</button>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
     </template>
 
@@ -116,17 +124,18 @@ async function onSubmit() {
 }
 
 function abrirForm(ingreso?: Ingreso) {
-  editando.value = ingreso ?? null
-  form.concepto    = ingreso?.concepto ?? ''
-  form.monto      = ingreso?.monto   ?? 0
-  showForm.value = true
+  editando.value  = ingreso ?? null
+  form.concepto   = ingreso?.concepto ?? ''
+  form.monto      = ingreso?.monto    ?? 0
+  showForm.value  = ingreso == null   // solo abre el form de arriba al crear
 }
 
 function cerrarForm() {
   showForm.value = false
-  form.concepto = ''
-  form.monto = 0
-  errors.value = {}
+  editando.value = null
+  form.concepto  = ''
+  form.monto     = 0
+  errors.value   = {}
 }
 
 function onDelete(id: string) {
@@ -163,4 +172,7 @@ onMounted(() => store.cargarDatos())
 .icon-btn:hover       { color: var(--accent); background: rgba(99,179,255,0.08); }
 .icon-btn.danger:hover { color: var(--red);   background: rgba(248,113,113,0.08); }
 .empty { font-size: 0.72rem; color: var(--text-muted); padding: 1rem 0; text-align: center; }
+.inline-form-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+.input-inline { flex: 1; height: 30px; font-size: 0.78rem; padding: 0 0.6rem; }
+.btn-sm { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
 </style>
