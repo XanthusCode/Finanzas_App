@@ -5,29 +5,6 @@
         <div class="section-label">Configuracion</div>
         <h1 class="page-title">Categorías</h1>
       </div>
-      <button class="btn btn-primary" @click="abrirForm()">+ Nueva categoría</button>
-    </div>
-
-    <!-- Formulario inline -->
-    <div v-if="showForm" class="card form-card">
-      <p class="card-title">{{ editando ? 'Editar categoría' : 'Nueva categoría' }}</p>
-      <form class="cat-form" @submit.prevent="guardar">
-        <div class="form-row">
-          <div class="field" style="flex: 2">
-            <label>Nombre</label>
-            <input v-model="form.nombre" class="input" placeholder="ej. Servicios" required />
-          </div>
-          <div class="field" style="justify-content: flex-end; padding-bottom: 0;">
-            <label style="opacity: 0">.</label>
-            <div style="display: flex; gap: 0.5rem;">
-              <button type="button" class="btn" @click="cancelar">Cancelar</button>
-              <button type="submit" class="btn btn-primary" :disabled="saving">
-                {{ saving ? 'Guardando...' : 'Guardar' }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </form>
     </div>
 
     <div v-if="store.loading" class="empty">Cargando...</div>
@@ -36,53 +13,75 @@
       <!-- Fijas -->
       <div class="card" style="margin-bottom: 0.75rem;">
         <p class="card-title">Gastos fijos</p>
-        <div v-if="store.categoriasFijas.length === 0" class="empty">
-          Sin categorías fijas — crea una arriba
 
-          <div class="field" style="justify-content: flex-end; padding-bottom: 0;">
-            <button class="btn btn-primary" @click="abrirForm(undefined, 'FIJO')">+ Nueva categoría</button>
-          </div>
+        <div v-if="store.categoriasFijas.length === 0 && !(showForm && form.tipo === 'FIJO')" class="empty">
+          Sin categorías fijas
         </div>
-        <div v-for="cat in store.categoriasFijas" :key="cat.id" class="cat-row">
-          <div class="cat-info">
+
+        <template v-for="cat in store.categoriasFijas" :key="cat.id">
+          <div v-if="editando?.id === cat.id" class="inline-form-row">
             <span class="tag tag-red">Fijo</span>
-            <span class="cat-name">{{ cat.nombre }}</span>
+            <input v-model="form.nombre" class="input input-inline" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
+            <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
+            <button class="btn btn-sm" @click="cancelar">Cancelar</button>
           </div>
-          <div class="cat-actions">
-            <button class="icon-btn" title="Editar" @click="abrirForm(cat)">✎</button>
-            <button class="icon-btn danger" title="Eliminar" @click="onDelete(cat.id!)">✕</button>
+          <div v-else class="cat-row">
+            <div class="cat-info">
+              <span class="tag tag-red">Fijo</span>
+              <span class="cat-name">{{ cat.nombre }}</span>
+            </div>
+            <div class="cat-actions">
+              <button class="icon-btn" title="Editar" @click="abrirForm(cat)">✎</button>
+              <button class="icon-btn danger" title="Eliminar" @click="onDelete(cat.id!)">✕</button>
+            </div>
           </div>
+        </template>
+
+        <div v-if="showForm && form.tipo === 'FIJO' && !editando" class="inline-form-row">
+          <span class="tag tag-red">Fijo</span>
+          <input v-model="form.nombre" class="input input-inline" placeholder="Nombre de la categoría" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
+          <button class="btn btn-sm" @click="cancelar">Cancelar</button>
+          <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
         </div>
 
-         <div class="field" style="justify-content: flex-end; padding-bottom: 0;">
-            <button class="btn btn-primary" @click="abrirForm(undefined, 'FIJO')">+ Nueva categoría</button>
-          </div>
+        <button v-if="!(showForm && form.tipo === 'FIJO')" class="btn-add" @click="abrirForm(undefined, 'FIJO')">+ Nueva categoría</button>
       </div>
 
       <!-- Variables -->
       <div class="card">
         <p class="card-title">Gastos variables</p>
-        <div v-if="store.categoriasVariables.length === 0" class="empty">
-          Sin categorías variables — crea una arriba
 
-          <div class="field" style="justify-content: flex-end; padding-bottom: 0;">
-             <button class="btn btn-primary" @click="abrirForm(undefined, 'VARIABLE')">+ Nueva categoría</button>
-          </div>
+        <div v-if="store.categoriasVariables.length === 0 && !(showForm && form.tipo === 'VARIABLE')" class="empty">
+          Sin categorías variables
         </div>
-        <div v-for="cat in store.categoriasVariables" :key="cat.id" class="cat-row">
-          <div class="cat-info">
+
+        <template v-for="cat in store.categoriasVariables" :key="cat.id">
+          <div v-if="editando?.id === cat.id" class="inline-form-row">
             <span class="tag tag-amber">Variable</span>
-            <span class="cat-name">{{ cat.nombre }}</span>
+            <input v-model="form.nombre" class="input input-inline" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
+            <button class="btn btn-sm" @click="cancelar">Cancelar</button>
+            <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
           </div>
-          <div class="cat-actions">
-            <button class="icon-btn" title="Editar" @click="abrirForm(cat)">✎</button>
-            <button class="icon-btn danger" title="Eliminar" @click="onDelete(cat.id!)">✕</button>
+          <div v-else class="cat-row">
+            <div class="cat-info">
+              <span class="tag tag-amber">Variable</span>
+              <span class="cat-name">{{ cat.nombre }}</span>
+            </div>
+            <div class="cat-actions">
+              <button class="icon-btn" title="Editar" @click="abrirForm(cat)">✎</button>
+              <button class="icon-btn danger" title="Eliminar" @click="onDelete(cat.id!)">✕</button>
+            </div>
           </div>
+        </template>
+
+        <div v-if="showForm && form.tipo === 'VARIABLE' && !editando" class="inline-form-row">
+          <span class="tag tag-amber">Variable</span>
+          <input v-model="form.nombre" class="input input-inline" placeholder="Nombre de la categoría" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
+          <button class="btn btn-sm" @click="cancelar">Cancelar</button>
+          <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
         </div>
 
-         <div class="field" style="justify-content: flex-end; padding-bottom: 0;">
-            <button class="btn btn-primary" @click="abrirForm(undefined, 'VARIABLE')">+ Nueva categoría</button>
-          </div>
+        <button v-if="!(showForm && form.tipo === 'VARIABLE')" class="btn-add" @click="abrirForm(undefined, 'VARIABLE')">+ Nueva categoría</button>
       </div>
     </template>
 
@@ -118,23 +117,25 @@ function abrirForm(cat?: Categoria, tipo?: 'FIJO' | 'VARIABLE') {
   showForm.value = true
 }
 
-
 function cancelar() {
   showForm.value = false
   editando.value = null
+  form.nombre    = ''
 }
 
 async function guardar() {
+  if (!form.nombre.trim()) return
   saving.value = true
-  const payload = { nombre: form.nombre, tipo: form.tipo, activa: true }
+  const payload = { nombre: form.nombre.trim(), tipo: form.tipo, activa: true }
   if (editando.value?.id) {
     await store.actualizarCategoria(editando.value.id, payload)
   } else {
     await store.agregarCategoria(payload)
   }
-  saving.value  = false
+  saving.value   = false
   showForm.value = false
   editando.value = null
+  form.nombre    = ''
 }
 
 function onDelete(id: string) {
@@ -156,17 +157,44 @@ onMounted(() => store.cargarCategorias())
 .page-header  { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
 .page-title   { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.25rem; }
 .card-title   { font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.75rem; }
-.form-card    { margin-bottom: 1rem; }
-.cat-form     { display: flex; flex-direction: column; gap: 0.5rem; }
-.form-row     { display: flex; gap: 0.75rem; align-items: flex-start; }
-.field        { display: flex; flex-direction: column; flex: 1; }
+
 .cat-row      { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--border); }
-.cat-row:last-child { border-bottom: none; }
+.cat-row:last-of-type { border-bottom: none; }
 .cat-info     { display: flex; align-items: center; gap: 0.75rem; }
 .cat-name     { font-size: 0.82rem; color: var(--text-primary); }
 .cat-actions  { display: flex; gap: 0.35rem; }
+
+.inline-form-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.input-inline {
+  flex: 1;
+  height: 30px;
+  font-size: 0.78rem;
+  padding: 0 0.6rem;
+}
+.btn-sm { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
+
+.btn-add {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.72rem;
+  text-align: right;
+  padding: 1rem 0 0.1rem;
+  transition: color 0.2s;
+}
+.btn-add:hover { color: var(--accent); }
+
 .icon-btn     { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; padding: 3px 6px; border-radius: 3px; transition: all 0.2s; }
 .icon-btn:hover       { color: var(--accent); background: rgba(99,179,255,0.08); }
 .icon-btn.danger:hover { color: var(--red);   background: rgba(248,113,113,0.08); }
-.empty        { font-size: 0.72rem; color: var(--text-muted); padding: 1rem 0; text-align: center; gap: 0.25rem; }
+.empty { font-size: 0.72rem; color: var(--text-muted); padding: 1rem 0; text-align: center; }
 </style>

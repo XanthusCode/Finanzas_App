@@ -15,28 +15,20 @@ interface AuthResponse {
 }
 
 const TOKEN_KEY = 'finanzas_token'
-const USER_KEY  = 'finanzas_user'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem(TOKEN_KEY))
-  const user  = ref<AuthUser | null>(
-    JSON.parse(localStorage.getItem(USER_KEY) ?? 'null')
-  )
 
   const isAuthenticated = computed(() => !!token.value)
 
   function setSession(data: AuthResponse) {
     token.value = data.token
-    user.value  = { email: data.email, nombre: data.nombre }
     localStorage.setItem(TOKEN_KEY, data.token)
-    localStorage.setItem(USER_KEY, JSON.stringify(user.value))
   }
 
   function clearSession() {
     token.value = null
-    user.value  = null
     localStorage.removeItem(TOKEN_KEY)
-    localStorage.removeItem(USER_KEY)
   }
 
   async function login(email: string, password: string): Promise<string | null> {
@@ -72,5 +64,5 @@ export const useAuthStore = defineStore('auth', () => {
     clearSession()
   }
 
-  return { token, user, isAuthenticated, login, register, changePassword, logout }
+  return { token, isAuthenticated, login, register, changePassword, logout }
 })
