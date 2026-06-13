@@ -1,7 +1,7 @@
 <template>
   <form class="gasto-form" @submit.prevent="submit">
     <div class="form-row">
-      <div class="field">
+      <div v-if="!tipoForzado" class="field">
         <label>Tipo</label>
         <select v-model="form.tipo" class="input" @change="form.categoria = ''">
           <option value="FIJO">Fijo</option>
@@ -34,10 +34,15 @@
       </div>
     </div>
 
+    <label class="recurrente-label">
+      <input type="checkbox" v-model="form.esRecurrente" class="recurrente-check" />
+      <span>Gasto recurrente (se copia automáticamente cada mes)</span>
+    </label>
+
     <div class="form-actions">
       <button type="button" class="btn" @click="emit('cancel')">Cancelar</button>
       <button type="submit" class="btn btn-primary" :disabled="loading">
-        {{ loading ? 'Guardando...' : (isEdit ? 'Guardar cambios' : 'Agregar gasto') }}
+        {{ loading ? 'Guardando...' : (isEdit ? 'Guardar' : 'Agregar gasto') }}
       </button>
     </div>
   </form>
@@ -50,17 +55,18 @@ import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import type { Gasto } from '@/types'
 import { gastoSchema } from '@/schemas'
 
-const props = defineProps<{ gasto?: Gasto; loading?: boolean }>()
+const props = defineProps<{ gasto?: Gasto; loading?: boolean; tipoForzado?: 'FIJO' | 'VARIABLE' }>()
 const emit  = defineEmits<{ submit: [gasto: Omit<Gasto, 'id'>]; cancel: [] }>()
 
 const store = useFinanceStore()
 const isEdit = computed(() => !!props.gasto)
 
 const form = ref({
-  tipo:      props.gasto?.tipo      ?? 'FIJO' as 'FIJO' | 'VARIABLE',
-  categoria: props.gasto?.categoria ?? '',
-  detalle:   props.gasto?.detalle   ?? '',
-  monto:     props.gasto?.monto     ?? 0,
+  tipo:         props.gasto?.tipo         ?? props.tipoForzado ?? 'FIJO' as 'FIJO' | 'VARIABLE',
+  categoria:    props.gasto?.categoria    ?? '',
+  detalle:      props.gasto?.detalle      ?? '',
+  monto:        props.gasto?.monto        ?? 0,
+  esRecurrente: props.gasto?.esRecurrente ?? false,
 })
 
 const errors = ref<Partial<Record<'categoria' | 'detalle' | 'monto', string>>>({})
@@ -94,4 +100,15 @@ function submit() {
 .hint a      { color: var(--accent); text-decoration: none; }
 .field-error { font-size: 0.65rem; color: var(--red); margin-top: 0.2rem; }
 .input-error { border-color: var(--red) !important; }
+
+.recurrente-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+.recurrente-check { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
 </style>

@@ -17,6 +17,9 @@ dist/
 
 # Env
 .env
+.agents
+skills-lock.json
+CLAUDE.md
 .env.*
 !.env.example
 

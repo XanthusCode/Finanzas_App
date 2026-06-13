@@ -21,6 +21,11 @@ namespace Finanzas.Infrastructure.Repositories
                 .Where(g => g.Anio == anio && g.UserId == userId)
                 .ToListAsync();
 
+        public async Task<IEnumerable<Gasto>> GetRecurrentesAsync(int mes, int anio, Guid userId) =>
+            await _db.Gastos
+                .Where(g => g.Mes == mes && g.Anio == anio && g.UserId == userId && g.EsRecurrente)
+                .ToListAsync();
+
         public async Task<Gasto?> GetByIdAsync(Guid id, Guid userId) =>
             await _db.Gastos.FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
 

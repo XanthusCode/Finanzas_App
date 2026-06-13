@@ -6,6 +6,7 @@ namespace Finanzas.Application.Interfaces
     {
         Task<IEnumerable<Gasto>> GetByMesAsync(int mes, int anio, Guid userId);
         Task<IEnumerable<Gasto>> GetByAnioAsync(int anio, Guid userId);
+        Task<IEnumerable<Gasto>> GetRecurrentesAsync(int mes, int anio, Guid userId);
         Task<Gasto?> GetByIdAsync(Guid id, Guid userId);
         Task<Gasto> CreateAsync(Gasto gasto);
         Task<Gasto> UpdateAsync(Gasto gasto);

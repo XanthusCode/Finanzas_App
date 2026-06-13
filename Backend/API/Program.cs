@@ -20,6 +20,8 @@ builder.Services.AddScoped<IGastosRepository, GastosRepository>();
 builder.Services.AddScoped<IIngresosRepository, IngresosRepository>();
 builder.Services.AddScoped<ICategoriasRepository, CategoriasRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPresupuestosRepository, PresupuestosRepository>();
+builder.Services.AddScoped<IMetasRepository, MetasRepository>();
 
 // Servicios
 builder.Services.AddScoped<GastosService>();
@@ -27,6 +29,8 @@ builder.Services.AddScoped<IngresosService>();
 builder.Services.AddScoped<CategoriasService>();
 builder.Services.AddScoped<ResumenService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<PresupuestosService>();
+builder.Services.AddScoped<MetasService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());

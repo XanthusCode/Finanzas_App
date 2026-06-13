@@ -1,88 +1,71 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Gasto, Ingreso, Resumen, Categoria } from '@/types'
-import { gastosService, ingresosService, resumenService, categoriasService } from '@/services/api'
+import type { Gasto, Ingreso, Resumen, Categoria, Presupuesto, Meta } from '@/types'
+import { gastosService, ingresosService, resumenService, categoriasService, presupuestosService, metasService } from '@/services/api'
 
 export const useFinanceStore = defineStore('finance', () => {
-  const gastos = ref<Gasto[]>([])
-  const ingresos = ref<Ingreso[]>([])
-  const resumen = ref<Resumen | null>(null)
-  const loading = ref(false)
+  const gastos     = ref<Gasto[]>([])
+  const ingresos   = ref<Ingreso[]>([])
+  const resumen    = ref<Resumen | null>(null)
+  const loading    = ref(false)
   const categorias = ref<Categoria[]>([])
+  const presupuestos = ref<Presupuesto[]>([])
+  const metas      = ref<Meta[]>([])
+  const tendencia  = ref<Resumen[]>([])
 
-  const mesActual = ref(new Date().getMonth() + 1)
+  const mesActual  = ref(new Date().getMonth() + 1)
   const anioActual = ref(new Date().getFullYear())
   const resumenAnual = ref<Resumen | null>(null)
 
-  const gastosFijos = computed(() => gastos.value.filter(g => g.tipo === 'FIJO'))
+  const gastosFijos     = computed(() => gastos.value.filter(g => g.tipo === 'FIJO'))
   const gastosVariables = computed(() => gastos.value.filter(g => g.tipo === 'VARIABLE'))
   const categoriasFijas     = computed(() => categorias.value.filter(c => c.tipo === 'FIJO'    && c.activa))
   const categoriasVariables = computed(() => categorias.value.filter(c => c.tipo === 'VARIABLE' && c.activa))
- 
 
   async function cargarCategorias() {
     const { data } = await categoriasService.getAll()
     categorias.value = data
   }
- 
+
   async function agregarCategoria(cat: Omit<Categoria, 'id'>) {
     const { data } = await categoriasService.create(cat)
     categorias.value.push(data)
   }
- 
+
   async function actualizarCategoria(id: string, cat: Omit<Categoria, 'id'>) {
     const { data } = await categoriasService.update(id, cat)
     const idx = categorias.value.findIndex(c => c.id === id)
     if (idx !== -1) categorias.value[idx] = data
   }
 
-
   async function eliminarCategoria(id: string) {
     await categoriasService.delete(id)
     categorias.value = categorias.value.filter(c => c.id !== id)
   }
 
-  // async function cargarDatos() {
-  //   loading.value = true
-  //   try {
-  //     const [rGastos, rIngresos, rResumen] = await Promise.all([
-  //       gastosService.getAll(mesActual.value, anioActual.value),
-  //       ingresosService.getAll(mesActual.value, anioActual.value),
-  //       resumenService.get(mesActual.value, anioActual.value)
-  //     ])
-  //     gastos.value = rGastos.data
-  //     ingresos.value = rIngresos.data
-  //     resumen.value = rResumen.data
-  //   } catch (e) {
-  //     console.error('Error cargando datos:', e)
-  //   } finally {
-  //     loading.value = false
-  //   }
-  // }
-
-    async function cargarDatos() {
-      loading.value = true
-      gastos.value = []
+  async function cargarDatos() {
+    loading.value = true
+    gastos.value = []
+    ingresos.value = []
+    resumen.value = null
+    try {
+      const [rGastos, rIngresos, rResumen] = await Promise.all([
+        gastosService.getAll(mesActual.value, anioActual.value),
+        ingresosService.getAll(mesActual.value, anioActual.value),
+        resumenService.get(mesActual.value, anioActual.value)
+      ])
+      gastos.value   = rGastos.data
+      ingresos.value = rIngresos.data
+      resumen.value  = rResumen.data
+    } catch (e) {
+      console.error('Error cargando datos:', e)
+      gastos.value   = []
       ingresos.value = []
-      resumen.value = null
-      try {
-        const [rGastos, rIngresos, rResumen] = await Promise.all([
-          gastosService.getAll(mesActual.value, anioActual.value),
-          ingresosService.getAll(mesActual.value, anioActual.value),
-          resumenService.get(mesActual.value, anioActual.value)
-        ])
-        gastos.value = rGastos.data
-        ingresos.value = rIngresos.data
-        resumen.value = rResumen.data
-      } catch (e) {
-        console.error('Error cargando datos:', e)
-        gastos.value = []      // <-- agrega esto
-        ingresos.value = []    // <-- agrega esto
-        resumen.value = null   // <-- agrega esto
-      } finally {
-        loading.value = false
-      }
+      resumen.value  = null
+    } finally {
+      loading.value = false
     }
+  }
 
   async function agregarGasto(gasto: Omit<Gasto, 'id'>) {
     const { data } = await gastosService.create({
@@ -105,6 +88,13 @@ export const useFinanceStore = defineStore('finance', () => {
     await gastosService.delete(id)
     gastos.value = gastos.value.filter(g => g.id !== id)
     await cargarResumen()
+  }
+
+  async function copiarRecurrentes() {
+    const { data } = await gastosService.copiarRecurrentes(mesActual.value, anioActual.value)
+    gastos.value.push(...data)
+    await cargarResumen()
+    return data.length
   }
 
   async function agregarIngreso(ingreso: Pick<Ingreso, 'concepto' | 'monto'>) {
@@ -140,21 +130,68 @@ export const useFinanceStore = defineStore('finance', () => {
     resumenAnual.value = data
   }
 
+  async function cargarTendencia() {
+    const { data } = await resumenService.getTendencia(anioActual.value)
+    tendencia.value = data
+  }
+
   function cambiarMes(mes: number, anio: number) {
-    mesActual.value = mes
+    mesActual.value  = mes
     anioActual.value = anio
     cargarDatos()
+  }
+
+  // Presupuestos
+  async function cargarPresupuestos() {
+    const { data } = await presupuestosService.getAll()
+    presupuestos.value = data
+  }
+
+  async function guardarPresupuesto(categoria: string, limite: number) {
+    const { data } = await presupuestosService.upsert({ categoria, limite })
+    const idx = presupuestos.value.findIndex(p => p.categoria === categoria)
+    if (idx !== -1) presupuestos.value[idx] = data
+    else presupuestos.value.push(data)
+  }
+
+  async function eliminarPresupuesto(id: string) {
+    await presupuestosService.delete(id)
+    presupuestos.value = presupuestos.value.filter(p => p.id !== id)
+  }
+
+  // Metas
+  async function cargarMetas() {
+    const { data } = await metasService.getAll()
+    metas.value = data
+  }
+
+  async function crearMeta(meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite'>) {
+    const { data } = await metasService.create(meta)
+    metas.value.push(data)
+  }
+
+  async function abonarMeta(id: string, monto: number) {
+    const { data } = await metasService.abonar(id, monto)
+    const idx = metas.value.findIndex(m => m.id === id)
+    if (idx !== -1) metas.value[idx] = data
+  }
+
+  async function eliminarMeta(id: string) {
+    await metasService.delete(id)
+    metas.value = metas.value.filter(m => m.id !== id)
   }
 
   return {
     gastos, ingresos, resumen, loading,
     mesActual, anioActual,
     gastosFijos, gastosVariables,
-    categoriasFijas, categoriasVariables, 
-    cargarCategorias, agregarCategoria, 
-    actualizarCategoria, eliminarCategoria,
+    categorias, categoriasFijas, categoriasVariables,
+    cargarCategorias, agregarCategoria, actualizarCategoria, eliminarCategoria,
     resumenAnual, cargarResumenAnual,
-    cargarDatos, agregarGasto, editarGasto, eliminarGasto,
-    agregarIngreso, editarIngreso, eliminarIngreso, cambiarMes
+    tendencia, cargarTendencia,
+    cargarDatos, agregarGasto, editarGasto, eliminarGasto, copiarRecurrentes,
+    agregarIngreso, editarIngreso, eliminarIngreso, cambiarMes,
+    presupuestos, cargarPresupuestos, guardarPresupuesto, eliminarPresupuesto,
+    metas, cargarMetas, crearMeta, abonarMeta, eliminarMeta,
   }
 })

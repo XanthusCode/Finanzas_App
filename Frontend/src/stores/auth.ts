@@ -1,11 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
-
-interface AuthUser {
-  email: string
-  nombre: string
-}
+import { api, perfilService } from '@/services/api'
 
 interface AuthResponse {
   token: string
@@ -36,8 +32,9 @@ export const useAuthStore = defineStore('auth', () => {
       const { data } = await axios.post<AuthResponse>('/api/auth/login', { email, password })
       setSession(data)
       return null
-    } catch (err: any) {
-      return err?.response?.data?.message ?? 'Error al iniciar sesión'
+    } catch (err) {
+      if (axios.isAxiosError(err)) return err.response?.data?.message ?? 'Error al iniciar sesión'
+      return 'Error al iniciar sesión'
     }
   }
 
@@ -46,17 +43,30 @@ export const useAuthStore = defineStore('auth', () => {
       const { data } = await axios.post<AuthResponse>('/api/auth/register', { nombre, email, password })
       setSession(data)
       return null
-    } catch (err: any) {
-      return err?.response?.data?.message ?? 'Error al registrarse'
+    } catch (err) {
+      if (axios.isAxiosError(err)) return err.response?.data?.message ?? 'Error al registrarse'
+      return 'Error al registrarse'
     }
   }
 
   async function changePassword(currentPassword: string, newPassword: string): Promise<string | null> {
     try {
-      await axios.put('/api/auth/password', { currentPassword, newPassword })
+      await api.put('/auth/password', { currentPassword, newPassword })
       return null
-    } catch (err: any) {
-      return err?.response?.data?.message ?? 'Error al cambiar la contraseña'
+    } catch (err) {
+      if (axios.isAxiosError(err)) return err.response?.data?.message ?? 'Error al cambiar la contraseña'
+      return 'Error al cambiar la contraseña'
+    }
+  }
+
+  async function updateNombre(nombre: string): Promise<string | null> {
+    try {
+      const { data } = await perfilService.updateNombre(nombre)
+      setSession(data)
+      return null
+    } catch (err) {
+      if (axios.isAxiosError(err)) return err.response?.data?.message ?? 'Error al actualizar el perfil'
+      return 'Error al actualizar el perfil'
     }
   }
 
@@ -64,5 +74,5 @@ export const useAuthStore = defineStore('auth', () => {
     clearSession()
   }
 
-  return { token, isAuthenticated, login, register, changePassword, logout }
+  return { token, isAuthenticated, login, register, changePassword, updateNombre, logout }
 })

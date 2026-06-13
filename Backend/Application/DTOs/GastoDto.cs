@@ -9,6 +9,7 @@
         public string Tipo { get; set; } = string.Empty;
         public int Mes { get; set; }
         public int Anio { get; set; }
+        public bool EsRecurrente { get; set; }
     }
 
     public class CrearGastoDto
@@ -19,5 +20,6 @@
         public string Tipo { get; set; } = string.Empty;
         public int Mes { get; set; }
         public int Anio { get; set; }
+        public bool EsRecurrente { get; set; }
     }
 }

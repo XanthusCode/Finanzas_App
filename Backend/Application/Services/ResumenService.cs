@@ -16,6 +16,19 @@ public class ResumenService(IGastosRepository gastosRepo, IIngresosRepository in
         return Calcular(gastos, ingresos, 0, anio);
     }
 
+    public async Task<IEnumerable<ResumenDto>> GetTendenciaAsync(int anio, Guid userId)
+    {
+        var todosGastos   = await _gastosRepo.GetByAnioAsync(anio, userId);
+        var todosIngresos = await _ingresosRepo.GetByAnioAsync(anio, userId);
+
+        return Enumerable.Range(1, 12)
+            .Select(mes => Calcular(
+                todosGastos.Where(g => g.Mes == mes),
+                todosIngresos.Where(i => i.Mes == mes),
+                mes, anio))
+            .ToList();
+    }
+
     public async Task<ResumenDto> GetAsync(int mes, int anio, Guid userId)
     {
         var gastos   = await _gastosRepo.GetByMesAsync(mes, anio, userId);

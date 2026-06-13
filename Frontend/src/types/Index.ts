@@ -6,6 +6,7 @@ export interface Gasto {
   tipo: 'FIJO' | 'VARIABLE'
   mes: number
   anio: number
+  esRecurrente: boolean
 }
 
 export interface Ingreso {
@@ -32,4 +33,19 @@ export interface Categoria {
   nombre: string
   tipo: 'FIJO' | 'VARIABLE'
   activa: boolean
+}
+
+export interface Presupuesto {
+  id?: string
+  categoria: string
+  limite: number
+}
+
+export interface Meta {
+  id?: string
+  nombre: string
+  montoObjetivo: number
+  montoActual: number
+  fechaLimite?: string
+  completada: boolean
 }
