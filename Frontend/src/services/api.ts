@@ -1,9 +1,9 @@
 import axios from 'axios'
-import type { Gasto, Ingreso, Resumen, Categoria } from '@/types'
+import type { Gasto, Ingreso, Resumen, Categoria, Presupuesto, Meta } from '@/types'
 
 const TOKEN_KEY = 'finanzas_token'
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' }
 })
@@ -34,7 +34,9 @@ export const gastosService = {
   update: (id: string, gasto: Gasto) =>
     api.put<Gasto>(`/gastos/${id}`, gasto),
   delete: (id: string) =>
-    api.delete(`/gastos/${id}`)
+    api.delete(`/gastos/${id}`),
+  copiarRecurrentes: (mes: number, anio: number) =>
+    api.post<Gasto[]>(`/gastos/copiar-recurrentes?mes=${mes}&anio=${anio}`)
 }
 
 export const ingresosService = {
@@ -52,7 +54,9 @@ export const resumenService = {
   get: (mes: number, anio: number) =>
     api.get<Resumen>(`/resumen?mes=${mes}&anio=${anio}`),
   getAnual: (anio: number) =>
-    api.get<Resumen>(`/resumen/anual?anio=${anio}`)
+    api.get<Resumen>(`/resumen/anual?anio=${anio}`),
+  getTendencia: (anio: number) =>
+    api.get<Resumen[]>(`/resumen/tendencia?anio=${anio}`)
 }
 
 export const categoriasService = {
@@ -64,4 +68,31 @@ export const categoriasService = {
     api.put<Categoria>(`/categorias/${id}`, cat),
   delete: (id: string) =>
     api.delete(`/categorias/${id}`)
+}
+
+export const presupuestosService = {
+  getAll: () =>
+    api.get<Presupuesto[]>('/presupuestos'),
+  upsert: (presupuesto: Omit<Presupuesto, 'id'>) =>
+    api.put<Presupuesto>('/presupuestos', presupuesto),
+  delete: (id: string) =>
+    api.delete(`/presupuestos/${id}`)
+}
+
+export const metasService = {
+  getAll: () =>
+    api.get<Meta[]>('/metas'),
+  create: (meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite'>) =>
+    api.post<Meta>('/metas', meta),
+  abonar: (id: string, monto: number) =>
+    api.post<Meta>(`/metas/${id}/abonar`, { monto }),
+  delete: (id: string) =>
+    api.delete(`/metas/${id}`)
+}
+
+export const perfilService = {
+  updateNombre: (nombre: string) =>
+    api.put<{ token: string; email: string; nombre: string; expiresIn: number }>('/auth/perfil', { nombre }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.put('/auth/password', { currentPassword, newPassword })
 }

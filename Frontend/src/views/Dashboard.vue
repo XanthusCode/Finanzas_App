@@ -97,6 +97,12 @@
         </div>
       </div>
 
+      <!-- Tendencia del año -->
+      <div class="card" style="margin-bottom: 1rem">
+        <p class="card-title">Tendencia {{ store.anioActual }}</p>
+        <BarChart :labels="tendenciaLabels" :datasets="tendenciaDatasets" />
+      </div>
+
       <!-- 3 columnas: donut | fijos | variables -->
       <div ref="bottomRef" class="bottom-grid">
         <div class="card" style="opacity: 0">
@@ -160,11 +166,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, watch, nextTick, onMounted } from 'vue'
+import { computed, ref, reactive, watch, onMounted } from 'vue'
 import { animate, stagger } from 'motion'
 import { useFinanceStore } from '@/stores/finance'
 import MonthSelector from '@/components/common/MonthSelector.vue'
 import DonutChart from '@/components/charts/DonutChart.vue'
+import BarChart from '@/components/charts/BarChart.vue'
+
+const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
 
 const store = useFinanceStore()
 const resumen = computed(() => store.resumen)
@@ -278,7 +287,13 @@ const fmt     = (n?: number) => n != null ? '$' + Math.round(n).toLocaleString('
 const fmtAnim = (n: number)  => '$' + Math.round(n).toLocaleString('es-CO')
 const pct     = (a?: number, b?: number) => (a && b) ? Math.round(a / b * 100) : 0
 
-onMounted(() => { store.cargarDatos(); store.cargarResumenAnual() })
+const tendenciaLabels   = computed(() => MESES)
+const tendenciaDatasets = computed(() => [
+  { label: 'Ingresos', data: store.tendencia.map(r => r.totalIngresos), color: 'rgba(99,179,255,0.7)'  },
+  { label: 'Gastos',   data: store.tendencia.map(r => r.totalGastos),   color: 'rgba(248,113,113,0.7)' },
+])
+
+onMounted(() => { store.cargarDatos(); store.cargarResumenAnual(); store.cargarTendencia() })
 </script>
 
 <style scoped>

@@ -21,4 +21,11 @@ public class ResumenController(ResumenService service) : BaseController
         var resumen = await _service.GetAnualAsync(anio, UserId);
         return Ok(resumen);
     }
+
+    [HttpGet("tendencia")]
+    public async Task<IActionResult> GetTendencia([FromQuery] int anio)
+    {
+        var tendencia = await _service.GetTendenciaAsync(anio, UserId);
+        return Ok(tendencia);
+    }
 }

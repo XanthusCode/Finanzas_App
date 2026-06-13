@@ -5,7 +5,7 @@
       </div>
 
       <nav class="sidebar-nav">
-        <RouterLink to="/" class="nav-item" active-class="nav-item--active">
+        <RouterLink to="/dashboard" class="nav-item" active-class="nav-item--active">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
           Dashboard
         </RouterLink>
@@ -20,9 +20,24 @@
 
         <div class="nav-divider" />
 
+        <RouterLink to="/presupuesto" class="nav-item" active-class="nav-item--active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          Presupuesto
+        </RouterLink>
+        <RouterLink to="/metas" class="nav-item" active-class="nav-item--active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Metas
+        </RouterLink>
+
+        <div class="nav-divider" />
+
         <RouterLink to="/categorias" class="nav-item" active-class="nav-item--active">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 10h16M4 14h8M4 18h8"/></svg>
           Categorías
+        </RouterLink>
+        <RouterLink to="/perfil" class="nav-item" active-class="nav-item--active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Mi perfil
         </RouterLink>
       </nav>
 
@@ -73,15 +88,21 @@ const anio = new Date().getFullYear()
   align-items: center;
   gap: 0.65rem;
   padding: 0.6rem 0.75rem;
+  padding-left: calc(0.75rem - 2px);
+  border-left: 2px solid transparent;
   border-radius: 6px;
   font-size: 0.78rem;
   color: var(--text-secondary);
   text-decoration: none;
-  transition: all 0.2s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
   letter-spacing: 0.03em;
 }
 .nav-item:hover { background: var(--surface2); color: var(--text-primary); }
-.nav-item--active { background: rgba(99,179,255,0.1); color: var(--accent); }
+.nav-item--active {
+  background: rgba(99, 179, 255, 0.08);
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
 
 .nav-divider {
   height: 1px;
@@ -97,5 +118,4 @@ const anio = new Date().getFullYear()
   color: var(--text-muted);
   letter-spacing: 0.1em;
 }
-
 </style>

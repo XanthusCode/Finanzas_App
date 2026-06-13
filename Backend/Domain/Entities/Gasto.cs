@@ -10,6 +10,7 @@
         public int Mes { get; set; }
         public int Anio { get; set; }
         public Guid UserId { get; set; }
+        public bool EsRecurrente { get; set; }
         public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
     }
 

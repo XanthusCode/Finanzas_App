@@ -42,5 +42,31 @@ namespace Finanzas.Application.Services
             await _repo.DeleteAsync(id);
             return true;
         }
+
+        public async Task<IEnumerable<GastoDto>> CopiarRecurrentesAsync(int mes, int anio, Guid userId)
+        {
+            var mesPrevio  = mes == 1 ? 12 : mes - 1;
+            var anioPrevio = mes == 1 ? anio - 1 : anio;
+            var recurrentes = await _repo.GetRecurrentesAsync(mesPrevio, anioPrevio, userId);
+
+            var creados = new List<GastoDto>();
+            foreach (var r in recurrentes)
+            {
+                var nuevo = new Gasto
+                {
+                    Categoria    = r.Categoria,
+                    Detalle      = r.Detalle,
+                    Monto        = r.Monto,
+                    Tipo         = r.Tipo,
+                    Mes          = mes,
+                    Anio         = anio,
+                    EsRecurrente = true,
+                    UserId       = userId
+                };
+                var creado = await _repo.CreateAsync(nuevo);
+                creados.Add(_mapper.Map<GastoDto>(creado));
+            }
+            return creados;
+        }
     }
 }

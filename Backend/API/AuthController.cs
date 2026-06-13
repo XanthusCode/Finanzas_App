@@ -41,4 +41,18 @@ public class AuthController(AuthService authService) : ControllerBase
         if (!ok) return BadRequest(new { message = error });
         return NoContent();
     }
+
+    [Authorize]
+    [HttpPut("perfil")]
+    public async Task<IActionResult> UpdatePerfil([FromBody] UpdateNombreDto dto)
+    {
+        var userId = Guid.Parse(
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue("sub")
+            ?? Guid.Empty.ToString());
+
+        var (ok, error, data) = await _authService.UpdateNombreAsync(userId, dto);
+        if (!ok) return BadRequest(new { message = error });
+        return Ok(data);
+    }
 }

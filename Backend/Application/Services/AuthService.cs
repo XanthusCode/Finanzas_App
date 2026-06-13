@@ -47,6 +47,16 @@ namespace Finanzas.Application.Services
             return new AuthResponseDto(token, user.Email, user.Nombre, expiresIn);
         }
 
+        public async Task<(bool ok, string error, AuthResponseDto? data)> UpdateNombreAsync(Guid userId, UpdateNombreDto dto)
+        {
+            var user = await _userRepo.GetByIdAsync(userId);
+            if (user is null) return (false, "Usuario no encontrado.", null);
+
+            user.Nombre = dto.Nombre.Trim();
+            await _userRepo.UpdateAsync(user);
+            return (true, string.Empty, BuildResponse(user));
+        }
+
         public async Task<(bool ok, string error)> ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
         {
             var user = await _userRepo.GetByIdAsync(userId);

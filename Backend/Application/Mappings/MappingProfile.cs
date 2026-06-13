@@ -33,5 +33,13 @@ public class MappingProfile : Profile
             .ForMember(d => d.UserId, o => o.Ignore())
             .ForMember(d => d.Activa, o => o.Ignore())
             .ForMember(d => d.Tipo,   o => o.MapFrom(s => Enum.Parse<TipoGasto>(s.Tipo)));
+
+        // Presupuesto
+        CreateMap<Presupuesto, PresupuestoDto>();
+        CreateMap<CrearPresupuestoDto, Presupuesto>();
+
+        // Meta
+        CreateMap<Meta, MetaDto>();
+        CreateMap<CrearMetaDto, Meta>();
     }
 }
