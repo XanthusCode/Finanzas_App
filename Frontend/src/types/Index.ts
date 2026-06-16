@@ -10,6 +10,7 @@ export interface Gasto {
 }
 
 export interface Ingreso {
+  esRecurrente?: boolean
   id?: string
   concepto: string
   monto: number
@@ -39,6 +40,11 @@ export interface Presupuesto {
   id?: string
   categoria: string
   limite: number
+}
+
+export interface GastoCategoriaAnual {
+  categoria: string
+  datos: number[]
 }
 
 export interface Meta {

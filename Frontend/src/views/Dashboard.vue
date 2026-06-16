@@ -60,6 +60,25 @@
         </div>
       </div>
 
+      <!-- Alertas de presupuesto -->
+      <div v-if="alertasPresupuesto.length > 0" class="presupuesto-alerts">
+        <div
+          v-for="a in alertasPresupuesto"
+          :key="a.categoria"
+          class="presupuesto-alert"
+          :class="a.pct >= 100 ? 'alert-danger' : 'alert-warn'"
+        >
+          <div class="alert-top">
+            <span class="alert-cat">{{ a.categoria }}</span>
+            <span class="alert-pct">{{ a.pct }}%</span>
+          </div>
+          <div class="alert-bar-wrap">
+            <div class="alert-bar" :style="{ width: Math.min(a.pct, 100) + '%' }" />
+          </div>
+          <div class="alert-nums">{{ fmt(a.gastado) }} de {{ fmt(a.limite) }}</div>
+        </div>
+      </div>
+
       <!-- Ahorro anual banner -->
       <div ref="bannerRef" class="anual-banner" style="opacity: 0">
         <div class="anual-left">
@@ -101,6 +120,12 @@
       <div class="card" style="margin-bottom: 1rem">
         <p class="card-title">Tendencia {{ store.anioActual }}</p>
         <BarChart :labels="tendenciaLabels" :datasets="tendenciaDatasets" />
+      </div>
+
+      <!-- Gasto por categoría anual -->
+      <div v-if="categoriaDatasets.length > 0" class="card" style="margin-bottom: 1rem">
+        <p class="card-title">Gasto por categoría {{ store.anioActual }}</p>
+        <BarChart :labels="tendenciaLabels" :datasets="categoriaDatasets.map(d => ({ ...d, color: d.color || '#000' }))" />
       </div>
 
       <!-- 3 columnas: donut | fijos | variables -->
@@ -150,6 +175,24 @@
               <div class="expense-det">{{ g.detalle }}</div>
             </div>
             <div class="expense-amt">{{ fmt(g.monto) }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- Top categorías -->
+      <div v-if="topCategorias.length > 0" class="card" style="margin-top: 0.75rem">
+        <p class="card-title">Top categorías este mes</p>
+        <div class="top-cat-list">
+          <div v-for="(cat, i) in topCategorias" :key="cat.nombre" class="top-cat-row">
+            <div class="top-cat-left">
+              <span class="top-cat-rank">#{{ i + 1 }}</span>
+              <span class="top-cat-nombre">{{ cat.nombre }}</span>
+            </div>
+            <div class="top-cat-right">
+              <div class="top-cat-bar-wrap">
+                <div class="top-cat-bar" :style="{ width: (cat.total / maxCategoria * 100) + '%' }" />
+              </div>
+              <span class="top-cat-monto">{{ fmt(cat.total) }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -293,7 +336,56 @@ const tendenciaDatasets = computed(() => [
   { label: 'Gastos',   data: store.tendencia.map(r => r.totalGastos),   color: 'rgba(248,113,113,0.7)' },
 ])
 
-onMounted(() => { store.cargarDatos(); store.cargarResumenAnual(); store.cargarTendencia() })
+const topCategorias = computed(() => {
+  const map: Record<string, number> = {}
+  for (const g of store.gastos) {
+    map[g.categoria] = (map[g.categoria] ?? 0) + g.monto
+  }
+  return Object.entries(map)
+    .map(([nombre, total]) => ({ nombre, total }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5)
+})
+
+const maxCategoria = computed(() => topCategorias.value[0]?.total ?? 1)
+
+const alertasPresupuesto = computed(() =>
+  store.presupuestos
+    .map(p => {
+      const gastado = store.gastos
+        .filter(g => g.categoria === p.categoria)
+        .reduce((s, g) => s + g.monto, 0)
+      const pct = p.limite > 0 ? Math.round(gastado / p.limite * 100) : 0
+      return { categoria: p.categoria, gastado, limite: p.limite, pct }
+    })
+    .filter(a => a.pct >= 80)
+    .sort((a, b) => b.pct - a.pct)
+)
+
+const CAT_COLORS = [
+  'rgba(99,179,255,0.7)',
+  'rgba(248,113,113,0.7)',
+  'rgba(251,191,36,0.7)',
+  'rgba(52,211,153,0.7)',
+  'rgba(167,139,250,0.7)',
+  'rgba(251,146,60,0.7)',
+]
+
+const categoriaDatasets = computed(() =>
+  store.gastosPorCategoria.map((c, i) => ({
+    label: c.categoria,
+    data:  c.datos.map(Number),
+    color: CAT_COLORS[i % CAT_COLORS.length],
+  }))
+)
+
+onMounted(() => {
+  store.cargarDatos()
+  store.cargarResumenAnual()
+  store.cargarTendencia()
+  store.cargarPresupuestos()
+  store.cargarGastosPorCategoria()
+})
 </script>
 
 <style scoped>
@@ -406,4 +498,43 @@ onMounted(() => { store.cargarDatos(); store.cargarResumenAnual(); store.cargarT
 /* Empty states */
 .empty { font-size: 0.72rem; color: var(--text-muted); padding: 1rem 0; text-align: center; }
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 0; color: var(--text-secondary); font-size: 0.8rem; }
+
+/* Top categorías */
+.top-cat-list  { display: flex; flex-direction: column; gap: 0.55rem; }
+.top-cat-row   { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.top-cat-left  { display: flex; align-items: center; gap: 0.5rem; min-width: 160px; }
+.top-cat-rank  { font-size: 0.62rem; color: var(--text-muted); width: 18px; flex-shrink: 0; }
+.top-cat-nombre { font-size: 0.75rem; color: var(--text-primary); }
+.top-cat-right { display: flex; align-items: center; gap: 0.75rem; flex: 1; }
+.top-cat-bar-wrap { flex: 1; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+.top-cat-bar  { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
+.top-cat-monto { font-size: 0.72rem; color: var(--text-secondary); min-width: 80px; text-align: right; flex-shrink: 0; }
+
+/* Alertas de presupuesto */
+.presupuesto-alerts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.presupuesto-alert {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.presupuesto-alert.alert-warn   { border-left: 3px solid var(--amber); }
+.presupuesto-alert.alert-danger { border-left: 3px solid var(--red); }
+.alert-top  { display: flex; justify-content: space-between; align-items: center; }
+.alert-cat  { font-size: 0.72rem; color: var(--text-primary); font-weight: 500; }
+.alert-pct  { font-size: 0.65rem; font-weight: 700; }
+.alert-warn  .alert-pct { color: var(--amber); }
+.alert-danger .alert-pct { color: var(--red); }
+.alert-bar-wrap { height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+.alert-warn   .alert-bar { height: 100%; background: var(--amber); border-radius: 2px; }
+.alert-danger .alert-bar { height: 100%; background: var(--red);   border-radius: 2px; }
+.alert-nums { font-size: 0.62rem; color: var(--text-muted); }
 </style>

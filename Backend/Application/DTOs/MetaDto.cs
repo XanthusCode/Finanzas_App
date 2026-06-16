@@ -17,6 +17,13 @@ namespace Finanzas.Application.DTOs
         public DateTime? FechaLimite { get; set; }
     }
 
+    public class EditarMetaDto
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public decimal MontoObjetivo { get; set; }
+        public DateTime? FechaLimite { get; set; }
+    }
+
     public class AbonarMetaDto
     {
         public decimal Monto { get; set; }

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Gasto, Ingreso, Resumen, Categoria, Presupuesto, Meta } from '@/types'
+import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta } from '@/types'
 import { gastosService, ingresosService, resumenService, categoriasService, presupuestosService, metasService } from '@/services/api'
 
 export const useFinanceStore = defineStore('finance', () => {
@@ -12,10 +12,13 @@ export const useFinanceStore = defineStore('finance', () => {
   const presupuestos = ref<Presupuesto[]>([])
   const metas      = ref<Meta[]>([])
   const tendencia  = ref<Resumen[]>([])
+  const gastosPorCategoria = ref<GastoCategoriaAnual[]>([])
 
   const mesActual  = ref(new Date().getMonth() + 1)
   const anioActual = ref(new Date().getFullYear())
   const resumenAnual = ref<Resumen | null>(null)
+  const promptRecurrentes         = ref(false)
+  const promptIngresosRecurrentes = ref(false)
 
   const gastosFijos     = computed(() => gastos.value.filter(g => g.tipo === 'FIJO'))
   const gastosVariables = computed(() => gastos.value.filter(g => g.tipo === 'VARIABLE'))
@@ -90,10 +93,17 @@ export const useFinanceStore = defineStore('finance', () => {
     await cargarResumen()
   }
 
+  async function importarGastos(filas: Omit<Gasto, 'id' | 'mes' | 'anio'>[]) {
+    const { data } = await gastosService.importar(mesActual.value, anioActual.value, filas)
+    await cargarDatos()
+    return data.importados
+  }
+
   async function copiarRecurrentes() {
     const { data } = await gastosService.copiarRecurrentes(mesActual.value, anioActual.value)
     gastos.value.push(...data)
     await cargarResumen()
+    promptRecurrentes.value = false
     return data.length
   }
 
@@ -135,10 +145,44 @@ export const useFinanceStore = defineStore('finance', () => {
     tendencia.value = data
   }
 
+  async function cargarGastosPorCategoria() {
+    const { data } = await resumenService.getGastosPorCategoria(anioActual.value)
+    gastosPorCategoria.value = data
+  }
+
   function cambiarMes(mes: number, anio: number) {
-    mesActual.value  = mes
-    anioActual.value = anio
-    cargarDatos()
+    const anioAnterior = anioActual.value
+    mesActual.value       = mes
+    anioActual.value      = anio
+    promptRecurrentes.value         = false
+    promptIngresosRecurrentes.value = false
+    cargarDatos().then(() => {
+      if (gastos.value.length > 0 && !gastos.value.some(g => g.esRecurrente))
+        promptRecurrentes.value = true
+      if (ingresos.value.length > 0 && !ingresos.value.some(i => i.esRecurrente))
+        promptIngresosRecurrentes.value = true
+    })
+    if (anio !== anioAnterior) {
+      cargarResumenAnual()
+      cargarTendencia()
+      cargarGastosPorCategoria()
+    }
+  }
+
+  function descartarPromptRecurrentes() {
+    promptRecurrentes.value = false
+  }
+
+  async function copiarIngresosRecurrentes() {
+    const { data } = await ingresosService.copiarRecurrentes(mesActual.value, anioActual.value)
+    ingresos.value.push(...data)
+    await cargarResumen()
+    promptIngresosRecurrentes.value = false
+    return data.length
+  }
+
+  function descartarPromptIngresosRecurrentes() {
+    promptIngresosRecurrentes.value = false
   }
 
   // Presupuestos
@@ -170,6 +214,12 @@ export const useFinanceStore = defineStore('finance', () => {
     metas.value.push(data)
   }
 
+  async function editarMeta(id: string, meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite'>) {
+    const { data } = await metasService.update(id, meta)
+    const idx = metas.value.findIndex(m => m.id === id)
+    if (idx !== -1) metas.value[idx] = data
+  }
+
   async function abonarMeta(id: string, monto: number) {
     const { data } = await metasService.abonar(id, monto)
     const idx = metas.value.findIndex(m => m.id === id)
@@ -184,14 +234,17 @@ export const useFinanceStore = defineStore('finance', () => {
   return {
     gastos, ingresos, resumen, loading,
     mesActual, anioActual,
+    promptRecurrentes, descartarPromptRecurrentes,
+    promptIngresosRecurrentes, descartarPromptIngresosRecurrentes, copiarIngresosRecurrentes,
     gastosFijos, gastosVariables,
     categorias, categoriasFijas, categoriasVariables,
     cargarCategorias, agregarCategoria, actualizarCategoria, eliminarCategoria,
     resumenAnual, cargarResumenAnual,
     tendencia, cargarTendencia,
-    cargarDatos, agregarGasto, editarGasto, eliminarGasto, copiarRecurrentes,
+    gastosPorCategoria, cargarGastosPorCategoria,
+    cargarDatos, agregarGasto, editarGasto, eliminarGasto, copiarRecurrentes, importarGastos,
     agregarIngreso, editarIngreso, eliminarIngreso, cambiarMes,
     presupuestos, cargarPresupuestos, guardarPresupuesto, eliminarPresupuesto,
-    metas, cargarMetas, crearMeta, abonarMeta, eliminarMeta,
+    metas, cargarMetas, crearMeta, editarMeta, abonarMeta, eliminarMeta,
   }
 })

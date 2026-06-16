@@ -20,8 +20,8 @@
           </div>
           <div v-else class="edit-row">
             <input v-model="nuevoNombre" class="input" @keydown.enter="guardarNombre" @keydown.escape="editNombre = false" autofocus />
-            <button class="btn btn-primary btn-sm" :disabled="savingNombre" @click="guardarNombre">{{ savingNombre ? '...' : 'Guardar' }}</button>
             <button class="btn btn-sm" @click="editNombre = false">Cancelar</button>
+            <button class="btn btn-primary btn-sm" :disabled="savingNombre" @click="guardarNombre">{{ savingNombre ? '...' : 'Guardar' }}</button>
           </div>
         </div>
 

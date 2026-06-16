@@ -26,6 +26,9 @@ namespace Finanzas.Infrastructure.Repositories
                 .Where(g => g.Mes == mes && g.Anio == anio && g.UserId == userId && g.EsRecurrente)
                 .ToListAsync();
 
+        public async Task<bool> ExistePorCategoriaAsync(string nombreCategoria, Guid userId) =>
+             await _db.Gastos.AnyAsync(g => g.Categoria == nombreCategoria && g.UserId == userId);
+
         public async Task<Gasto?> GetByIdAsync(Guid id, Guid userId) =>
             await _db.Gastos.FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
 

@@ -58,6 +58,31 @@
       </div>
     </Teleport>
 
+    <!-- Modal editar -->
+    <Teleport to="body">
+      <div v-if="editandoMeta" class="overlay" @click.self="editandoMeta = null">
+        <div class="modal fade-up">
+          <p class="modal-title">Editar meta</p>
+          <div class="field" style="margin-top: 1rem">
+            <label>Nombre</label>
+            <input v-model="editForm.nombre" class="input" />
+          </div>
+          <div class="field" style="margin-top: 0.75rem">
+            <label>Monto objetivo (COP)</label>
+            <CurrencyInput v-model="editForm.montoObjetivo" />
+          </div>
+          <div class="field" style="margin-top: 0.75rem">
+            <label>Fecha límite (opcional)</label>
+            <input v-model="editForm.fechaLimite" type="date" class="input" />
+          </div>
+          <div class="modal-actions" style="margin-top: 1.25rem">
+            <button class="btn" @click="editandoMeta = null">Cancelar</button>
+            <button class="btn btn-primary" :disabled="saving" @click="confirmarEdicion">{{ saving ? '...' : 'Guardar' }}</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <div v-if="loadingInit" class="loading-list">
       <div v-for="i in 2" :key="i" class="skeleton-row" style="height: 80px" />
     </div>
@@ -70,6 +95,9 @@
             <div style="display: flex; gap: 0.35rem; align-items: center;">
               <span v-if="meta.completada" class="badge-completada">✓ Lograda</span>
               <button v-if="!meta.completada" class="btn btn-sm" @click="iniciarAbono(meta)">Abonar</button>
+              <button class="icon-btn" title="Editar" @click="iniciarEdicion(meta)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
               <button class="icon-btn danger" @click="borrarMeta(meta.id!)">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
@@ -117,11 +145,13 @@ import type { Meta } from '@/types'
 const store = useFinanceStore()
 const toast = useToast()
 
-const loadingInit = ref(false)
-const showForm    = ref(false)
-const saving      = ref(false)
-const abonarMeta  = ref<Meta | null>(null)
-const montoAbono  = ref(0)
+const loadingInit  = ref(false)
+const showForm     = ref(false)
+const saving       = ref(false)
+const abonarMeta   = ref<Meta | null>(null)
+const montoAbono   = ref(0)
+const editandoMeta = ref<Meta | null>(null)
+const editForm     = reactive({ nombre: '', montoObjetivo: 0, fechaLimite: '' })
 
 const form = reactive({ nombre: '', montoObjetivo: 0, fechaLimite: '' })
 const errors = ref<Partial<Record<'nombre' | 'montoObjetivo', string>>>({})
@@ -138,6 +168,31 @@ function formatFecha(iso: string) {
 function iniciarAbono(meta: Meta) {
   abonarMeta.value = meta
   montoAbono.value = 0
+}
+
+function iniciarEdicion(meta: Meta) {
+  editandoMeta.value        = meta
+  editForm.nombre           = meta.nombre
+  editForm.montoObjetivo    = meta.montoObjetivo
+  editForm.fechaLimite      = meta.fechaLimite ? meta.fechaLimite.substring(0, 10) : ''
+}
+
+async function confirmarEdicion() {
+  if (!editandoMeta.value || !editForm.nombre.trim() || editForm.montoObjetivo <= 0) return
+  saving.value = true
+  try {
+    await store.editarMeta(editandoMeta.value.id!, {
+      nombre:        editForm.nombre.trim(),
+      montoObjetivo: editForm.montoObjetivo,
+      fechaLimite:   editForm.fechaLimite || undefined
+    })
+    toast.success('Meta actualizada')
+    editandoMeta.value = null
+  } catch {
+    toast.error('No se pudo actualizar la meta')
+  } finally {
+    saving.value = false
+  }
 }
 
 async function crearMeta() {
