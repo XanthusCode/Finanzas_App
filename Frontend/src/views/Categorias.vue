@@ -14,7 +14,13 @@
     <template v-else>
       <!-- Fijas -->
       <div class="card" style="margin-bottom: 0.75rem;">
-        <p class="card-title">Gastos fijos</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <p class="card-title">Gastos fijos</p>
+
+          <button v-if="!(showForm && form.tipo === 'FIJO')" class="btn btn-sm" @click="abrirForm(undefined, 'FIJO')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva categoría
+          </button>
+        </div>
 
         <div v-if="store.categoriasFijas.length === 0 && !(showForm && form.tipo === 'FIJO')" class="empty">
           Sin categorías fijas
@@ -49,13 +55,14 @@
           <button class="btn btn-sm" @click="cancelar">Cancelar</button>
           <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
         </div>
-
-        <button v-if="!(showForm && form.tipo === 'FIJO')" class="btn-add" @click="abrirForm(undefined, 'FIJO')">+ Nueva categoría</button>
       </div>
 
       <!-- Variables -->
       <div class="card">
-        <p class="card-title">Gastos variables</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <p class="card-title">Gastos variables</p>
+          <button v-if="!(showForm && form.tipo === 'VARIABLE')" class="btn btn-sm" @click="abrirForm(undefined, 'VARIABLE')">+ Nueva categoría</button>
+        </div>
 
         <div v-if="store.categoriasVariables.length === 0 && !(showForm && form.tipo === 'VARIABLE')" class="empty">
           Sin categorías variables
@@ -89,9 +96,7 @@
           <input v-model="form.nombre" class="input input-inline" placeholder="Nombre de la categoría" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
           <button class="btn btn-sm" @click="cancelar">Cancelar</button>
           <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
-        </div>
-
-        <button v-if="!(showForm && form.tipo === 'VARIABLE')" class="btn-add" @click="abrirForm(undefined, 'VARIABLE')">+ Nueva categoría</button>
+        </div> 
       </div>
     </template>
 
@@ -168,8 +173,11 @@ async function confirmDelete() {
     try {
       await store.eliminarCategoria(pendingId.value)
       toast.success('Categoría eliminada')
-    } catch {
-      toast.error('No se pudo eliminar la categoría')
+    } catch (error: any) {
+      const msg = error?.response?.status === 409
+        ? error.response.data
+        : 'No se pudo eliminar la categoría'
+      toast.error(msg)
     } finally {
       pendingId.value = null
     }
@@ -211,20 +219,6 @@ onMounted(async () => {
   padding: 0 0.6rem;
 }
 .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
-
-.btn-add {
-  display: block;
-  width: 100%;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 0.72rem;
-  text-align: right;
-  padding: 1rem 0 0.1rem;
-  transition: color 0.2s;
-}
-.btn-add:hover { color: var(--accent); }
 
 .icon-btn {
   background: none;

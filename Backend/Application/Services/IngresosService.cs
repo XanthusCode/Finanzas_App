@@ -34,6 +34,30 @@ public class IngresosService(IIngresosRepository repo, IMapper mapper)
         return _mapper.Map<IngresoDto>(actualizada);
     }
 
+    public async Task<IEnumerable<IngresoDto>> CopiarRecurrentesAsync(int mes, int anio, Guid userId)
+    {
+        var mesPrevio  = mes == 1 ? 12 : mes - 1;
+        var anioPrevio = mes == 1 ? anio - 1 : anio;
+        var recurrentes = await _repo.GetRecurrentesAsync(mesPrevio, anioPrevio, userId);
+
+        var creados = new List<IngresoDto>();
+        foreach (var r in recurrentes)
+        {
+            var nuevo = new Ingreso
+            {
+                Concepto     = r.Concepto,
+                Monto        = r.Monto,
+                Mes          = mes,
+                Anio         = anio,
+                EsRecurrente = true,
+                UserId       = userId
+            };
+            var creado = await _repo.CreateAsync(nuevo);
+            creados.Add(_mapper.Map<IngresoDto>(creado));
+        }
+        return creados;
+    }
+
     public async Task<bool> DeleteAsync(Guid id, Guid userId)
     {
         var existente = await _repo.GetByIdAsync(id, userId);

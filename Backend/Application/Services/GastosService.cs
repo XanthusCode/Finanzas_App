@@ -43,6 +43,21 @@ namespace Finanzas.Application.Services
             return true;
         }
 
+        public async Task<int> ImportarAsync(IEnumerable<CrearGastoDto> dtos, int mes, int anio, Guid userId)
+        {
+            int count = 0;
+            foreach (var dto in dtos)
+            {
+                var gasto = _mapper.Map<Gasto>(dto);
+                gasto.UserId = userId;
+                gasto.Mes    = mes;
+                gasto.Anio   = anio;
+                await _repo.CreateAsync(gasto);
+                count++;
+            }
+            return count;
+        }
+
         public async Task<IEnumerable<GastoDto>> CopiarRecurrentesAsync(int mes, int anio, Guid userId)
         {
             var mesPrevio  = mes == 1 ? 12 : mes - 1;

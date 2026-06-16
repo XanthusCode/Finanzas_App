@@ -35,6 +35,10 @@
               <span v-if="errors.monto" class="field-error">{{ errors.monto }}</span>
             </div>
           </div>
+          <label class="check-label">
+            <input type="checkbox" v-model="form.esRecurrente" />
+            Repetir cada mes
+          </label>
           <div class="form-actions">
             <button type="button" class="btn" @click="cerrarForm">Cancelar</button>
             <button type="submit" class="btn btn-primary" :disabled="saving">
@@ -42,6 +46,24 @@
             </button>
           </div>
         </form>
+      </div>
+    </Transition>
+
+    <!-- Banner ingresos recurrentes pendientes -->
+    <Transition name="banner-slide">
+      <div v-if="store.promptIngresosRecurrentes && !store.loading" class="recurrentes-banner">
+        <div class="banner-left">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span>Hay ingresos recurrentes del mes anterior — ¿los copiamos?</span>
+        </div>
+        <div class="banner-actions">
+          <button class="btn btn-sm btn-primary" :disabled="copiando" @click="copiarRecurrentes">
+            {{ copiando ? 'Copiando...' : 'Copiar' }}
+          </button>
+          <button class="banner-close" @click="store.descartarPromptIngresosRecurrentes">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
       </div>
     </Transition>
 
@@ -117,13 +139,14 @@ import type { Ingreso } from '@/types'
 const store = useFinanceStore()
 const toast = useToast()
 
-const showForm       = ref(false)
-const saving         = ref(false)
-const showConfirm    = ref(false)
+const showForm        = ref(false)
+const saving          = ref(false)
+const copiando        = ref(false)
+const showConfirm     = ref(false)
 const pendingDeleteId = ref<string | null>(null)
-const editando       = ref<Ingreso | null>(null)
+const editando        = ref<Ingreso | null>(null)
 
-const form   = reactive({ concepto: '', monto: 0 })
+const form   = reactive({ concepto: '', monto: 0, esRecurrente: false })
 const errors = ref<Partial<Record<'concepto' | 'monto', string>>>({})
 const total  = computed(() => store.ingresos.reduce((s, i) => s + i.monto, 0))
 
@@ -138,7 +161,7 @@ async function onSubmit() {
     return
   }
   saving.value = true
-  const payload = { concepto: form.concepto, monto: form.monto }
+  const payload = { concepto: form.concepto, monto: form.monto, esRecurrente: form.esRecurrente }
   try {
     if (editando.value?.id) {
       await store.editarIngreso(editando.value.id, payload)
@@ -156,18 +179,33 @@ async function onSubmit() {
 }
 
 function abrirForm(ingreso?: Ingreso) {
-  editando.value  = ingreso ?? null
-  form.concepto   = ingreso?.concepto ?? ''
-  form.monto      = ingreso?.monto    ?? 0
-  showForm.value  = ingreso == null
+  editando.value       = ingreso ?? null
+  form.concepto        = ingreso?.concepto     ?? ''
+  form.monto           = ingreso?.monto        ?? 0
+  form.esRecurrente    = ingreso?.esRecurrente ?? false
+  showForm.value       = ingreso == null
 }
 
 function cerrarForm() {
-  showForm.value = false
-  editando.value = null
-  form.concepto  = ''
-  form.monto     = 0
-  errors.value   = {}
+  showForm.value    = false
+  editando.value    = null
+  form.concepto     = ''
+  form.monto        = 0
+  form.esRecurrente = false
+  errors.value      = {}
+}
+
+async function copiarRecurrentes() {
+  copiando.value = true
+  try {
+    const n = await store.copiarIngresosRecurrentes()
+    if (n > 0) toast.success(`${n} ingreso${n > 1 ? 's' : ''} recurrente${n > 1 ? 's' : ''} copiado${n > 1 ? 's' : ''}`)
+    else toast.info('No hay ingresos recurrentes del mes anterior')
+  } catch {
+    toast.error('No se pudieron copiar los ingresos recurrentes')
+  } finally {
+    copiando.value = false
+  }
 }
 
 function onDelete(id: string) {
@@ -266,4 +304,26 @@ onMounted(() => store.cargarDatos())
 .inline-form-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
 .input-inline    { flex: 1; height: 30px; font-size: 0.78rem; padding: 0 0.6rem; }
 .btn-sm          { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
+
+.check-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--text-secondary); cursor: pointer; user-select: none; }
+.check-label input { accent-color: var(--accent); cursor: pointer; }
+
+.recurrentes-banner {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  background: var(--surface); border: 1px solid rgba(99,179,255,0.2);
+  border-left: 3px solid var(--accent); border-radius: 8px;
+  padding: 0.6rem 0.85rem; margin-bottom: 1rem;
+  font-size: 0.75rem; color: var(--text-secondary);
+}
+.banner-left    { display: flex; align-items: center; gap: 0.5rem; }
+.banner-actions { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
+.banner-close {
+  background: none; border: none; cursor: pointer; color: var(--text-muted);
+  padding: 3px 5px; border-radius: 4px; display: flex; align-items: center; transition: color 0.15s;
+}
+.banner-close:hover { color: var(--text-primary); }
+.banner-slide-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.banner-slide-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; }
+.banner-slide-enter-from   { opacity: 0; transform: translateY(-6px); }
+.banner-slide-leave-to     { opacity: 0; transform: translateY(-6px); }
 </style>

@@ -24,6 +24,19 @@ namespace Finanzas.Application.Services
             return _mapper.Map<MetaDto>(creada);
         }
 
+        public async Task<MetaDto?> EditarAsync(Guid id, EditarMetaDto dto, Guid userId)
+        {
+            var meta = await _repo.GetByIdAsync(id, userId);
+            if (meta is null) return null;
+
+            meta.Nombre        = dto.Nombre;
+            meta.MontoObjetivo = dto.MontoObjetivo;
+            meta.FechaLimite   = dto.FechaLimite;
+            meta.Completada    = meta.MontoActual >= dto.MontoObjetivo;
+            var actualizada = await _repo.UpdateAsync(meta);
+            return _mapper.Map<MetaDto>(actualizada);
+        }
+
         public async Task<MetaDto?> AbonarAsync(Guid id, AbonarMetaDto dto, Guid userId)
         {
             var meta = await _repo.GetByIdAsync(id, userId);

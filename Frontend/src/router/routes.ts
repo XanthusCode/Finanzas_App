@@ -4,7 +4,7 @@ import Ingresos    from '@/views/Ingresos.vue'
 import Categorias  from '@/views/Categorias.vue'
 import Presupuesto from '@/views/Presupuesto.vue'
 import Metas       from '@/views/Metas.vue'
-import Perfil      from '@/views/Perfil.vue'
+import Perfil      from '@/views/user/Perfil.vue'
 import Login       from '@/views/user/login.vue'
 import Register    from '@/views/user/Register.vue'
 

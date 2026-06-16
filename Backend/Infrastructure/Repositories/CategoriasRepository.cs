@@ -36,6 +36,7 @@ namespace Finanzas.Infrastructure.Repositories
         public async Task DeleteAsync(Guid id)
         {
             var categoria = await _db.Categorias.FindAsync(id);
+
             if (categoria is not null)
             {
                 _db.Categorias.Remove(categoria);

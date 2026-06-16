@@ -36,6 +36,24 @@ public class ResumenService(IGastosRepository gastosRepo, IIngresosRepository in
         return Calcular(gastos, ingresos, mes, anio);
     }
 
+    public async Task<IEnumerable<GastoCategoriaAnualDto>> GetGastosPorCategoriaAsync(int anio, Guid userId)
+    {
+        var gastos = await _gastosRepo.GetByAnioAsync(anio, userId);
+
+        return gastos
+            .GroupBy(g => g.Categoria)
+            .Select(grp => new GastoCategoriaAnualDto
+            {
+                Categoria = grp.Key,
+                Datos = Enumerable.Range(1, 12)
+                    .Select(mes => grp.Where(g => g.Mes == mes).Sum(g => g.Monto))
+                    .ToArray()
+            })
+            .OrderByDescending(c => c.Datos.Sum())
+            .Take(6)
+            .ToList();
+    }
+
     private static ResumenDto Calcular(IEnumerable<Gasto> gastos, IEnumerable<Ingreso> ingresos, int mes, int anio)
     {
         var totalIngresos  = ingresos.Sum(i => i.Monto);

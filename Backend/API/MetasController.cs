@@ -23,6 +23,14 @@ public class MetasController(MetasService service) : BaseController
         return CreatedAtAction(nameof(GetAll), creada);
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] EditarMetaDto dto)
+    {
+        var actualizada = await _service.EditarAsync(id, dto, UserId);
+        if (actualizada is null) return NotFound();
+        return Ok(actualizada);
+    }
+
     [HttpPost("{id:guid}/abonar")]
     public async Task<IActionResult> Abonar(Guid id, [FromBody] AbonarMetaDto dto)
     {

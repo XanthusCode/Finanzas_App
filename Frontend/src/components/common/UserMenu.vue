@@ -6,15 +6,21 @@
 
     <Transition name="dropdown">
       <div v-if="open" class="dropdown">
-        <div class="dropdown-header">
-          <span class="dropdown-name">{{ userFromToken(auth.token ?? '')?.nombre }}</span>
+        <div class="dropdown-header ">
+          <span class="dropdown-name mb-10">{{ userFromToken(auth.token ?? '')?.nombre }}</span>
         </div>
+
         <div class="dropdown-divider" />
-        <button class="dropdown-item" @click="openChangePassword">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Cambiar contraseña
+        <div class="dropdown-divider" />
+
+        <button class="dropdown-item" @click="handlePerfil">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Perfil
         </button>
+
         <div class="dropdown-divider" />
+        <div class="dropdown-divider" />
+
         <button class="dropdown-item dropdown-item--danger" @click="handleLogout">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           Cerrar sesión
@@ -22,74 +28,6 @@
       </div>
     </Transition>
   </div>
-
-  <!-- Modal cambiar contraseña -->
-  <Teleport to="body">
-    <Transition name="modal">
-      <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-        <div class="modal-card">
-          <div class="modal-header">
-            <h2 class="modal-title">Cambiar contraseña</h2>
-            <button class="modal-close" @click="closeModal">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-
-          <form class="modal-form" @submit.prevent="onSubmit">
-            <div class="field">
-              <label class="field-label">Contraseña actual</label>
-              <input
-                v-model="form.current"
-                type="password"
-                class="field-input"
-                :class="{ 'input-error': errors.current }"
-                placeholder="••••••••"
-                autocomplete="current-password"
-              />
-              <span v-if="errors.current" class="field-error">{{ errors.current }}</span>
-            </div>
-
-            <div class="field">
-              <label class="field-label">Nueva contraseña</label>
-              <input
-                v-model="form.next"
-                type="password"
-                class="field-input"
-                :class="{ 'input-error': errors.next }"
-                placeholder="Mínimo 6 caracteres"
-                autocomplete="new-password"
-              />
-              <span v-if="errors.next" class="field-error">{{ errors.next }}</span>
-            </div>
-
-            <div class="field">
-              <label class="field-label">Confirmar nueva contraseña</label>
-              <input
-                v-model="form.confirm"
-                type="password"
-                class="field-input"
-                :class="{ 'input-error': errors.confirm }"
-                placeholder="••••••••"
-                autocomplete="new-password"
-              />
-              <span v-if="errors.confirm" class="field-error">{{ errors.confirm }}</span>
-            </div>
-
-            <p v-if="serverError" class="server-error">{{ serverError }}</p>
-            <p v-if="success" class="server-success">Contraseña actualizada correctamente.</p>
-
-            <div class="modal-actions">
-              <button type="button" class="btn-cancel" @click="closeModal">Cancelar</button>
-              <button type="submit" class="btn-submit" :disabled="loading">
-                <span v-if="loading" class="spinner" />
-                {{ loading ? 'Guardando...' : 'Guardar' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -103,7 +41,6 @@ const auth = useAuthStore()
 const router = useRouter()
 const menuRef = ref<HTMLElement | null>(null)
 const open = ref(false)
-const showModal = ref(false)
 const loading = ref(false)
 const serverError = ref('')
 const success = ref(false)
@@ -136,23 +73,9 @@ function handleClickOutside(e: MouseEvent) {
 onMounted(() => document.addEventListener('mousedown', handleClickOutside))
 onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
 
-function openChangePassword() {
-  open.value = false
-  form.current = ''
-  form.next = ''
-  form.confirm = ''
-  errors.current = ''
-  errors.next = ''
-  errors.confirm = ''
-  serverError.value = ''
-  success.value = false
-  showModal.value = true
+function handlePerfil() {
+  router.push('/perfil')
 }
-
-function closeModal() {
-  showModal.value = false
-}
-
 function handleLogout() {
   auth.logout()
   router.push('/login')
@@ -180,7 +103,6 @@ async function onSubmit() {
 
   if (err) { serverError.value = err; return }
   success.value = true
-  setTimeout(() => closeModal(), 1500)
 }
 </script>
 
@@ -234,6 +156,7 @@ async function onSubmit() {
 .dropdown-name {
   font-size: 0.8rem;
   font-weight: 600;
+  margin-bottom: 3px;
   color: var(--text-primary);
 }
 

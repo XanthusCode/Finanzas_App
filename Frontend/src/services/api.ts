@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Gasto, Ingreso, Resumen, Categoria, Presupuesto, Meta } from '@/types'
+import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta } from '@/types'
 
 const TOKEN_KEY = 'finanzas_token'
 
@@ -36,7 +36,9 @@ export const gastosService = {
   delete: (id: string) =>
     api.delete(`/gastos/${id}`),
   copiarRecurrentes: (mes: number, anio: number) =>
-    api.post<Gasto[]>(`/gastos/copiar-recurrentes?mes=${mes}&anio=${anio}`)
+    api.post<Gasto[]>(`/gastos/copiar-recurrentes?mes=${mes}&anio=${anio}`),
+  importar: (mes: number, anio: number, gastos: Omit<Gasto, 'id' | 'mes' | 'anio'>[]) =>
+    api.post<{ importados: number }>(`/gastos/importar?mes=${mes}&anio=${anio}`, gastos)
 }
 
 export const ingresosService = {
@@ -47,7 +49,9 @@ export const ingresosService = {
   update: (id: string, ingreso: Ingreso) =>
     api.put<Ingreso>(`/ingresos/${id}`, ingreso),
   delete: (id: string) =>
-    api.delete(`/ingresos/${id}`)
+    api.delete(`/ingresos/${id}`),
+  copiarRecurrentes: (mes: number, anio: number) =>
+    api.post<Ingreso[]>(`/ingresos/copiar-recurrentes?mes=${mes}&anio=${anio}`)
 }
 
 export const resumenService = {
@@ -56,7 +60,9 @@ export const resumenService = {
   getAnual: (anio: number) =>
     api.get<Resumen>(`/resumen/anual?anio=${anio}`),
   getTendencia: (anio: number) =>
-    api.get<Resumen[]>(`/resumen/tendencia?anio=${anio}`)
+    api.get<Resumen[]>(`/resumen/tendencia?anio=${anio}`),
+  getGastosPorCategoria: (anio: number) =>
+    api.get<GastoCategoriaAnual[]>(`/resumen/gastos-por-categoria?anio=${anio}`)
 }
 
 export const categoriasService = {
@@ -84,6 +90,8 @@ export const metasService = {
     api.get<Meta[]>('/metas'),
   create: (meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite'>) =>
     api.post<Meta>('/metas', meta),
+  update: (id: string, meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite'>) =>
+    api.put<Meta>(`/metas/${id}`, meta),
   abonar: (id: string, monto: number) =>
     api.post<Meta>(`/metas/${id}/abonar`, { monto }),
   delete: (id: string) =>

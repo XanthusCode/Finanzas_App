@@ -1,12 +1,13 @@
-using System.Text;
 using Finanzas.Application.Interfaces;
 using Finanzas.Application.Mappings;
 using Finanzas.Application.Services;
+using Finanzas.Domain.Entities;
 using Finanzas.Infrastructure.Data;
 using Finanzas.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,20 +87,6 @@ using (var scope = app.Services.CreateScope())
 
     // Si las tablas aún tienen PK entero, las eliminamos y EnsureCreated las recrea con UUID.
     // Este bloque se ejecuta una sola vez: cuando el Id sea de tipo integer.
-    db.Database.ExecuteSqlRaw(@"
-        DO $$
-        BEGIN
-            IF EXISTS (
-                SELECT 1 FROM information_schema.columns
-                WHERE table_name = 'Gastos' AND column_name = 'Id' AND data_type = 'integer'
-            ) THEN
-                DROP TABLE IF EXISTS ""Gastos"";
-                DROP TABLE IF EXISTS ""Ingresos"";
-                DROP TABLE IF EXISTS ""Categorias"";
-                DROP TABLE IF EXISTS ""Users"";
-            END IF;
-        END $$;
-    ");
 
     db.Database.EnsureCreated();
 }

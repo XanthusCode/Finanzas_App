@@ -35,10 +35,6 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 10h16M4 14h8M4 18h8"/></svg>
           Categorías
         </RouterLink>
-        <RouterLink to="/perfil" class="nav-item" active-class="nav-item--active">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Mi perfil
-        </RouterLink>
       </nav>
 
       <div class="sidebar-footer">

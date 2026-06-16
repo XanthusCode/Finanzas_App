@@ -38,4 +38,11 @@ public class IngresosController(IngresosService service) : BaseController
         if (!eliminado) return NotFound();
         return NoContent();
     }
+
+    [HttpPost("copiar-recurrentes")]
+    public async Task<IActionResult> CopiarRecurrentes([FromQuery] int mes, [FromQuery] int anio)
+    {
+        var copiados = await _service.CopiarRecurrentesAsync(mes, anio, UserId);
+        return Ok(copiados);
+    }
 }

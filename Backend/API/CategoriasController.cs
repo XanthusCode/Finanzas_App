@@ -34,8 +34,15 @@ public class CategoriasController(CategoriasService service) : BaseController
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var eliminada = await _service.DeleteAsync(id, UserId);
-        if (!eliminada) return NotFound();
-        return NoContent();
+        try
+        {
+            var eliminada = await _service.DeleteAsync(id, UserId);
+            if (!eliminada) return NotFound();
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
     }
 }

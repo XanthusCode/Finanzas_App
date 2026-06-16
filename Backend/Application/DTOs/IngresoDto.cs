@@ -7,6 +7,7 @@
         public decimal Monto { get; set; }
         public int Mes { get; set; }
         public int Anio { get; set; }
+        public bool EsRecurrente { get; set; }
     }
 
     public class CrearIngresoDto
@@ -15,11 +16,13 @@
         public decimal Monto { get; set; }
         public int Mes { get; set; }
         public int Anio { get; set; }
+        public bool EsRecurrente { get; set; }
     }
 
     public class EditarIngresoDto
     {
         public string Concepto { get; set; } = string.Empty;
         public decimal Monto { get; set; }
+        public bool EsRecurrente { get; set; }
     }
 }

@@ -11,6 +11,11 @@
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           CSV
         </button>
+        <button class="btn" @click="csvInput?.click()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Importar
+        </button>
+        <input ref="csvInput" type="file" accept=".csv" style="display:none" @change="onImportCSV" />
       </div>
     </div>
 
@@ -29,6 +34,24 @@
         Limpiar
       </button>
     </div>
+
+    <!-- Banner recurrentes pendientes -->
+    <Transition name="banner-slide">
+      <div v-if="store.promptRecurrentes && !store.loading" class="recurrentes-banner">
+        <div class="banner-left">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span>Hay gastos recurrentes del mes anterior — ¿los copiamos?</span>
+        </div>
+        <div class="banner-actions">
+          <button class="btn btn-sm btn-primary" :disabled="copiando" @click="copiarRecurrentes">
+            {{ copiando ? 'Copiando...' : 'Copiar' }}
+          </button>
+          <button class="banner-close" @click="store.descartarPromptRecurrentes">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+    </Transition>
 
     <div v-if="store.loading" class="loading-list">
       <div v-for="i in 3" :key="i" class="skeleton-row" />
@@ -143,8 +166,9 @@ import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import GastoForm from '@/components/gastos/GastoForm.vue'
 import GastoRow from '@/components/gastos/GastoRow.vue'
 
-const store   = useFinanceStore()
-const toast   = useToast()
+const store    = useFinanceStore()
+const toast    = useToast()
+const csvInput = ref<HTMLInputElement>()
 
 const tipoAbierto     = ref<'FIJO' | 'VARIABLE' | null>(null)
 const editando        = ref<Gasto | null>(null)
@@ -229,6 +253,29 @@ async function confirmDelete() {
   }
 }
 
+async function onImportCSV(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  const text = await file.text()
+  const lines = text.trim().split('\n').slice(1) // skip header
+  const filas = lines.flatMap(line => {
+    const cols = line.match(/(".*?"|[^,]+)(?=,|$)/g)?.map(c => c.replace(/^"|"$/g, '').trim()) ?? []
+    if (cols.length < 4) return []
+    const [tipo, categoria, detalle, montoStr, recurrente] = cols
+    const monto = parseFloat(montoStr ?? '0')
+    if (!tipo || !categoria || isNaN(monto)) return []
+    return [{ tipo: tipo as 'FIJO' | 'VARIABLE', categoria, detalle: detalle ?? '', monto, esRecurrente: recurrente === 'Sí' }]
+  })
+  if (csvInput.value) csvInput.value.value = ''
+  if (filas.length === 0) { toast.error('No se encontraron filas válidas en el CSV'); return }
+  try {
+    const n = await store.importarGastos(filas)
+    toast.success(`${n} gasto${n !== 1 ? 's' : ''} importado${n !== 1 ? 's' : ''}`)
+  } catch {
+    toast.error('Error al importar el CSV')
+  }
+}
+
 function descargarCSV() {
   exportCSV(
     store.gastos.map(g => ({ Tipo: g.tipo, Categoria: g.categoria, Detalle: g.detalle, Monto: g.monto, Recurrente: g.esRecurrente ? 'Sí' : 'No' })),
@@ -303,6 +350,35 @@ onMounted(() => { store.cargarDatos(); store.cargarCategorias() })
   animation: shimmer 1.4s infinite;
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
+
+/* Banner recurrentes */
+.recurrentes-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: var(--surface);
+  border: 1px solid rgba(99,179,255,0.2);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+.banner-left  { display: flex; align-items: center; gap: 0.5rem; }
+.banner-actions { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
+.banner-close {
+  background: none; border: none; cursor: pointer; color: var(--text-muted);
+  padding: 3px 5px; border-radius: 4px; display: flex; align-items: center;
+  transition: color 0.15s;
+}
+.banner-close:hover { color: var(--text-primary); }
+
+.banner-slide-enter-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.banner-slide-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; }
+.banner-slide-enter-from   { opacity: 0; transform: translateY(-6px); }
+.banner-slide-leave-to     { opacity: 0; transform: translateY(-6px); }
 
 /* Empty state */
 .empty-state {

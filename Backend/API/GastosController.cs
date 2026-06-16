@@ -45,4 +45,11 @@ public class GastosController(GastosService service) : BaseController
         var copiados = await _service.CopiarRecurrentesAsync(mes, anio, UserId);
         return Ok(copiados);
     }
+
+    [HttpPost("importar")]
+    public async Task<IActionResult> Importar([FromQuery] int mes, [FromQuery] int anio, [FromBody] IEnumerable<CrearGastoDto> dtos)
+    {
+        var count = await _service.ImportarAsync(dtos, mes, anio, UserId);
+        return Ok(new { importados = count });
+    }
 }

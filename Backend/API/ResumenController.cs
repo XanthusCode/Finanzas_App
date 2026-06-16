@@ -28,4 +28,11 @@ public class ResumenController(ResumenService service) : BaseController
         var tendencia = await _service.GetTendenciaAsync(anio, UserId);
         return Ok(tendencia);
     }
+
+    [HttpGet("gastos-por-categoria")]
+    public async Task<IActionResult> GetGastosPorCategoria([FromQuery] int anio)
+    {
+        var data = await _service.GetGastosPorCategoriaAsync(anio, UserId);
+        return Ok(data);
+    }
 }
