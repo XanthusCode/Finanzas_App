@@ -266,7 +266,7 @@ onMounted(async () => {
 .form-slide-enter-from   { opacity: 0; transform: translateY(-8px); }
 .form-slide-leave-to     { opacity: 0; transform: translateY(-8px); }
 
-.metas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; }
+.metas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); gap: 0.75rem; }
 
 .meta-card {
   background: var(--surface);

@@ -9,6 +9,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+// Npgsql v6+ exige DateTime con Kind=Utc para timestamp with time zone.
+// Este switch acepta cualquier Kind, igual que v5.
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // DbContext - PostgreSQL
