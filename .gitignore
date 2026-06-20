@@ -23,6 +23,11 @@ CLAUDE.md
 .env.*
 !.env.example
 
+# ASP.NET Core secrets — nunca commitear archivos con valores reales
+appsettings.Production.json
+appsettings.Staging.json
+# Los user-secrets se guardan fuera del repo en %APPDATA%\Microsoft\UserSecrets\
+
 # Logs
 *.log
 npm-debug.log*
