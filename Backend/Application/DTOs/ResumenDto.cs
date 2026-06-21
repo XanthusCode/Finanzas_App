@@ -17,4 +17,6 @@
         public string Categoria { get; set; } = string.Empty;
         public decimal[] Datos { get; set; } = new decimal[12];
     }
+
+
 }

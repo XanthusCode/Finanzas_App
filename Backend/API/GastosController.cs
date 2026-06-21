@@ -52,4 +52,18 @@ public class GastosController(GastosService service) : BaseController
         var count = await _service.ImportarAsync(dtos, mes, anio, UserId);
         return Ok(new { importados = count });
     }
+
+    [HttpGet("resumen-categoria")]
+    public async Task<IActionResult> GetResumenCategoria([FromQuery] int mes, [FromQuery] int anio)
+    {
+        var resumen = await _service.GetResumenCategoriaAsync(mes, anio, UserId);
+        return Ok(resumen);
+    }
+
+    [HttpGet("cuotas")]
+    public async Task<IActionResult> GetCuotas()
+    {
+        var cuotas = await _service.GetCuotasAsync(UserId);
+        return Ok(cuotas);
+    }
 }

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta } from '@/types'
+import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta, ResumenCategoria, Deuda } from '@/types'
 
 const TOKEN_KEY = 'finanzas_token'
 
@@ -38,7 +38,11 @@ export const gastosService = {
   copiarRecurrentes: (mes: number, anio: number) =>
     api.post<Gasto[]>(`/gastos/copiar-recurrentes?mes=${mes}&anio=${anio}`),
   importar: (mes: number, anio: number, gastos: Omit<Gasto, 'id' | 'mes' | 'anio'>[]) =>
-    api.post<{ importados: number }>(`/gastos/importar?mes=${mes}&anio=${anio}`, gastos)
+    api.post<{ importados: number }>(`/gastos/importar?mes=${mes}&anio=${anio}`, gastos),
+  getResumenCategoria: (mes: number, anio: number) =>
+    api.get<ResumenCategoria[]>(`/gastos/resumen-categoria?mes=${mes}&anio=${anio}`),
+  getCuotas: () =>
+    api.get<Gasto[]>('/gastos/cuotas')
 }
 
 export const ingresosService = {
@@ -62,7 +66,9 @@ export const resumenService = {
   getTendencia: (anio: number) =>
     api.get<Resumen[]>(`/resumen/tendencia?anio=${anio}`),
   getGastosPorCategoria: (anio: number) =>
-    api.get<GastoCategoriaAnual[]>(`/resumen/gastos-por-categoria?anio=${anio}`)
+    api.get<GastoCategoriaAnual[]>(`/resumen/gastos-por-categoria?anio=${anio}`),
+  getReporte: (mes: number, anio: number) =>
+    api.get(`/resumen/reporte?mes=${mes}&anio=${anio}`, { responseType: 'blob' })
 }
 
 export const categoriasService = {
@@ -96,6 +102,17 @@ export const metasService = {
     api.post<Meta>(`/metas/${id}/abonar`, { monto }),
   delete: (id: string) =>
     api.delete(`/metas/${id}`)
+}
+
+export const deudasService = {
+  getAll: () =>
+    api.get<Deuda[]>('/deudas'),
+  create: (deuda: Omit<Deuda, 'id' | 'pagada' | 'creadoEn'>) =>
+    api.post<Deuda>('/deudas', deuda),
+  togglePagada: (id: string) =>
+    api.patch<Deuda>(`/deudas/${id}/pagar`),
+  delete: (id: string) =>
+    api.delete(`/deudas/${id}`)
 }
 
 export const perfilService = {

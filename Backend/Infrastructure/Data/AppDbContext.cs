@@ -16,6 +16,7 @@ namespace Finanzas.Infrastructure.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Presupuesto> Presupuestos { get; set; }
         public DbSet<Meta> Metas { get; set; }
+        public DbSet<Deuda> Deudas { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,6 +28,9 @@ namespace Finanzas.Infrastructure.Data
                 e.Property(g => g.Monto).HasColumnType("decimal(12,2)");
                 e.Property(g => g.Tipo).HasConversion<string>();
                 e.HasOne<User>().WithMany().HasForeignKey(g => g.UserId).OnDelete(DeleteBehavior.Cascade);
+                e.Property(g => g.NumCuotas).IsRequired(false);
+                e.Property(g => g.CuotaActual).IsRequired(false);
+                e.Property(g => g.GastoOrigenId).IsRequired(false);
             });
 
             modelBuilder.Entity<Ingreso>(e =>
@@ -70,6 +74,16 @@ namespace Finanzas.Infrastructure.Data
                 e.Property(m => m.MontoObjetivo).HasColumnType("decimal(12,2)");
                 e.Property(m => m.MontoActual).HasColumnType("decimal(12,2)");
                 e.HasOne<User>().WithMany().HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Deuda>(e =>
+            {
+                e.HasKey(d => d.Id);
+                e.Property(d => d.Persona).IsRequired().HasMaxLength(100);
+                e.Property(d => d.Descripcion).IsRequired().HasMaxLength(200);
+                e.Property(d => d.Monto).HasColumnType("decimal(12,2)");
+                e.Property(d => d.Tipo).HasConversion<string>();
+                e.HasOne<User>().WithMany().HasForeignKey(d => d.UserId).OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

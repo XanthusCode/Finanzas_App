@@ -1,3 +1,4 @@
+using Finanzas.Application.DTOs;
 using Finanzas.Domain.Entities;
 
 namespace Finanzas.Application.Interfaces
@@ -12,5 +13,7 @@ namespace Finanzas.Application.Interfaces
         Task<Gasto> CreateAsync(Gasto gasto);
         Task<Gasto> UpdateAsync(Gasto gasto);
         Task DeleteAsync(Guid id);
+        Task<IEnumerable<ResumenCategoriaDto>> GetResumenCategoriaAsync(int mes, int anio, Guid userId);
+        Task<IEnumerable<Gasto>> GetCuotasAsync(Guid userId);
     }
 }

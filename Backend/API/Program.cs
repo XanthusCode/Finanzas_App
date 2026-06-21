@@ -1,5 +1,7 @@
+using Finanzas.API;
 using Finanzas.Application.Interfaces;
 using Finanzas.Application.Mappings;
+using QuestPDF.Infrastructure;
 using Finanzas.Application.Services;
 using Finanzas.Domain.Entities;
 using Finanzas.Infrastructure.Data;
@@ -12,6 +14,7 @@ using System.Text;
 // Npgsql v6+ exige DateTime con Kind=Utc para timestamp with time zone.
 // Este switch acepta cualquier Kind, igual que v5.
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +25,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Repositorios
 builder.Services.AddScoped<IGastosRepository, GastosRepository>();
+builder.Services.AddScoped<IDeudaRepository, DeudaRepository>();
 builder.Services.AddScoped<IIngresosRepository, IngresosRepository>();
 builder.Services.AddScoped<ICategoriasRepository, CategoriasRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -36,6 +40,8 @@ builder.Services.AddScoped<ResumenService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<PresupuestosService>();
 builder.Services.AddScoped<MetasService>();
+builder.Services.AddScoped<DeudaService>();
+builder.Services.AddScoped<ReporteService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());

@@ -8,6 +8,7 @@
         <div class="row-name">
           {{ gasto.categoria }}
           <svg v-if="gasto.esRecurrente" class="recurrente-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" title="Recurrente"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span v-if="gasto.numCuotas" class="cuota-badge">{{ gasto.cuotaActual }}/{{ gasto.numCuotas }}</span>
         </div>
         <div class="row-det">{{ gasto.detalle }}</div>
       </div>
@@ -48,6 +49,12 @@ const emit = defineEmits<{ delete: [id: string], edit: [gasto: Gasto], create: [
 .row-monto { font-size: 0.78rem; color: var(--text-primary); margin-right: 0.25rem; }
 
 .recurrente-icon { color: var(--accent); flex-shrink: 0; }
+.cuota-badge {
+  font-size: 0.58rem; font-weight: 600; letter-spacing: 0.04em;
+  background: rgba(168,85,247,0.12); color: #a855f7;
+  border: 1px solid rgba(168,85,247,0.25);
+  border-radius: 4px; padding: 1px 5px;
+}
 
 .icon-btn {
   background: none;

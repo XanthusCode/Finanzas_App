@@ -1,3 +1,4 @@
+using Finanzas.Application.DTOs;
 using Finanzas.Application.Interfaces;
 using Finanzas.Domain.Entities;
 using Finanzas.Infrastructure.Data;
@@ -55,5 +56,23 @@ namespace Finanzas.Infrastructure.Repositories
                 await _db.SaveChangesAsync();
             }
         }
+
+        public async Task<IEnumerable<ResumenCategoriaDto>> GetResumenCategoriaAsync(int mes, int anio, Guid userId) =>
+            await _db.Gastos
+                .Where(g => g.Mes == mes && g.Anio == anio && g.UserId == userId)
+                .GroupBy(g => g.Categoria)
+                .Select(grp => new ResumenCategoriaDto
+                {
+                    Categoria = grp.Key,
+                    Total = grp.Sum(g => g.Monto)
+                })
+                .ToListAsync();
+
+        public async Task<IEnumerable<Gasto>> GetCuotasAsync(Guid userId) =>
+            await _db.Gastos
+                .Where(g => g.UserId == userId && g.NumCuotas != null)
+                .OrderBy(g => g.GastoOrigenId)
+                .ThenBy(g => g.CuotaActual)
+                .ToListAsync();
     }
 }

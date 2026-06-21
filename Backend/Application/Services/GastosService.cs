@@ -18,10 +18,39 @@ namespace Finanzas.Application.Services
 
         public async Task<GastoDto> CreateAsync(CrearGastoDto dto, Guid userId)
         {
-            var gasto = _mapper.Map<Gasto>(dto);
-            gasto.UserId = userId;
-            var creado = await _repo.CreateAsync(gasto);
-            return _mapper.Map<GastoDto>(creado);
+            var numCuotas = dto.NumCuotas ?? 1;
+
+            if (numCuotas <= 1)
+            {
+                var gasto = _mapper.Map<Gasto>(dto);
+                gasto.UserId = userId;
+                return _mapper.Map<GastoDto>(await _repo.CreateAsync(gasto));
+            }
+
+            // Genera N gastos (uno por mes) con el mismo origenId
+            var origenId = Guid.NewGuid();
+            Gasto? primero = null;
+
+            for (int i = 0; i < numCuotas; i++)
+            {
+                int mes  = dto.Mes + i;
+                int anio = dto.Anio;
+                while (mes > 12) { mes -= 12; anio++; }
+
+                var g = _mapper.Map<Gasto>(dto);
+                g.Id            = i == 0 ? origenId : Guid.NewGuid();
+                g.UserId        = userId;
+                g.Mes           = mes;
+                g.Anio          = anio;
+                g.NumCuotas     = numCuotas;
+                g.CuotaActual   = i + 1;
+                g.GastoOrigenId = origenId;
+
+                var creado = await _repo.CreateAsync(g);
+                primero ??= creado;
+            }
+
+            return _mapper.Map<GastoDto>(primero!);
         }
 
         public async Task<GastoDto?> UpdateAsync(Guid id, CrearGastoDto dto, Guid userId)
@@ -56,6 +85,15 @@ namespace Finanzas.Application.Services
                 count++;
             }
             return count;
+        }
+
+        public async Task<IEnumerable<ResumenCategoriaDto>> GetResumenCategoriaAsync(int mes, int anio, Guid userId) =>
+            await _repo.GetResumenCategoriaAsync(mes, anio, userId);
+
+        public async Task<IEnumerable<GastoDto>> GetCuotasAsync(Guid userId)
+        {
+            var cuotas = await _repo.GetCuotasAsync(userId);
+            return _mapper.Map<IEnumerable<GastoDto>>(cuotas);
         }
 
         public async Task<IEnumerable<GastoDto>> CopiarRecurrentesAsync(int mes, int anio, Guid userId)

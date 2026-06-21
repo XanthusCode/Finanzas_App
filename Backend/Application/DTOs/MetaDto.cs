@@ -8,6 +8,7 @@ namespace Finanzas.Application.DTOs
         public decimal MontoActual { get; set; }
         public DateTime? FechaLimite { get; set; }
         public bool Completada { get; set; }
+        public DateTime CreadoEn { get; set; }
     }
 
     public class CrearMetaDto
