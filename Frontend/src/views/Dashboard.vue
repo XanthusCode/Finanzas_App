@@ -6,7 +6,13 @@
         <div class="section-label">Resumen</div>
         <h1 class="page-title">Dashboard</h1>
       </div>
-      <MonthSelector :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
+      <div style="display:flex;align-items:center;gap:0.5rem">
+        <button class="btn btn-sm" :disabled="descargandoPDF" @click="descargarPDF">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          {{ descargandoPDF ? 'Generando…' : 'Generar PDF' }}
+        </button>
+        <MonthSelector :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
+      </div>
     </div>
 
     <div v-if="store.loading" class="loading">
@@ -215,11 +221,17 @@ import { useFinanceStore } from '@/stores/finance'
 import MonthSelector from '@/components/common/MonthSelector.vue'
 import DonutChart from '@/components/charts/DonutChart.vue'
 import BarChart from '@/components/charts/BarChart.vue'
+import { usePresupuestoMensual } from '@/composables/usePresupuestoMensual'
+import { resumenService } from '@/services/api'
 
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
 
 const store = useFinanceStore()
 const resumen = computed(() => store.resumen)
+
+const mesDash  = computed(() => store.mesActual)
+const anioDash = computed(() => store.anioActual)
+const { items: itemsPresupuesto, cargar: cargarPresupuesto } = usePresupuestoMensual(mesDash, anioDash)
 
 // Element refs
 const kpiRef    = ref<HTMLElement>()
@@ -350,15 +362,9 @@ const topCategorias = computed(() => {
 const maxCategoria = computed(() => topCategorias.value[0]?.total ?? 1)
 
 const alertasPresupuesto = computed(() =>
-  store.presupuestos
-    .map(p => {
-      const gastado = store.gastos
-        .filter(g => g.categoria === p.categoria)
-        .reduce((s, g) => s + g.monto, 0)
-      const pct = p.limite > 0 ? Math.round(gastado / p.limite * 100) : 0
-      return { categoria: p.categoria, gastado, limite: p.limite, pct }
-    })
-    .filter(a => a.pct >= 80)
+  itemsPresupuesto.value
+    .filter(i => i.estado === 'warn' || i.estado === 'danger')
+    .map(i => ({ categoria: i.categoria, gastado: i.gastado, limite: i.limite ?? 0, pct: i.pct }))
     .sort((a, b) => b.pct - a.pct)
 )
 
@@ -379,18 +385,40 @@ const categoriaDatasets = computed(() =>
   }))
 )
 
-onMounted(() => {
+onMounted(async () => {
   store.cargarDatos()
   store.cargarResumenAnual()
   store.cargarTendencia()
-  store.cargarPresupuestos()
   store.cargarGastosPorCategoria()
+  await store.cargarPresupuestos()
+  await cargarPresupuesto()
 })
+
+watch([mesDash, anioDash], cargarPresupuesto)
+
+const descargandoPDF = ref(false)
+
+async function descargarPDF() {
+  descargandoPDF.value = true
+  try {
+    const { data } = await resumenService.getReporte(store.mesActual, store.anioActual)
+    const url = URL.createObjectURL(data as Blob)
+    const a = document.createElement('a')
+    a.href = url
+    const meses = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+    a.download = `reporte-${meses[store.mesActual]?.toLowerCase()}-${store.anioActual}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
+  } finally {
+    descargandoPDF.value = false
+  }
+}
 </script>
 
 <style scoped>
 .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
 .page-title { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.25rem; }
+.btn-sm { padding: 0.3rem 0.7rem; font-size: 0.72rem; display: inline-flex; align-items: center; }
 
 /* Skeletons */
 .loading-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
@@ -537,4 +565,5 @@ onMounted(() => {
 .alert-warn   .alert-bar { height: 100%; background: var(--amber); border-radius: 2px; }
 .alert-danger .alert-bar { height: 100%; background: var(--red);   border-radius: 2px; }
 .alert-nums { font-size: 0.62rem; color: var(--text-muted); }
+
 </style>

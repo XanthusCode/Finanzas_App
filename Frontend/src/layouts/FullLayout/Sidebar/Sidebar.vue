@@ -28,6 +28,29 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           Metas
         </RouterLink>
+        <RouterLink to="/deudas" class="nav-item" active-class="nav-item--active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/><line x1="4" y1="2" x2="20" y2="22"/></svg>
+          Deudas
+        </RouterLink>
+        <RouterLink to="/cuotas" class="nav-item" active-class="nav-item--active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M7 15h2M11 15h2"/></svg>
+          Cuotas
+        </RouterLink>
+
+        <div class="nav-divider" />
+
+        <RouterLink to="/simulador" class="nav-item" active-class="nav-item--active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Simulador
+        </RouterLink>
+        <RouterLink to="/proyeccion" class="nav-item" active-class="nav-item--active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Proyección
+        </RouterLink>
+        <RouterLink to="/historial" class="nav-item" active-class="nav-item--active">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 3 3 21 21 21"/><polyline points="7 16 11 11 15 14 19 8"/></svg>
+          Historial
+        </RouterLink>
 
         <div class="nav-divider" />
 

@@ -41,5 +41,11 @@ public class MappingProfile : Profile
         // Meta
         CreateMap<Meta, MetaDto>();
         CreateMap<CrearMetaDto, Meta>();
+
+        // Deuda
+        CreateMap<Deuda, DeudaDto>()
+            .ForMember(d => d.Tipo, o => o.MapFrom(s => s.Tipo.ToString()));
+        CreateMap<CrearDeudaDto, Deuda>()
+            .ForMember(d => d.Tipo, o => o.MapFrom(s => Enum.Parse<TipoDeuda>(s.Tipo)));
     }
 }

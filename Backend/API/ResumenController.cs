@@ -1,12 +1,20 @@
+using Finanzas.Application.Interfaces;
 using Finanzas.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Finanzas.API;
 
 [Route("[controller]")]
-public class ResumenController(ResumenService service) : BaseController
+public class ResumenController(
+    ResumenService service,
+    ReporteService reporteService,
+    IGastosRepository gastosRepo,
+    IIngresosRepository ingresosRepo) : BaseController
 {
-    private readonly ResumenService _service = service;
+    private readonly ResumenService    _service       = service;
+    private readonly ReporteService    _reporteService = reporteService;
+    private readonly IGastosRepository  _gastosRepo    = gastosRepo;
+    private readonly IIngresosRepository _ingresosRepo  = ingresosRepo;
 
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery] int mes, [FromQuery] int anio)
@@ -34,5 +42,21 @@ public class ResumenController(ResumenService service) : BaseController
     {
         var data = await _service.GetGastosPorCategoriaAsync(anio, UserId);
         return Ok(data);
+    }
+
+    [HttpGet("reporte")]
+    public async Task<IActionResult> GetReporte([FromQuery] int mes, [FromQuery] int anio)
+    {
+        var resumen  = await _service.GetAsync(mes, anio, UserId);
+        var gastos   = await _gastosRepo.GetByMesAsync(mes, anio, UserId);
+        var ingresos = await _ingresosRepo.GetByMesAsync(mes, anio, UserId);
+
+        var pdf = _reporteService.Generar(resumen, gastos, ingresos);
+
+        var nombreMes = new[] { "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
+        var filename = $"reporte-{(mes >= 1 && mes <= 12 ? nombreMes[mes] : mes.ToString()).ToLower()}-{anio}.pdf";
+
+        return File(pdf, "application/pdf", filename);
     }
 }

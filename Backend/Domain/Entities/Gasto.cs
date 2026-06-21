@@ -12,6 +12,9 @@
         public Guid UserId { get; set; }
         public bool EsRecurrente { get; set; }
         public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
+        public int? NumCuotas { get; set; }
+        public int? CuotaActual { get; set; }
+        public Guid? GastoOrigenId { get; set; }
     }
 
     public enum TipoGasto

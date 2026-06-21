@@ -117,6 +117,27 @@
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             {{ formatFecha(meta.fechaLimite) }}
           </div>
+          <template v-if="!meta.completada">
+            <div
+              v-if="calcularProyeccionMeta(meta).urgencia === 'danger' || calcularProyeccionMeta(meta).urgencia === 'warn'"
+              class="meta-urgencia"
+              :class="calcularProyeccionMeta(meta).urgencia!"
+            >
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              </svg>
+              <span>
+                {{ calcularProyeccionMeta(meta).diasRestantes! < 0 ? 'Vencida' : `${calcularProyeccionMeta(meta).diasRestantes} días` }}
+              </span>
+            </div>
+            <div v-if="mesesParaMeta(meta) !== null" class="meta-ritmo">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Al ritmo actual (~{{ fmt(promedioAhorro) }}/mes), en ~{{ mesesParaMeta(meta) }} mes{{ mesesParaMeta(meta) !== 1 ? 'es' : '' }}
+            </div>
+            <div v-else-if="calcularProyeccionMeta(meta).fechaEstimada" class="meta-estimada">
+              ~{{ fmtFechaEstimada(calcularProyeccionMeta(meta).fechaEstimada!) }}
+            </div>
+          </template>
         </div>
       </div>
     </template>
@@ -134,16 +155,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useFinanceStore } from '@/stores/finance'
 import { useToast } from '@/composables/useToast'
 import { fmtCOP as fmt } from '@/utils'
 import { Teleport } from 'vue'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import type { Meta } from '@/types'
+import { calcularProyeccionMeta } from '@/composables/useMetaProjection'
 
 const store = useFinanceStore()
 const toast = useToast()
+
+const promedioAhorro = computed(() => {
+  const positivos = store.tendencia.filter(r => r.ahorro > 0).slice(-3)
+  if (positivos.length === 0) return 0
+  return positivos.reduce((s, r) => s + r.ahorro, 0) / positivos.length
+})
+
+function mesesParaMeta(meta: Meta): number | null {
+  if (promedioAhorro.value <= 0 || meta.completada) return null
+  const falta = meta.montoObjetivo - meta.montoActual
+  if (falta <= 0) return null
+  return Math.ceil(falta / promedioAhorro.value)
+}
 
 const loadingInit  = ref(false)
 const showForm     = ref(false)
@@ -163,6 +198,10 @@ function pctMeta(meta: Meta) {
 
 function formatFecha(iso: string) {
   return new Date(iso).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function fmtFechaEstimada(fecha: Date): string {
+  return fecha.toLocaleDateString('es-CO', { month: 'short', year: 'numeric' })
 }
 
 function iniciarAbono(meta: Meta) {
@@ -244,6 +283,7 @@ async function borrarMeta(id: string) {
 
 onMounted(async () => {
   loadingInit.value = true
+  if (store.tendencia.length === 0) store.cargarTendencia()
   try { await store.cargarMetas() }
   finally { loadingInit.value = false }
 })
@@ -296,11 +336,19 @@ onMounted(async () => {
 
 .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
 .icon-btn {
-  background: none; border: none; color: var(--text-muted); cursor: pointer;
-  padding: 4px 5px; border-radius: 4px; transition: color 0.15s, background 0.15s;
-  display: flex; align-items: center; justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 5px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.icon-btn.danger:hover { color: var(--red); background: rgba(248,113,113,0.08); }
+.icon-btn:hover        { color: var(--accent); background: rgba(99, 179, 255, 0.08); }
+.icon-btn.danger:hover { color: var(--red);   background: rgba(248, 113, 113, 0.08); }
 
 /* Empty state */
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 0 3rem; text-align: center; gap: 0.4rem; }
@@ -318,4 +366,27 @@ onMounted(async () => {
 .modal-title { font-family: var(--ff-display); font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.25rem; }
 .modal-sub   { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.5rem; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
+
+.meta-urgencia {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  width: fit-content;
+}
+.meta-urgencia.warn   { background: rgba(245,158,11,0.1); color: #f59e0b; }
+.meta-urgencia.danger { background: rgba(248,113,113,0.1); color: var(--red); }
+
+.meta-estimada {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+
+.meta-ritmo {
+  display: flex; align-items: center; gap: 0.3rem;
+  font-size: 0.62rem; color: var(--accent);
+}
 </style>

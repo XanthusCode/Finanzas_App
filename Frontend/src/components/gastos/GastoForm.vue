@@ -39,6 +39,21 @@
       <span>Gasto recurrente (se copia automáticamente cada mes)</span>
     </label>
 
+    <div v-if="!isEdit" class="cuotas-row">
+      <label class="recurrente-label" style="flex-shrink:0">
+        <input type="checkbox" v-model="form.esCuotas" class="recurrente-check" />
+        <span>Pago en cuotas</span>
+      </label>
+      <div v-if="form.esCuotas" class="cuotas-input">
+        <input
+          v-model.number="form.numCuotas"
+          type="number" min="2" max="60" class="input input-num"
+          placeholder="Nº cuotas"
+        />
+        <span class="cuotas-hint">meses</span>
+      </div>
+    </div>
+
     <div class="form-actions">
       <button type="button" class="btn" @click="emit('cancel')">Cancelar</button>
       <button type="submit" class="btn btn-primary" :disabled="loading">
@@ -67,6 +82,8 @@ const form = ref({
   detalle:      props.gasto?.detalle      ?? '',
   monto:        props.gasto?.monto        ?? 0,
   esRecurrente: props.gasto?.esRecurrente ?? false,
+  esCuotas:     false,
+  numCuotas:    2,
 })
 
 const errors = ref<Partial<Record<'categoria' | 'detalle' | 'monto', string>>>({})
@@ -87,7 +104,17 @@ function submit() {
     })
     return
   }
-  emit('submit', { ...form.value, mes: 0, anio: 0 })
+  const payload: Omit<Gasto, 'id'> & { numCuotas?: number } = {
+    tipo: form.value.tipo,
+    categoria: form.value.categoria,
+    detalle: form.value.detalle,
+    monto: form.value.monto,
+    esRecurrente: form.value.esRecurrente,
+    mes: 0,
+    anio: 0,
+    ...(form.value.esCuotas && form.value.numCuotas >= 2 ? { numCuotas: form.value.numCuotas } : {}),
+  }
+  emit('submit', payload)
 }
 </script>
 
@@ -111,4 +138,9 @@ function submit() {
   user-select: none;
 }
 .recurrente-check { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+
+.cuotas-row   { display: flex; align-items: center; gap: 0.75rem; }
+.cuotas-input { display: flex; align-items: center; gap: 0.4rem; }
+.input-num    { width: 80px; padding: 0.3rem 0.5rem; font-size: 0.8rem; }
+.cuotas-hint  { font-size: 0.68rem; color: var(--text-muted); }
 </style>

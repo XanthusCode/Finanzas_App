@@ -7,6 +7,9 @@ export interface Gasto {
   mes: number
   anio: number
   esRecurrente: boolean
+  numCuotas?: number
+  cuotaActual?: number
+  gastoOrigenId?: string
 }
 
 export interface Ingreso {
@@ -54,4 +57,21 @@ export interface Meta {
   montoActual: number
   fechaLimite?: string
   completada: boolean
+  creadoEn?: string
+}
+
+export interface ResumenCategoria {
+  categoria: string
+  total: number
+}
+
+export interface Deuda {
+  id?: string
+  persona: string
+  descripcion: string
+  monto: number
+  tipo: 'ME_DEBEN' | 'LE_DEBO'
+  fechaLimite?: string
+  pagada: boolean
+  creadoEn?: string
 }
