@@ -3,8 +3,12 @@ import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupues
 
 const TOKEN_KEY = 'finanzas_token'
 
+const baseURL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}`
+  : '/api'
+
 export const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: { 'Content-Type': 'application/json' }
 })
 
