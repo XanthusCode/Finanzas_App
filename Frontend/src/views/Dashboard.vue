@@ -566,4 +566,28 @@ async function descargarPDF() {
 .alert-danger .alert-bar { height: 100%; background: var(--red);   border-radius: 2px; }
 .alert-nums { font-size: 0.62rem; color: var(--text-muted); }
 
+@media (max-width: 768px) {
+  .page-header { flex-direction: column; gap: 1rem; align-items: flex-start; margin-bottom: 1.25rem; }
+  .page-title { font-size: 1.4rem; }
+
+  .loading-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .anual-banner { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .anual-right { align-items: flex-start; width: 100%; }
+  .anual-stats { gap: 1rem; }
+  .anual-stat { align-items: flex-start; }
+  .anual-progress-wrap { width: 100%; }
+
+  .bottom-grid { grid-template-columns: 1fr; }
+
+  .top-cat-left { min-width: 120px; }
+  .top-cat-monto { min-width: 70px; }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .anual-big { font-size: 1.5rem; }
+}
+
 </style>
