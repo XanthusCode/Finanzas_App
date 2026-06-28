@@ -64,11 +64,16 @@ builder.Services
         };
     });
 
-// CORS - permite llamadas desde Vue
+// CORS - permite llamadas desde Vue (dev) y desde el frontend en producción
+var allowedOrigins = new List<string> { "http://localhost:5173" };
+var frontendUrl = builder.Configuration["FRONTEND_URL"];
+if (!string.IsNullOrEmpty(frontendUrl))
+    allowedOrigins.Add(frontendUrl);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("VueApp", policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins([.. allowedOrigins])
               .AllowAnyHeader()
               .AllowAnyMethod());
 });

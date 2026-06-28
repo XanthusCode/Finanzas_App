@@ -6,20 +6,22 @@ namespace Finanzas.Application.Services;
 
 public class ResumenService(IGastosRepository gastosRepo, IIngresosRepository ingresosRepo)
 {
-    private readonly IGastosRepository _gastosRepo = gastosRepo;
-    private readonly IIngresosRepository _ingresosRepo = ingresosRepo;
-
     public async Task<ResumenDto> GetAnualAsync(int anio, Guid userId)
     {
-        var gastos   = await _gastosRepo.GetByAnioAsync(anio, userId);
-        var ingresos = await _ingresosRepo.GetByAnioAsync(anio, userId);
-        return Calcular(gastos, ingresos, 0, anio);
+        var gastos   = await gastosRepo.GetByAnioAsync(anio, userId);
+        var ingresos = await ingresosRepo.GetByAnioAsync(anio, userId);
+
+        // Solo meses donde ya hay ingresos registrados (excluye cuotas pre-generadas futuras)
+        var mesesActivos  = ingresos.Select(i => i.Mes).ToHashSet();
+        var gastosActivos = gastos.Where(g => mesesActivos.Contains(g.Mes));
+
+        return Calcular(gastosActivos, ingresos, 0, anio);
     }
 
     public async Task<IEnumerable<ResumenDto>> GetTendenciaAsync(int anio, Guid userId)
     {
-        var todosGastos   = await _gastosRepo.GetByAnioAsync(anio, userId);
-        var todosIngresos = await _ingresosRepo.GetByAnioAsync(anio, userId);
+        var todosGastos   = await gastosRepo.GetByAnioAsync(anio, userId);
+        var todosIngresos = await ingresosRepo.GetByAnioAsync(anio, userId);
 
         return Enumerable.Range(1, 12)
             .Select(mes => Calcular(
@@ -31,14 +33,14 @@ public class ResumenService(IGastosRepository gastosRepo, IIngresosRepository in
 
     public async Task<ResumenDto> GetAsync(int mes, int anio, Guid userId)
     {
-        var gastos   = await _gastosRepo.GetByMesAsync(mes, anio, userId);
-        var ingresos = await _ingresosRepo.GetByMesAsync(mes, anio, userId);
+        var gastos   = await gastosRepo.GetByMesAsync(mes, anio, userId);
+        var ingresos = await ingresosRepo.GetByMesAsync(mes, anio, userId);
         return Calcular(gastos, ingresos, mes, anio);
     }
 
     public async Task<IEnumerable<GastoCategoriaAnualDto>> GetGastosPorCategoriaAsync(int anio, Guid userId)
     {
-        var gastos = await _gastosRepo.GetByAnioAsync(anio, userId);
+        var gastos = await gastosRepo.GetByAnioAsync(anio, userId);
 
         return gastos
             .GroupBy(g => g.Categoria)

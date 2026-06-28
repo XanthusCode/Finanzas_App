@@ -1,6 +1,9 @@
 import { jwtDecode } from 'jwt-decode'
 
-export const fmtCOP = (n: number): string => '$' + Math.round(n).toLocaleString('es-CO')
+export const fmtCOP = (n: number): string => {
+  const abs = Math.round(Math.abs(n))
+  return (n < 0 ? '-$' : '$') + abs.toLocaleString('es-CO')
+}
 
 export function exportCSV(rows: Record<string, unknown>[], filename: string) {
   if (rows.length === 0) return
