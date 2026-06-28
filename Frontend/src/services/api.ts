@@ -5,7 +5,7 @@ const TOKEN_KEY = 'finanzas_token'
 
 const baseURL = import.meta.env.DEV
   ? '/api'
-  : (import.meta.env.VITE_API_URL || 'https://finanzas-app-htr1.onrender.com')
+  : 'https://finanzas-app-htr1.onrender.com'
 
 export const api = axios.create({
   baseURL,
