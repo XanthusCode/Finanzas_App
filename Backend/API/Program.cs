@@ -64,16 +64,14 @@ builder.Services
         };
     });
 
-// CORS - permite llamadas desde Vue (dev) y desde el frontend en producción
-var allowedOrigins = new List<string> { "http://localhost:5173" };
-var frontendUrl = builder.Configuration["FRONTEND_URL"];
-if (!string.IsNullOrEmpty(frontendUrl))
-    allowedOrigins.Add(frontendUrl);
-
+// CORS - permite localhost en dev y cualquier subdominio de vercel.app en producción
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("VueApp", policy =>
-        policy.WithOrigins([.. allowedOrigins])
+        policy.SetIsOriginAllowed(origin =>
+            origin == "http://localhost:5173" ||
+            new Uri(origin).Host.EndsWith(".vercel.app") ||
+            origin == (builder.Configuration["FRONTEND_URL"] ?? ""))
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
