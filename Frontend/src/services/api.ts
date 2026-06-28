@@ -3,9 +3,9 @@ import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupues
 
 const TOKEN_KEY = 'finanzas_token'
 
-const baseURL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}`
-  : '/api'
+const baseURL = import.meta.env.DEV
+  ? '/api'
+  : (import.meta.env.VITE_API_URL || 'https://finanzas-app-htr1.onrender.com')
 
 export const api = axios.create({
   baseURL,
