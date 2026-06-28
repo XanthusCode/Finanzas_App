@@ -29,7 +29,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function login(email: string, password: string): Promise<string | null> {
     try {
-      const { data } = await axios.post<AuthResponse>('/api/auth/login', { email, password })
+      const { data } = await api.post<AuthResponse>('/auth/login', { email, password })
       setSession(data)
       return null
     } catch (err) {
@@ -40,7 +40,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function register(nombre: string, email: string, password: string): Promise<string | null> {
     try {
-      const { data } = await axios.post<AuthResponse>('/api/auth/register', { nombre, email, password })
+      const { data } = await api.post<AuthResponse>('/auth/register', { nombre, email, password })
       setSession(data)
       return null
     } catch (err) {
