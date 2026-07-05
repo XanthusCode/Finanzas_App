@@ -11,10 +11,11 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@lucide/vue": "^1.23.0",
     "axios": "^1.16.1",
-    "jwt-decode": "^4.0.0",
     "chart.js": "^4.5.1",
     "date-fns": "^4.4.0",
+    "jwt-decode": "^4.0.0",
     "motion": "^12.40.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.32",

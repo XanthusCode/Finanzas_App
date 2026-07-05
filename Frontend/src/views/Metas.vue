@@ -5,10 +5,9 @@
         <div class="section-label">Planificación</div>
         <h1 class="page-title">Metas de ahorro</h1>
       </div>
-      <button class="btn btn-primary" @click="showForm = !showForm">
-        <svg v-if="showForm" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        {{ showForm ? 'Cancelar' : 'Nueva meta' }}
+      <button v-if="!showForm" class="btn btn-primary btn-new-meta" @click="showForm = !showForm">
+        <svg  width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+       Nueva meta
       </button>
     </div>
 
@@ -28,7 +27,7 @@
               <span v-if="errors.montoObjetivo" class="field-error">{{ errors.montoObjetivo }}</span>
             </div>
           </div>
-          <div class="field" style="max-width: 220px">
+          <div class="field field-fecha">
             <label>Fecha límite (opcional)</label>
             <input v-model="form.fechaLimite" type="date" class="input" />
           </div>
@@ -290,13 +289,14 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
 .page-title  { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.25rem; }
 .form-card   { margin-bottom: 1rem; }
 
 .meta-form   { display: flex; flex-direction: column; gap: 0.75rem; }
 .form-row    { display: flex; gap: 0.75rem; }
 .field       { display: flex; flex-direction: column; flex: 1; }
+.field-fecha { max-width: 220px; }
 .form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
 .field-error { font-size: 0.65rem; color: var(--red); margin-top: 0.2rem; }
 .input-error { border-color: var(--red) !important; }
@@ -388,5 +388,19 @@ onMounted(async () => {
 .meta-ritmo {
   display: flex; align-items: center; gap: 0.3rem;
   font-size: 0.62rem; color: var(--accent);
+}
+
+@media (max-width: 500px) {
+  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .page-title { font-size: 2rem;  }
+  .section-label { font-size: 0.75rem; }
+  .btn-new-meta { width: 100%; justify-content: center; }
+
+  .form-row    { flex-direction: column; }
+  .field       { margin-bottom: 0.74rem; }
+  .field-fecha { max-width: none; }
+
+
+  .metas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));}
 }
 </style>

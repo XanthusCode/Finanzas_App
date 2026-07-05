@@ -5,7 +5,7 @@
         <div class="section-label">Análisis</div>
         <h1 class="page-title">Proyección de cierre</h1>
       </div>
-      <MonthSelector :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
+      <MonthSelector class="month-selector" :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
     </div>
 
     <div v-if="store.loading" class="loading-list">
@@ -68,20 +68,20 @@
       <!-- KPIs proyección -->
       <div class="kpi-grid">
         <div class="kpi-card">
-          <span class="kpi-lbl">Gastado hasta hoy</span>
-          <span class="kpi-v">{{ fmt(resumen.totalGastos) }}</span>
+          <span class="kpi-label">Gastado hasta hoy: </span>
+          <span class="kpi-val" >{{ fmt(resumen.totalGastos) }}</span>
         </div>
         <div class="kpi-card">
-          <span class="kpi-lbl">Proyección fin de mes</span>
-          <span class="kpi-v" :style="{ color: gastoProyectado > resumen.totalIngresos ? 'var(--red)' : '' }">{{ fmt(gastoProyectado) }}</span>
+          <span class="kpi-label">Proyección fin de mes: </span>
+          <span class="kpi-val" :style="{ color: gastoProyectado > resumen.totalIngresos ? 'var(--red)' : '' }">{{ fmt(gastoProyectado) }}</span>
         </div>
         <div class="kpi-card">
-          <span class="kpi-lbl">Ingresos</span>
-          <span class="kpi-v">{{ fmt(resumen.totalIngresos) }}</span>
+          <span class="kpi-label">Ingresos: </span>
+          <span class="kpi-val" >{{ fmt(resumen.totalIngresos) }}</span>
         </div>
         <div class="kpi-card">
-          <span class="kpi-lbl">Ahorro proyectado</span>
-          <span class="kpi-v" :style="{ color: ahorroProyectado >= 0 ? 'var(--accent)' : 'var(--red)' }">
+          <span class="kpi-label">Ahorro proyectado: </span>
+          <span class="kpi-val" :style="{ color: ahorroProyectado >= 0 ? 'var(--accent)' : 'var(--red)' }">
             {{ ahorroProyectado >= 0 ? '+' : '' }}{{ fmt(ahorroProyectado) }}
           </span>
         </div>
@@ -125,7 +125,11 @@
       </div>
 
       <!-- Consejo -->
-      <div class="consejo-card" :class="'consejo-' + estadoConsejo">
+      <div v-if="sinIngresos" class="consejo-card consejo-warn">
+        <span class="consejo-icon">⚠</span>
+        <p class="consejo-texto">Aún no registraste ingresos este mes — la proyección de cierre no es confiable todavía.</p>
+      </div>
+      <div v-else class="consejo-card" :class="'consejo-' + estadoConsejo">
         <span class="consejo-icon">{{ iconoConsejo }}</span>
         <p class="consejo-texto">{{ textoConsejo }}</p>
       </div>
@@ -169,9 +173,15 @@ const tasaDiaria = computed(() => {
   return resumen.value.totalGastos / diaActual
 })
 
-const gastoProyectado = computed(() =>
-  Math.round(tasaDiaria.value * diasDelMes.value)
-)
+// Los gastos fijos (arriendo, suscripciones) normalmente ya quedan completos
+// al pagarse una vez en el mes, así que no se extrapolan por día — solo los
+// variables, que sí se acumulan progresivamente.
+const gastoProyectado = computed(() => {
+  if (!resumen.value || diaActual === 0) return resumen.value?.totalGastos ?? 0
+  const tasaDiariaVariable = resumen.value.totalVariables / diaActual
+  const variableProyectado = Math.round(tasaDiariaVariable * diasDelMes.value)
+  return resumen.value.totalFijos + variableProyectado
+})
 
 const gastoRestanteProyectado = computed(() =>
   Math.max(gastoProyectado.value - (resumen.value?.totalGastos ?? 0), 0)
@@ -190,8 +200,12 @@ const pctIngreso = computed(() => {
   return total > 0 ? Math.min((( resumen.value?.totalIngresos ?? 0) / total) * 100, 100) : 100
 })
 
+const sinIngresos = computed(() => (resumen.value?.totalIngresos ?? 0) === 0)
+
 const estadoConsejo = computed(() => {
-  const ratio = gastoProyectado.value / (resumen.value?.totalIngresos ?? 1)
+  const ingresos = resumen.value?.totalIngresos ?? 0
+  if (ingresos === 0) return 'bad'
+  const ratio = gastoProyectado.value / ingresos
   if (ratio > 1)    return 'bad'
   if (ratio > 0.85) return 'warn'
   return 'ok'
@@ -200,12 +214,12 @@ const estadoConsejo = computed(() => {
 const iconoConsejo = computed(() => ({ ok: '✓', warn: '!', bad: '⚠' }[estadoConsejo.value]))
 
 const textoConsejo = computed(() => {
-  if (!resumen.value) return ''
+  if (!resumen.value || sinIngresos.value) return ''
   const pct = Math.round((gastoProyectado.value / resumen.value.totalIngresos) * 100)
   if (estadoConsejo.value === 'bad')
-    return `Vas a gastar aprox. ${pct}% de tus ingresos. Reduce tus gastos variables los próximos días para cerrar en positivo.`
+    return `Vas a gastar aprox. ${pct}% de tus ingresos registrados hasta ahora. Si aún falta cargar ingresos del mes, el porcentaje debería bajar — de lo contrario, reduce tus gastos variables los próximos días para cerrar en positivo.`
   if (estadoConsejo.value === 'warn')
-    return `Vas a gastar aprox. ${pct}% de tus ingresos. Estás cerca del límite — controla los gastos variables.`
+    return `Vas a gastar aprox. ${pct}% de tus ingresos registrados hasta ahora. Estás cerca del límite — controla los gastos variables (el porcentaje puede bajar si aún faltan ingresos por registrar).`
   return `Vas muy bien. Proyección de ahorro: ${fmt(ahorroProyectado.value)} (${Math.round((ahorroProyectado.value / resumen.value.totalIngresos) * 100)}% del ingreso).`
 })
 </script>
@@ -232,7 +246,10 @@ const textoConsejo = computed(() => {
 .tiempo-pct   { font-size: 0.62rem; color: var(--text-muted); text-align: right; }
 
 /* KPIs */
-.kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.75rem; margin-bottom: 1rem; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+.kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 1rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.kpi-label { font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+.kpi-val   { font-size: 1.05rem; font-weight: 700; }
 
 /* Burn card */
 .burn-card {
@@ -293,4 +310,15 @@ const textoConsejo = computed(() => {
   background-size: 200% 100%; animation: shimmer 1.4s infinite;
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
+
+@media (max-width: 500px) {
+  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .page-title { font-size: 2rem;  }
+  .section-label { font-size: 0.75rem; }
+
+  .month-selector { width: 100%; justify-content: space-between; }
+  .month-selector :deep(.label) { flex: 1; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.75rem; margin-bottom: 1rem; }
+}
 </style>

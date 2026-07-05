@@ -5,7 +5,7 @@
         <div class="section-label">Planificación</div>
         <h1 class="page-title">Presupuesto</h1>
       </div>
-      <MonthSelector :mes="mes" :anio="anio" @change="onCambioMes" />
+      <MonthSelector class="month-selector" :mes="mes" :anio="anio" @change="onCambioMes" />
     </div>
 
     <div v-if="hayPeligro" class="banner-danger">
@@ -89,10 +89,12 @@
                 <span class="edit-label">Límite mensual</span>
                 <div class="edit-row">
                   <CurrencyInput v-model="editLimite" class="input input-edit" />
-                  <button class="btn" @click="editingCat = ''">Cancelar</button>
-                  <button class="btn btn-primary" :disabled="saving || editLimite <= 0" @click="guardar(item.categoria)">
-                    {{ saving ? '...' : 'Guardar' }}
-                  </button>
+                  <div class="edit-actions">
+                    <button class="btn" @click="editingCat = ''">Cancelar</button>
+                    <button class="btn btn-primary" :disabled="saving || editLimite <= 0" @click="guardar(item.categoria)">
+                      {{ saving ? '...' : 'Guardar' }}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -271,7 +273,8 @@ onMounted(async () => {
 .bc-edit-form { display: flex; flex-direction: column; gap: 0.35rem; }
 .edit-label { font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
 .edit-row { display: flex; align-items: center; gap: 0.5rem; }
-.input-edit { height: 34px; font-size: 0.82rem; flex: 1; max-width: 200px; }
+.input-edit { height: 34px; font-size: 0.82rem; flex: 1; width: 100%; max-width: none; }
+.edit-actions { display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem; }
 
 /* Icon btns */
 .icon-btn {
@@ -290,4 +293,18 @@ onMounted(async () => {
   background-size: 200% 100%; animation: shimmer 1.4s infinite;
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
+
+@media (max-width: 500px) {
+  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .page-title { font-size: 2rem;  }
+  .section-label { font-size: 0.75rem; }
+
+  .month-selector { width: 100%; justify-content: space-between; }
+  .month-selector :deep(.label) { flex: 1; }
+
+  .edit-row {  flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  .input-edit { height: 34px; font-size: 0.82rem; flex: 1; width: 100%; max-width: none; }
+  .edit-actions { margin-left: 2px; }
+  .edit-actions .btn { flex: 1; justify-content: center; }
+}
 </style>

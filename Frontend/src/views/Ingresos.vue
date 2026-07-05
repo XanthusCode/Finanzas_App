@@ -5,7 +5,7 @@
         <div class="section-label">Registro</div>
         <h1 class="page-title">Ingresos</h1>
       </div>
-      <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <div class="header-actions">
         <MonthSelector :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
         <button v-if="store.ingresos.length > 0" class="btn" @click="descargarCSV">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -81,10 +81,26 @@
         </div>
         <template v-for="i in store.ingresos" :key="i.id">
           <div v-if="editando?.id === i.id" class="inline-form-row">
-            <input v-model="form.concepto" class="input input-inline" @keydown.enter.prevent="onSubmit" @keydown.escape="cerrarForm" autofocus />
-            <CurrencyInput v-model="form.monto" class="input input-inline" style="max-width: 140px" />
-            <button class="btn btn-sm" @click="cerrarForm">Cancelar</button>
-            <button class="btn btn-primary btn-sm" :disabled="saving" @click="onSubmit">{{ saving ? '...' : 'Guardar' }}</button>
+            <form class="ingreso-form" @submit.prevent="onSubmit">
+              <div class="form-row">
+                <div class="field" style="flex: 2">
+                  <label>Concepto</label>
+                  <input v-model="form.concepto" class="input" :class="{ 'input-error': errors.concepto }" placeholder="ej. Salario básico" />
+                  <span v-if="errors.concepto" class="field-error">{{ errors.concepto }}</span>
+                </div>
+                <div class="field">
+                  <label>Monto (COP)</label>
+                  <CurrencyInput v-model="form.monto" :class="{ 'input-error': errors.monto }" placeholder="$ 0" />
+                  <span v-if="errors.monto" class="field-error">{{ errors.monto }}</span>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn" @click="cerrarForm">Cancelar</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? '...' : 'Guardar' }}
+                </button>
+              </div>
+            </form>
           </div>
           <div v-else class="ingreso-row">
             <div>
@@ -237,10 +253,13 @@ onMounted(() => store.cargarDatos())
 </script>
 
 <style scoped>
-.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
 .page-title  { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.25rem; }
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
 .card-title  { font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
+
+.header-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: nowrap; overflow-x: auto; }
+.header-actions > * { flex-shrink: 0; }
 
 .form-card { margin-bottom: 1rem; }
 
@@ -326,4 +345,17 @@ onMounted(() => store.cargarDatos())
 .banner-slide-leave-active { transition: opacity 0.15s ease, transform 0.15s ease; }
 .banner-slide-enter-from   { opacity: 0; transform: translateY(-6px); }
 .banner-slide-leave-to     { opacity: 0; transform: translateY(-6px); }
+
+
+@media (max-width: 500px) {
+  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .page-title { font-size: 2rem;  }
+  .section-label { font-size: 0.75rem; }
+  .header-actions { gap: 0.4rem; font-size: 0.9rem; }
+
+  .form-row { flex-direction: column;}
+  .inline-form-row { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+
+  .input-inline    { flex: 1; height: 30px; font-size: 0.78rem; padding: 0.5rem; }
+}
 </style>

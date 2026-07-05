@@ -108,6 +108,80 @@
           </tfoot>
         </table>
       </div>
+
+      <!-- Tarjetas mensuales (mobile) -->
+      <div class="meses-cards">
+        <div
+          v-for="m in datosMeses"
+          :key="m.mes"
+          class="mes-card"
+          :class="{ 'mes-vacio': m.totalIngresos === 0 && m.totalGastos === 0, 'mes-actual': esActual(m) }"
+        >
+          <div class="mes-card-header">
+            <span class="mes-card-nombre">{{ MESES[m.mes - 1] }}</span>
+            <span class="mes-card-ahorro" :class="m.totalIngresos > 0 ? (m.ahorro >= 0 ? 'aho-pos' : 'aho-neg') : ''">
+              {{ m.totalIngresos > 0 ? (m.ahorro >= 0 ? '+' : '') + fmt(m.ahorro) : '—' }}
+            </span>
+          </div>
+          <div class="mes-card-grid">
+            <div class="mes-card-item">
+              <span class="mes-card-lbl">Ingresos</span>
+              <span class="mes-card-val">{{ m.totalIngresos > 0 ? fmt(m.totalIngresos) : '—' }}</span>
+            </div>
+            <div class="mes-card-item">
+              <span class="mes-card-lbl">Gastos fijos</span>
+              <span class="mes-card-val">{{ m.totalFijos > 0 ? fmt(m.totalFijos) : '—' }}</span>
+            </div>
+            <div class="mes-card-item">
+              <span class="mes-card-lbl">Gastos variables</span>
+              <span class="mes-card-val">{{ m.totalVariables > 0 ? fmt(m.totalVariables) : '—' }}</span>
+            </div>
+            <div class="mes-card-item">
+              <span class="mes-card-lbl">Total gastos</span>
+              <span class="mes-card-val">{{ m.totalGastos > 0 ? fmt(m.totalGastos) : '—' }}</span>
+            </div>
+            <div class="mes-card-item">
+              <span class="mes-card-lbl">% Ahorro</span>
+              <span class="mes-card-val" :class="m.totalIngresos > 0 ? (m.pctAhorro >= 20 ? 'aho-pos' : m.pctAhorro >= 10 ? 'aho-warn' : 'aho-neg') : ''">
+                {{ m.totalIngresos > 0 ? m.pctAhorro.toFixed(1) + '%' : '—' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mes-card mes-card-total">
+          <div class="mes-card-header">
+            <span class="mes-card-nombre">Total</span>
+            <span class="mes-card-ahorro" :class="totalAhorro >= 0 ? 'aho-pos' : 'aho-neg'">
+              {{ totalAhorro >= 0 ? '+' : '' }}{{ fmt(totalAhorro) }}
+            </span>
+          </div>
+          <div class="mes-card-grid">
+            <div class="mes-card-item">
+              <span class="mes-card-lbl">Ingresos</span>
+              <span class="mes-card-val">{{ fmt(totalIngresos) }}</span>
+            </div>
+            <div class="mes-card-item">
+              <span class="mes-card-lbl">Gastos fijos</span>
+              <span class="mes-card-val">{{ fmt(totalFijos) }}</span>
+            </div>
+            <div class="mes-card-item">
+              <span class="mes-card-lbl">Gastos variables</span>
+              <span class="mes-card-val">{{ fmt(totalVariables) }}</span>
+            </div>
+            <div class="mes-card-item">
+              <span class="mes-card-lbl">Total gastos</span>
+              <span class="mes-card-val">{{ fmt(totalGastos) }}</span>
+            </div>
+            <div class="mes-card-item">
+              <span class="mes-card-lbl">% Ahorro</span>
+              <span class="mes-card-val" :class="pctAhorroPromedio >= 20 ? 'aho-pos' : pctAhorroPromedio >= 10 ? 'aho-warn' : 'aho-neg'">
+                {{ pctAhorroPromedio.toFixed(1) }}%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </template>
   </div>
 </template>
@@ -212,16 +286,16 @@ onMounted(cargar)
 .spark-mes { font-size: 0.52rem; color: var(--text-muted); white-space: nowrap; }
 
 /* Tabla */
-.tabla-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.tabla-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
 .tabla { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
 .tabla th {
   padding: 0.6rem 0.9rem; text-align: left; font-size: 0.6rem;
   font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--text-muted); border-bottom: 1px solid var(--border);
-  background: var(--surface2);
+  background: var(--surface2); white-space: nowrap;
 }
 .tabla th.num, .tabla td.num { text-align: right; }
-.tabla td { padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+.tabla td { padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); white-space: nowrap; }
 .tabla tbody tr:last-child td { border-bottom: none; }
 
 .td-mes { font-weight: 600; color: var(--text-primary) !important; }
@@ -235,8 +309,46 @@ onMounted(cargar)
 .aho-neg  { color: var(--red) !important; font-weight: 600; }
 .aho-warn { color: #f59e0b !important; font-weight: 600; }
 
+/* Tarjetas mensuales (mobile) */
+.meses-cards { display: none; }
+.mes-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+}
+.mes-card-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
+}
+.mes-card-nombre { font-weight: 600; color: var(--text-primary); font-size: 0.82rem; }
+.mes-card-ahorro { font-weight: 700; font-size: 0.82rem; }
+.mes-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem 0.75rem; }
+.mes-card-item { display: flex; flex-direction: column; gap: 0.15rem; }
+.mes-card-lbl { font-size: 0.58rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+.mes-card-val { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+
+.mes-vacio { opacity: 0.4; }
+.mes-actual { border-color: rgba(99,179,255,0.3); background: rgba(99,179,255,0.04); }
+.mes-actual .mes-card-nombre::after { content: ' ·'; color: var(--accent); }
+
+.mes-card-total { background: var(--surface2); }
+.mes-card-total .mes-card-nombre, .mes-card-total .mes-card-val { color: var(--text-primary); font-weight: 700; }
+
 /* Loading */
 .loading-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .skeleton-row { height: 44px; border-radius: 6px; background: linear-gradient(90deg, var(--surface) 0%, var(--surface2) 50%, var(--surface) 100%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
 @keyframes shimmer { to { background-position: -200% 0; } }
+
+@media (max-width: 500px) {
+  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .page-title { font-size: 2rem;  }
+  .section-label { font-size: 0.75rem; }
+
+  .year-selector { width: 100%; justify-content: space-between; }
+  .year-selector :deep(.label) { flex: 1; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.75rem; margin-bottom: 1rem; }
+
+  .tabla-card { display: none; }
+  .meses-cards { display: flex; flex-direction: column; gap: 0.6rem; }
+}
 </style>
