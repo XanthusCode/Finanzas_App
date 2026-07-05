@@ -246,4 +246,12 @@ onMounted(async () => {
 .loading-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .skeleton-row { height: 100px; border-radius: 10px; background: linear-gradient(90deg, var(--surface) 0%, var(--surface2) 50%, var(--surface) 100%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
 @keyframes shimmer { to { background-position: -200% 0; } }
+
+@media (max-width: 500px) {
+  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .page-title { font-size: 2rem;  }
+  .section-label { font-size: 0.75rem; }
+
+  .resumen-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+}
 </style>

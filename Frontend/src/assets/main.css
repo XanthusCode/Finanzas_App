@@ -70,6 +70,27 @@ h1,h2,h3,h4 { font-family: var(--ff-display); }
 .input:focus { border-color: var(--accent); }
 .input::placeholder { color: var(--text-muted); }
 select.input option { background: var(--surface2); }
+select.input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2.25rem;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+select.input:hover { border-color: var(--border-hover); background: rgba(99,179,255,0.05); }
+
+.select-wrap { position: relative; }
+.select-wrap select.input { display: block; width: 100%; }
+.select-wrap .select-icon {
+  position: absolute;
+  top: 50%;
+  right: 0.85rem;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+  transition: color 0.2s;
+}
+.select-wrap:focus-within .select-icon { color: var(--accent); }
 
 label { font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 0.35rem; }
 

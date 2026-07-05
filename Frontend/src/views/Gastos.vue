@@ -5,7 +5,7 @@
         <div class="section-label">Registro</div>
         <h1 class="page-title">Gastos</h1>
       </div>
-      <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <div class="header-actions">
         <MonthSelector :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
         <button v-if="store.gastos.length > 0" class="btn btn-primary" @click="descargarCSV">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -25,14 +25,13 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input v-model="busqueda" class="input search-input" placeholder="Buscar por detalle o categoría..." />
       </div>
-      <select v-model="filtroCategoria" class="input filter-select">
-        <option value="">Todas las categorías</option>
-        <option v-for="cat in todasCategorias" :key="cat" :value="cat">{{ cat }}</option>
-      </select>
-      <button v-if="busqueda || filtroCategoria" class="btn btn-primary" @click="busqueda = ''; filtroCategoria = ''">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        Limpiar
-      </button>
+      <div class="select-wrap">
+        <select v-model="filtroCategoria" class="input filter-select">
+          <option value="">Todas las categorías</option>
+          <option v-for="cat in todasCategorias" :key="cat" :value="cat">{{ cat }}</option>
+        </select>
+        <ChevronDown class="select-icon" :size="14" :stroke-width="2" />
+      </div>
     </div>
 
     <!-- Banner recurrentes pendientes -->
@@ -157,6 +156,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { ChevronDown } from '@lucide/vue'
 import { useFinanceStore } from '@/stores/finance'
 import { useToast } from '@/composables/useToast'
 import { fmtCOP as fmt, exportCSV } from '@/utils'
@@ -300,7 +300,9 @@ onMounted(() => { store.cargarDatos(); store.cargarCategorias() })
 </script>
 
 <style scoped>
-.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.header-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: nowrap; overflow-x: auto; }
+.header-actions > * { flex-shrink: 0; }
 .page-title  { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.25rem; }
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
 .card-title  { font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
@@ -330,7 +332,8 @@ onMounted(() => { store.cargarDatos(); store.cargarCategorias() })
   pointer-events: none;
 }
 .search-input  { padding-left: 2rem; }
-.filter-select {  cursor: pointer; width: auto; min-width: 160px; }
+.select-wrap { min-width: 160px; flex-shrink: 0; }
+.filter-select { cursor: pointer; }
 
 .btn-sm { padding: 0.3rem 0.65rem; font-size: 0.72rem; }
 
@@ -392,4 +395,14 @@ onMounted(() => { store.cargarDatos(); store.cargarCategorias() })
 }
 .empty-state-title { font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; margin-top: 0.5rem; }
 .empty-state-sub   { font-size: 0.72rem; color: var(--text-muted); max-width: 280px; }
+
+@media (max-width: 500px) {
+  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .page-title { font-size: 2rem;  }
+  .section-label { font-size: 0.75rem; }
+  .header-actions { gap: 0.4rem; font-size: 0.9rem; }
+
+  .filter-bar { display: block; }
+  .search-wrap { margin-bottom: 0.5rem; }
+}
 </style>

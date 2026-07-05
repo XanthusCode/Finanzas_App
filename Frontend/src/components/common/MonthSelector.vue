@@ -57,4 +57,10 @@ function next() {
   transition: color 0.2s;
 }
 .arrow:hover { color: var(--text-primary); }
+
+@media (max-width: 500px) {
+ .month-selector {
+    gap: 0.35rem;
+  }
+}
 </style>

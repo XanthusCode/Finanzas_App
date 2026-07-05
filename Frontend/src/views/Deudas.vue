@@ -5,7 +5,7 @@
         <div class="section-label">Finanzas</div>
         <h1 class="page-title">Deudas</h1>
       </div>
-      <button class="btn btn-primary btn-sm" @click="abrirForm()">+ Nueva deuda</button>
+      <button class="btn btn-primary btn-sm btn-new-deuda" @click="abrirForm()">+ Nueva deuda</button>
     </div>
 
     <!-- Resumen -->
@@ -316,11 +316,12 @@ onMounted(cargar)
 /* Modal */
 .modal-backdrop {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center; z-index: 100;
+   display: flex; align-items: flex-start; justify-content: center; z-index: 100; padding: 3rem 1rem;
 }
 .modal {
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
   padding: 1.5rem; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 1rem;
+  max-height: calc(100vh - 4rem); overflow-y: auto;
 }
 .modal-title  { font-size: 1rem; font-weight: 700; margin: 0; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; }
@@ -343,4 +344,12 @@ onMounted(cargar)
   background-size: 200% 100%; animation: shimmer 1.4s infinite;
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
+
+@media (max-width: 500px) {
+  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .page-title { font-size: 2rem;  }
+  .section-label { font-size: 0.75rem; }
+
+  .btn-new-deuda { width: 100%; justify-content: center; }
+}
 </style>

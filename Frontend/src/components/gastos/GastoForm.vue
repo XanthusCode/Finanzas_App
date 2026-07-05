@@ -3,17 +3,23 @@
     <div class="form-row">
       <div v-if="!tipoForzado" class="field">
         <label>Tipo</label>
-        <select v-model="form.tipo" class="input" @change="form.categoria = ''">
-          <option value="FIJO">Fijo</option>
-          <option value="VARIABLE">Variable</option>
-        </select>
+        <div class="select-wrap">
+          <select v-model="form.tipo" class="input" @change="form.categoria = ''">
+            <option value="FIJO">Fijo</option>
+            <option value="VARIABLE">Variable</option>
+          </select>
+          <ChevronDown class="select-icon" :size="14" :stroke-width="2" />
+        </div>
       </div>
       <div class="field">
         <label>Categoría</label>
-        <select v-model="form.categoria" class="input" :class="{ 'input-error': errors.categoria }">
-          <option value="" disabled>Seleccionar...</option>
-          <option v-for="c in categorias" :key="c.id" :value="c.nombre">{{ c.nombre }}</option>
-        </select>
+        <div class="select-wrap">
+          <select v-model="form.categoria" class="input" :class="{ 'input-error': errors.categoria }">
+            <option value="" disabled>Seleccionar...</option>
+            <option v-for="c in categorias" :key="c.id" :value="c.nombre">{{ c.nombre }}</option>
+          </select>
+          <ChevronDown class="select-icon" :size="14" :stroke-width="2" />
+        </div>
         <span v-if="errors.categoria" class="field-error">{{ errors.categoria }}</span>
         <span v-else-if="categorias.length === 0" class="hint">
           Sin categorías — <a href="/categorias">créalas aquí</a>
@@ -65,6 +71,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { ChevronDown } from '@lucide/vue'
 import { useFinanceStore } from '@/stores/finance'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import type { Gasto } from '@/types'
@@ -143,4 +150,8 @@ function submit() {
 .cuotas-input { display: flex; align-items: center; gap: 0.4rem; }
 .input-num    { width: 80px; padding: 0.3rem 0.5rem; font-size: 0.8rem; }
 .cuotas-hint  { font-size: 0.68rem; color: var(--text-muted); }
+
+@media (max-width: 500px) {
+  .form-row    { flex-direction: column; }
+}
 </style>

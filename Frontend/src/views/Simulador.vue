@@ -5,7 +5,7 @@
         <div class="section-label">Herramientas</div>
         <h1 class="page-title">Simulador what-if</h1>
       </div>
-      <MonthSelector :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
+      <MonthSelector class="month-selector" :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
     </div>
 
     <div v-if="store.loading" class="loading-list">
@@ -19,23 +19,27 @@
     <template v-else>
       <!-- Banner de resultado -->
       <div class="resultado-banner" :class="deltaAhorro >= 0 ? 'banner-positivo' : 'banner-negativo'">
-        <div class="resultado-col">
-          <span class="resultado-label">Ahorro actual</span>
-          <span class="resultado-val">{{ fmt(store.resumen?.ahorro ?? 0) }}</span>
+        <div class="resultado-comparacion">
+          <div class="resultado-col">
+            <span class="resultado-label">Ahorro actual</span>
+            <span class="resultado-val">{{ fmt(store.resumen?.ahorro ?? 0) }}</span>
+          </div>
+          <div class="resultado-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </div>
+          <div class="resultado-col">
+            <span class="resultado-label">Ahorro simulado</span>
+            <span class="resultado-val resultado-sim">{{ fmt(ahorroSimulado) }}</span>
+          </div>
         </div>
-        <div class="resultado-arrow">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
+        <div class="resultado-acciones">
+          <div class="resultado-delta" :class="deltaAhorro >= 0 ? 'delta-pos' : 'delta-neg'">
+            {{ deltaAhorro >= 0 ? '+' : '' }}{{ fmt(deltaAhorro) }}
+          </div>
+          <button class="btn btn-sm" @click="resetear">Resetear</button>
         </div>
-        <div class="resultado-col">
-          <span class="resultado-label">Ahorro simulado</span>
-          <span class="resultado-val resultado-sim">{{ fmt(ahorroSimulado) }}</span>
-        </div>
-        <div class="resultado-delta" :class="deltaAhorro >= 0 ? 'delta-pos' : 'delta-neg'">
-          {{ deltaAhorro >= 0 ? '+' : '' }}{{ fmt(deltaAhorro) }}
-        </div>
-        <button class="btn btn-sm" style="margin-left:auto" @click="resetear">Resetear</button>
       </div>
 
       <!-- Filas por categoría -->
@@ -192,6 +196,7 @@ onMounted(() => { if (!store.resumen) store.cargarDatos() })
 .resultado-banner {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1.25rem;
   border-radius: 10px;
   padding: 1rem 1.25rem;
@@ -200,6 +205,10 @@ onMounted(() => { if (!store.resumen) store.cargarDatos() })
 }
 .banner-positivo { background: rgba(52,211,153,0.06); border-color: rgba(52,211,153,0.2); }
 .banner-negativo { background: rgba(248,113,113,0.06); border-color: rgba(248,113,113,0.2); }
+
+
+.resultado-comparacion { display: flex; align-items: center; gap: 1.25rem; }
+.resultado-acciones    { display: flex; align-items: center; gap: 0.75rem; }
 
 .resultado-col    { display: flex; flex-direction: column; gap: 0.2rem; }
 .resultado-label  { font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
@@ -290,4 +299,21 @@ onMounted(() => { if (!store.resumen) store.cargarDatos() })
 @keyframes shimmer { to { background-position: -200% 0; } }
 
 .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
+
+@media (max-width: 500px) {
+  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .page-title { font-size: 2rem;  }
+  .section-label { font-size: 0.75rem; }
+
+  .month-selector { width: 100%; justify-content: space-between; }
+  .month-selector :deep(.label) { flex: 1; }
+
+  .resultado-banner { flex-direction: column; align-items: stretch; gap: 0.85rem; padding: 1rem; }
+  .resultado-comparacion { justify-content: space-between; }
+  .resultado-acciones { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  .resultado-delta { text-align: center; }
+
+  .sim-row { grid-template-columns: 1fr; gap: 0.6rem; }
+  .sim-values { flex-direction: row; justify-content: space-between; align-items: center; width: 100%; min-width: 0; }
+}
 </style>
