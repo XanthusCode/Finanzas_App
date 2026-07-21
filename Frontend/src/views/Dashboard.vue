@@ -44,7 +44,7 @@
         </div>
         <div class="kpi-card" style="--ca: var(--amber)">
           <div class="kpi-top">
-            <span class="kpi-label">Gastos variables</span>
+            <span class="kpi-label">Gastos ocasionales</span>
             <svg class="kpi-icon" style="color:var(--amber)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>
           </div>
           <div class="kpi-value" style="color: var(--amber)">{{ fmtAnim(counters.variables) }}</div>
@@ -55,7 +55,7 @@
         </div>
         <div class="kpi-card kpi-ahorro" style="--ca: var(--green)">
           <div class="kpi-top">
-            <span class="kpi-label">Ahorro del mes</span>
+            <span class="kpi-label">Dinero restante</span>
             <svg class="kpi-icon" style="color:var(--green)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
           </div>
           <div class="kpi-value" style="color: var(--green)">{{ fmtAnim(counters.ahorro) }}</div>
@@ -85,13 +85,16 @@
         </div>
       </div>
 
+      <!-- Alertas de deudas -->
+      <DeudasAlerta style="margin-bottom: 1rem" />
+
       <!-- Ahorro anual banner -->
       <div ref="bannerRef" class="anual-banner" style="opacity: 0">
-        <div class="anual-left">
-          <div class="kpi-label" style="margin-bottom: 0.5rem">Ahorro acumulado {{ store.anioActual }}</div>
-          <div class="anual-big">{{ fmtAnim(counters.ahorroAnual) }}</div>
-          <div class="anual-meta">de {{ fmt(store.resumenAnual?.totalIngresos) }} en ingresos este año</div>
-        </div>
+          <div class="anual-left">
+            <div class="kpi-label" style="margin-bottom: 0.5rem">Saldo actual {{ store.anioActual }}</div>
+            <div class="anual-big">{{ fmtAnim(counters.ahorroAnual) }}</div>
+            <div class="anual-meta">de {{ fmt(store.resumenAnual?.totalIngresos) }} en ingresos este año</div>
+          </div>
         <div class="anual-right">
           <div class="anual-stats">
             <div class="anual-stat">
@@ -173,7 +176,7 @@
         </div>
 
         <div class="card" style="opacity: 0">
-          <p class="card-title">Gastos variables <span class="tag tag-amber">{{ fmt(resumen?.totalVariables) }}</span></p>
+          <p class="card-title">Gastos ocasionales <span class="tag tag-amber">{{ fmt(resumen?.totalVariables) }}</span></p>
           <div v-if="store.gastosVariables.length === 0" class="empty">Sin gastos registrados</div>
           <div v-for="g in store.gastosVariables" :key="g.id" class="expense-row" style="opacity: 0">
             <div>
@@ -219,6 +222,7 @@ import { computed, ref, reactive, watch, onMounted } from 'vue'
 import { animate, stagger } from 'motion'
 import { useFinanceStore } from '@/stores/finance'
 import MonthSelector from '@/components/common/MonthSelector.vue'
+import DeudasAlerta from '@/components/common/DeudasAlerta.vue'
 import DonutChart from '@/components/charts/DonutChart.vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import { usePresupuestoMensual } from '@/composables/usePresupuestoMensual'
@@ -245,8 +249,8 @@ const progressWidth = ref(0)
 
 const distribucion = computed(() => [
   { label: 'Gastos fijos',     val: resumen.value?.totalFijos    ?? 0, color: '#f87171' },
-  { label: 'Gastos variables', val: resumen.value?.totalVariables ?? 0, color: '#fbbf24' },
-  { label: 'Ahorro',           val: resumen.value?.ahorro        ?? 0, color: '#34d399' },
+  { label: 'Gastos ocasionales', val: resumen.value?.totalVariables ?? 0, color: '#fbbf24' },
+  { label: 'Dinero restante',    val: resumen.value?.ahorro        ?? 0, color: '#34d399' },
 ])
 
 const healthLabel = computed(() => {
@@ -451,8 +455,8 @@ async function descargarPDF() {
   border-radius: 10px 10px 0 0;
 }
 .kpi-ahorro {
-  background: linear-gradient(135deg, var(--surface) 40%, rgba(52,211,153,0.05) 100%);
-  border-color: rgba(52,211,153,0.15);
+  background: linear-gradient(135deg, var(--surface) 40%, color-mix(in srgb, var(--green) 5%, transparent) 100%);
+  border-color: color-mix(in srgb, var(--green) 15%, transparent);
 }
 .kpi-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
 .kpi-label { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
@@ -469,7 +473,7 @@ async function descargarPDF() {
   align-items: center;
   gap: 2rem;
   background: var(--surface);
-  border: 1px solid rgba(52,211,153,0.15);
+  border: 1px solid color-mix(in srgb, var(--green) 15%, transparent);
   border-left: 3px solid var(--green);
   border-radius: 12px;
   padding: 1.25rem 1.5rem;
@@ -485,25 +489,25 @@ async function descargarPDF() {
 .anual-stat strong { font-size: 0.82rem; color: var(--text-primary); }
 .anual-progress-wrap { width: 100%; }
 .anual-progress-track { position: relative; height: 4px; background: var(--surface2); border-radius: 3px; overflow: visible; margin-bottom: 0.3rem; }
-.anual-progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), rgba(52,211,153,0.5)); border-radius: 3px; transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.anual-progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), color-mix(in srgb, var(--green) 50%, transparent)); border-radius: 3px; transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1); }
 .anual-progress-goal {
   position: absolute;
   top: -4px; bottom: -4px; left: 20%;
   width: 1px;
-  background: rgba(251,191,36,0.5);
+  background: color-mix(in srgb, var(--amber) 50%, transparent);
 }
 .anual-progress-goal::after { content: '20%'; position: absolute; top: -14px; left: 3px; font-size: 0.55rem; color: var(--amber); white-space: nowrap; }
 .anual-progress-labels { display: flex; justify-content: space-between; font-size: 0.58rem; color: var(--text-muted); }
 
 .health-badge { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.2rem 0.65rem; border-radius: 2px; border: 1px solid; }
-.health-green { border-color: rgba(52,211,153,0.35); color: var(--green); background: rgba(52,211,153,0.05); }
-.health-amber { border-color: rgba(251,191,36,0.35); color: var(--amber); background: rgba(251,191,36,0.05); }
-.health-red   { border-color: rgba(248,113,113,0.35); color: var(--red);   background: rgba(248,113,113,0.05); }
+.health-green { border-color: color-mix(in srgb, var(--green) 35%, transparent); color: var(--green); background: color-mix(in srgb, var(--green) 5%, transparent); }
+.health-amber { border-color: color-mix(in srgb, var(--amber) 35%, transparent); color: var(--amber); background: color-mix(in srgb, var(--amber) 5%, transparent); }
+.health-red   { border-color: color-mix(in srgb, var(--red) 35%, transparent);   color: var(--red);   background: color-mix(in srgb, var(--red) 5%, transparent); }
 
 /* 3-col bottom */
 .bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
 
-.card-title { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.card-title { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; justify-content: space-between; }
 
 /* Donut section */
 .donut-section { display: flex; flex-direction: column; align-items: center; gap: 1rem; }

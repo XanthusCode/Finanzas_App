@@ -1,3 +1,5 @@
+using Finanzas.Domain.Entities;
+
 namespace Finanzas.Application.DTOs
 {
     public class MetaDto
@@ -25,7 +27,14 @@ namespace Finanzas.Application.DTOs
         public DateTime? FechaLimite { get; set; }
     }
 
-    public class AbonarMetaDto
+    public class MovimientoMetaDto
+    {
+        public Guid Id { get; set; }
+        public decimal Monto { get; set; }
+        public DateTime Fecha { get; set; }
+    }
+
+    public class CrearMovimientoMetaDto
     {
         public decimal Monto { get; set; }
     }

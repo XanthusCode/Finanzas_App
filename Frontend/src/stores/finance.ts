@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta } from '@/types'
-import { gastosService, ingresosService, resumenService, categoriasService, presupuestosService, metasService } from '@/services/api'
+import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta, Cuenta } from '@/types'
+import { gastosService, ingresosService, resumenService, categoriasService, presupuestosService, metasService, cuentasService } from '@/services/api'
 
 export const useFinanceStore = defineStore('finance', () => {
   const gastos     = ref<Gasto[]>([])
@@ -11,6 +11,7 @@ export const useFinanceStore = defineStore('finance', () => {
   const categorias = ref<Categoria[]>([])
   const presupuestos = ref<Presupuesto[]>([])
   const metas      = ref<Meta[]>([])
+  const cuentas    = ref<Cuenta[]>([])
   const tendencia  = ref<Resumen[]>([])
   const gastosPorCategoria = ref<GastoCategoriaAnual[]>([])
 
@@ -24,6 +25,11 @@ export const useFinanceStore = defineStore('finance', () => {
   const gastosVariables = computed(() => gastos.value.filter(g => g.tipo === 'VARIABLE'))
   const categoriasFijas     = computed(() => categorias.value.filter(c => c.tipo === 'FIJO'    && c.activa))
   const categoriasVariables = computed(() => categorias.value.filter(c => c.tipo === 'VARIABLE' && c.activa))
+
+  async function cargarCuentas() {
+    const { data } = await cuentasService.getAll()
+    cuentas.value = data
+  }
 
   async function cargarCategorias() {
     const { data } = await categoriasService.getAll()
@@ -107,7 +113,7 @@ export const useFinanceStore = defineStore('finance', () => {
     return data.length
   }
 
-  async function agregarIngreso(ingreso: Pick<Ingreso, 'concepto' | 'monto'>) {
+  async function agregarIngreso(ingreso: Pick<Ingreso, 'concepto' | 'monto' | 'esRecurrente' | 'cuentaId' | 'frecuencia' | 'diaPago'>) {
     const { data } = await ingresosService.create({
       ...ingreso,
       mes: mesActual.value,
@@ -117,7 +123,7 @@ export const useFinanceStore = defineStore('finance', () => {
     await cargarResumen()
   }
 
-  async function editarIngreso(id: string, ingreso: Pick<Ingreso, 'concepto' | 'monto'>) {
+  async function editarIngreso(id: string, ingreso: Pick<Ingreso, 'concepto' | 'monto' | 'esRecurrente' | 'cuentaId' | 'frecuencia' | 'diaPago'>) {
     const { data } = await ingresosService.update(id, { ...ingreso, id, mes: mesActual.value, anio: anioActual.value })
     const idx = ingresos.value.findIndex(i => i.id === id)
     if (idx !== -1) ingresos.value[idx] = data
@@ -220,8 +226,8 @@ export const useFinanceStore = defineStore('finance', () => {
     if (idx !== -1) metas.value[idx] = data
   }
 
-  async function abonarMeta(id: string, monto: number) {
-    const { data } = await metasService.abonar(id, monto)
+  async function registrarMovimientoMeta(id: string, monto: number) {
+    const { data } = await metasService.crearMovimiento(id, monto)
     const idx = metas.value.findIndex(m => m.id === id)
     if (idx !== -1) metas.value[idx] = data
   }
@@ -229,6 +235,11 @@ export const useFinanceStore = defineStore('finance', () => {
   async function eliminarMeta(id: string) {
     await metasService.delete(id)
     metas.value = metas.value.filter(m => m.id !== id)
+  }
+
+  async function cargarHistorialMeta(id: string) {
+    const { data } = await metasService.getHistorial(id)
+    return data
   }
 
   return {
@@ -245,6 +256,7 @@ export const useFinanceStore = defineStore('finance', () => {
     cargarDatos, agregarGasto, editarGasto, eliminarGasto, copiarRecurrentes, importarGastos,
     agregarIngreso, editarIngreso, eliminarIngreso, cambiarMes,
     presupuestos, cargarPresupuestos, guardarPresupuesto, eliminarPresupuesto,
-    metas, cargarMetas, crearMeta, editarMeta, abonarMeta, eliminarMeta,
+    metas, cargarMetas, crearMeta, editarMeta, registrarMovimientoMeta, eliminarMeta, cargarHistorialMeta,
+    cuentas, cargarCuentas,
   }
 })

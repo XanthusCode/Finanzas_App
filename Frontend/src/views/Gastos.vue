@@ -19,6 +19,31 @@
       </div>
     </div>
 
+    <!-- KPIs del mes -->
+    <div v-if="!store.loading && store.gastos.length > 0" class="kpi-grid">
+      <div class="kpi-card" style="--ca: var(--red)">
+        <div class="kpi-top">
+          <span class="kpi-label">Gastos fijos</span>
+          <svg class="kpi-icon" style="color:var(--red)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="kpi-value" style="color: var(--red)">{{ fmt(totalFiltradoFijos) }}</div>
+      </div>
+      <div class="kpi-card" style="--ca: var(--amber)">
+        <div class="kpi-top">
+          <span class="kpi-label">Gastos ocasionales</span>
+          <svg class="kpi-icon" style="color:var(--amber)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>
+        </div>
+        <div class="kpi-value" style="color: var(--amber)">{{ fmt(totalFiltradoVariables) }}</div>
+      </div>
+      <div class="kpi-card" style="--ca: var(--accent)">
+        <div class="kpi-top">
+          <span class="kpi-label">Total gastos</span>
+          <svg class="kpi-icon" style="color:var(--accent)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="kpi-value" style="color: var(--accent)">{{ fmt(totalFiltradoFijos + totalFiltradoVariables) }}</div>
+      </div>
+    </div>
+
     <!-- Barra de búsqueda + filtros -->
     <div v-if="!store.loading && store.gastos.length > 0" class="filter-bar">
       <div class="search-wrap">
@@ -64,9 +89,9 @@
           <span class="card-title">Gastos fijos</span>
           <div style="display: flex; align-items: center; gap: 0.5rem;">
             <span class="tag tag-red">{{ fmt(totalFiltradoFijos) }}</span>
-            <button v-if="!editando && tipoAbierto !== 'FIJO'" class="btn btn-sm" @click="toggleFormPara('FIJO')">
+            <button v-if="!editando && tipoAbierto !== 'FIJO'" class="btn btn-sm btn-primary" @click="toggleFormPara('FIJO')">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Agregar
+              Nuevo gasto
             </button>
           </div>
         </div>
@@ -90,15 +115,15 @@
         </template>
       </div>
 
-      <!-- Gastos variables -->
+      <!-- Gastos ocasionales -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Gastos variables</span>
+          <span class="card-title">Gastos ocasionales</span>
           <div style="display: flex; align-items: center; gap: 0.5rem;">
             <span class="tag tag-amber">{{ fmt(totalFiltradoVariables) }}</span>
-            <button v-if="!editando && tipoAbierto !== 'VARIABLE'" class="btn btn-sm" @click="toggleFormPara('VARIABLE')">
+            <button v-if="!editando && tipoAbierto !== 'VARIABLE'" class="btn btn-sm btn-primary" @click="toggleFormPara('VARIABLE')">
               <svg  width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Agregar
+                Nuevo gasto
             </button>
           </div>
         </div>
@@ -117,7 +142,7 @@
         </Transition>
 
         <template v-if="tipoAbierto !== 'VARIABLE'">
-          <div v-if="filtradosVariables.length === 0" class="empty">Sin gastos variables este mes</div>
+          <div v-if="filtradosVariables.length === 0" class="empty">Sin gastos ocasionales este mes</div>
           <GastoRow v-for="g in filtradosVariables" :key="g.id" :gasto="g" @edit="abrirEdicion" @delete="onDelete" />
         </template>
       </div>
@@ -135,7 +160,7 @@
           </button>
           <button class="btn btn-primary" @click="toggleFormPara('VARIABLE')">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Gasto variable
+            Gasto ocasional
           </button>
           <button class="btn" :disabled="copiando" @click="copiarRecurrentes">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
@@ -296,7 +321,7 @@ async function copiarRecurrentes() {
   }
 }
 
-onMounted(() => { store.cargarDatos(); store.cargarCategorias() })
+onMounted(() => { store.cargarDatos(); store.cargarCategorias(); store.cargarCuentas() })
 </script>
 
 <style scoped>
@@ -309,6 +334,29 @@ onMounted(() => { store.cargarDatos(); store.cargarCategorias() })
 .empty       { font-size: 0.72rem; color: var(--text-muted); padding: 1rem 0; text-align: center; }
 
 .form-wrap { margin-bottom: 1rem; }
+
+/* KPIs — mismo estilo que Dashboard.vue */
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+.kpi-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--ca, var(--border));
+  border-radius: 10px 10px 0 0;
+}
+.kpi-top   { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.kpi-label { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
+.kpi-icon  { opacity: 0.7; flex-shrink: 0; }
+.kpi-value { font-size: 1.25rem; font-family: var(--ff-display); font-weight: 700; }
 
 /* Filter bar */
 .filter-bar {
@@ -361,7 +409,7 @@ onMounted(() => { store.cargarDatos(); store.cargarCategorias() })
   align-items: center;
   gap: 1rem;
   background: var(--surface);
-  border: 1px solid rgba(99,179,255,0.2);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
   border-left: 3px solid var(--accent);
   border-radius: 8px;
   padding: 0.6rem 0.85rem;
@@ -404,5 +452,7 @@ onMounted(() => { store.cargarDatos(); store.cargarCategorias() })
 
   .filter-bar { display: block; }
   .search-wrap { margin-bottom: 0.5rem; }
+
+  .kpi-grid { grid-template-columns: 1fr; }
 }
 </style>

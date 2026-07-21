@@ -44,7 +44,7 @@
         </div>
         <div class="kpi-card">
           <span class="kpi-lbl">% Ahorro</span>
-          <span class="kpi-v" :style="{ color: resumen.pctAhorro >= 20 ? 'var(--accent)' : resumen.pctAhorro >= 10 ? '#f59e0b' : 'var(--red)' }">
+          <span class="kpi-v" :style="{ color: resumen.pctAhorro >= 20 ? 'var(--accent)' : resumen.pctAhorro >= 10 ? 'var(--amber)' : 'var(--red)' }">
             {{ resumen.pctAhorro.toFixed(1) }}%
           </span>
         </div>
@@ -217,9 +217,9 @@ const textoConsejo = computed(() => {
   if (!resumen.value || sinIngresos.value) return ''
   const pct = Math.round((gastoProyectado.value / resumen.value.totalIngresos) * 100)
   if (estadoConsejo.value === 'bad')
-    return `Vas a gastar aprox. ${pct}% de tus ingresos registrados hasta ahora. Si aún falta cargar ingresos del mes, el porcentaje debería bajar — de lo contrario, reduce tus gastos variables los próximos días para cerrar en positivo.`
+    return `Vas a gastar aprox. ${pct}% de tus ingresos registrados hasta ahora. Si aún falta cargar ingresos del mes, el porcentaje debería bajar — de lo contrario, reduce tus gastos ocasionales los próximos días para cerrar en positivo.`
   if (estadoConsejo.value === 'warn')
-    return `Vas a gastar aprox. ${pct}% de tus ingresos registrados hasta ahora. Estás cerca del límite — controla los gastos variables (el porcentaje puede bajar si aún faltan ingresos por registrar).`
+    return `Vas a gastar aprox. ${pct}% de tus ingresos registrados hasta ahora. Estás cerca del límite — controla los gastos ocasionales (el porcentaje puede bajar si aún faltan ingresos por registrar).`
   return `Vas muy bien. Proyección de ahorro: ${fmt(ahorroProyectado.value)} (${Math.round((ahorroProyectado.value / resumen.value.totalIngresos) * 100)}% del ingreso).`
 })
 </script>
@@ -264,15 +264,15 @@ const textoConsejo = computed(() => {
 .burn-viz { display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 2px; }
 .burn-seg { min-width: 2px; border-radius: 4px; }
 .burn-real   { background: var(--accent); }
-.burn-proj   { background: rgba(99,179,255,0.3); }
-.burn-margin { background: #34d399; opacity: 0.4; }
+.burn-proj   { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.burn-margin { background: var(--green); opacity: 0.4; }
 
 .burn-legend { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 .burn-legend span { display: flex; align-items: center; gap: 0.3rem; font-size: 0.62rem; color: var(--text-muted); }
 .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
 .dot-real   { background: var(--accent); }
-.dot-proj   { background: rgba(99,179,255,0.4); }
-.dot-margin { background: #34d399; opacity: 0.6; }
+.dot-proj   { background: color-mix(in srgb, var(--accent) 40%, transparent); }
+.dot-margin { background: var(--green); opacity: 0.6; }
 
 .burn-footer { position: relative; height: 20px; }
 .burn-ingreso-mark { position: absolute; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 1px; }
@@ -282,7 +282,7 @@ const textoConsejo = computed(() => {
 .burn-alerta {
   display: flex; align-items: center; gap: 0.4rem;
   font-size: 0.68rem; color: var(--red);
-  background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2);
+  background: color-mix(in srgb, var(--red) 8%, transparent); border: 1px solid color-mix(in srgb, var(--red) 20%, transparent);
   border-radius: 6px; padding: 0.4rem 0.7rem;
 }
 
@@ -292,14 +292,14 @@ const textoConsejo = computed(() => {
   border-radius: 8px; padding: 0.9rem 1rem;
   border: 1px solid var(--border);
 }
-.consejo-ok   { background: rgba(52,211,153,0.06); border-color: rgba(52,211,153,0.3); }
-.consejo-warn { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.3); }
-.consejo-bad  { background: rgba(248,113,113,0.06); border-color: rgba(248,113,113,0.3); }
+.consejo-ok   { background: color-mix(in srgb, var(--green) 6%, transparent); border-color: color-mix(in srgb, var(--green) 30%, transparent); }
+.consejo-warn { background: color-mix(in srgb, var(--amber) 6%, transparent); border-color: color-mix(in srgb, var(--amber) 30%, transparent); }
+.consejo-bad  { background: color-mix(in srgb, var(--red) 6%, transparent); border-color: color-mix(in srgb, var(--red) 30%, transparent); }
 
 .consejo-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem; }
-.consejo-ok   .consejo-icon { color: #34d399; }
-.consejo-warn .consejo-icon { color: #f59e0b; }
-.consejo-bad  .consejo-icon { color: #f87171; }
+.consejo-ok   .consejo-icon { color: var(--green); }
+.consejo-warn .consejo-icon { color: var(--amber); }
+.consejo-bad  .consejo-icon { color: var(--red); }
 .consejo-texto { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5; margin: 0; }
 
 /* Loading */

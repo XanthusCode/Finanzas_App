@@ -1,7 +1,9 @@
+import LandingView from '@/views/landing/Landing.vue'
 import Dashboard   from '@/views/Dashboard.vue'
 import Gastos      from '@/views/Gastos.vue'
 import Ingresos    from '@/views/Ingresos.vue'
 import Categorias  from '@/views/Categorias.vue'
+import Cuentas     from '@/views/Cuentas.vue'
 import Presupuesto from '@/views/Presupuesto.vue'
 import Metas       from '@/views/Metas.vue'
 import Simulador   from '@/views/Simulador.vue'
@@ -16,7 +18,7 @@ import Register    from '@/views/user/Register.vue'
 const auth = { requiresAuth: true }
 
 const routes = [
-  { path: '/', redirect: '/dashboard' },
+  { path: '/', component: LandingView, meta: { guest: true } },
 
   { path: '/dashboard',   component: Dashboard,   meta: auth },
   { path: '/gastos',      component: Gastos,      meta: auth },
@@ -26,6 +28,7 @@ const routes = [
   { path: '/metas',       component: Metas,       meta: auth },
   { path: '/deudas',      component: Deudas,      meta: auth },
   { path: '/cuotas',      component: Cuotas,      meta: auth },
+  { path: '/cuentas',     component: Cuentas,     meta: auth },
   { path: '/simulador',   component: Simulador,   meta: auth },
   { path: '/proyeccion',  component: Proyeccion,  meta: auth },
   { path: '/historial',   component: Historial,   meta: auth },

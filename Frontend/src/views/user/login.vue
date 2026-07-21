@@ -2,7 +2,7 @@
   <div class="auth-page">
     <!-- Panel izquierdo -->
     <div class="auth-panel">
-      <div class="panel-logo">FINANZAS<span>.</span></div>
+      <div class="panel-logo">FINANZAS</div>
       <p class="panel-tagline">Controla tus finanzas.<br>Cumple tus metas.</p>
       <ul class="panel-features">
         <li>
@@ -27,7 +27,7 @@
     <!-- Panel derecho -->
     <div class="auth-right">
       <div class="auth-card">
-        <div class="auth-logo-mobile">FINANZAS<span>.</span></div>
+        <div class="auth-logo-mobile">FINANZAS</div>
         <h1 class="auth-title">Bienvenido de vuelta</h1>
         <p class="auth-subtitle">Ingresa a tu cuenta para continuar</p>
 
@@ -135,7 +135,7 @@ async function onSubmit() {
 .auth-panel {
   background: #080d12;
   background-image:
-    radial-gradient(ellipse 80% 60% at 20% 50%, rgba(99,179,255,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 80% 60% at 20% 50%, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 70%),
     linear-gradient(180deg, #080d12 0%, #0d1620 100%);
   padding: 3rem 3.5rem;
   display: flex;
@@ -149,7 +149,7 @@ async function onSubmit() {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(99,179,255,0.04) 1px, transparent 1px);
+  background-image: radial-gradient(color-mix(in srgb, var(--accent) 4%, transparent) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
@@ -253,7 +253,7 @@ async function onSubmit() {
 }
 .field-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(99,179,255,0.1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 .field-input.input-error { border-color: #f56565; }
 

@@ -2,67 +2,40 @@
   <aside class="sidebar" :class="{ 'sidebar--open': open }">
     <div class="sidebar-header">
       <div class="sidebar-logo">
-        GASTOS<span style="color: var(--accent)">.</span>
+        FINANZAS
       </div>
       <button class="sidebar-close" @click="$emit('close')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
 
-    <nav class="sidebar-nav">
-      <RouterLink to="/dashboard" class="nav-item" active-class="nav-item--active" @click="$emit('close')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        Dashboard
-      </RouterLink>
-      <RouterLink to="/gastos" class="nav-item" active-class="nav-item--active" @click="$emit('close')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        Gastos
-      </RouterLink>
-      <RouterLink to="/ingresos" class="nav-item" active-class="nav-item--active" @click="$emit('close')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-        Ingresos
-      </RouterLink>
+   <nav class="sidebar-nav">
+      <template
+          v-for="(section, index) in menu"
+          :key="index"
+      >
+          <span class="nav-group-label">{{ section.label }}</span>
 
-      <div class="nav-divider" />
+          <RouterLink
+            v-for="item in section.items"
+            :key="item.route"
+            :to="item.route"
+            class="nav-item"
+            active-class="nav-item--active"
+            @click="$emit('close')"
+          >
+            <component
+              :is="item.icon"
+              :size="16"
+            />
+            {{ item.title }}
+          </RouterLink>
 
-      <RouterLink to="/presupuesto" class="nav-item" active-class="nav-item--active" @click="$emit('close')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-        Presupuesto
-      </RouterLink>
-      <RouterLink to="/metas" class="nav-item" active-class="nav-item--active" @click="$emit('close')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Metas
-      </RouterLink>
-      <RouterLink to="/deudas" class="nav-item" active-class="nav-item--active" @click="$emit('close')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/><line x1="4" y1="2" x2="20" y2="22"/></svg>
-        Deudas
-      </RouterLink>
-      <RouterLink to="/cuotas" class="nav-item" active-class="nav-item--active" @click="$emit('close')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M7 15h2M11 15h2"/></svg>
-        Cuotas
-      </RouterLink>
-
-      <div class="nav-divider" />
-
-      <RouterLink to="/simulador" class="nav-item" active-class="nav-item--active" @click="$emit('close')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="12" r="10"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Simulador
-      </RouterLink>
-      <RouterLink to="/proyeccion" class="nav-item" active-class="nav-item--active" @click="$emit('close')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Proyección
-      </RouterLink>
-      <RouterLink to="/historial" class="nav-item" active-class="nav-item--active" @click="$emit('close')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 3 3 21 21 21"/><polyline points="7 16 11 11 15 14 19 8"/></svg>
-        Historial
-      </RouterLink>
-
-      <div class="nav-divider" />
-
-      <RouterLink to="/categorias" class="nav-item" active-class="nav-item--active" @click="$emit('close')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 10h16M4 14h8M4 18h8"/></svg>
-        Categorías
-      </RouterLink>
+          <div
+            v-if="index !== menu.length - 1"
+            class="nav-divider"
+          />
+      </template>
     </nav>
 
     <div class="sidebar-footer">
@@ -72,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { menu } from './SidebarItems'
 
 defineProps<{ open: boolean }>()
 defineEmits(['close'])
@@ -128,6 +101,15 @@ const anio = new Date().getFullYear()
   overflow-y: auto;
 }
 
+.nav-group-label {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0 0.75rem;
+  margin: 0.5rem 0 0.15rem;
+}
+
 .nav-item {
   display: flex;
   align-items: center;
@@ -144,7 +126,7 @@ const anio = new Date().getFullYear()
 }
 .nav-item:hover { background: var(--surface2); color: var(--text-primary); }
 .nav-item--active {
-  background: rgba(99, 179, 255, 0.08);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   color: var(--accent);
   border-left-color: var(--accent);
 }
@@ -164,8 +146,8 @@ const anio = new Date().getFullYear()
   letter-spacing: 0.1em;
 }
 
-/* ── Mobile ── */
-@media (max-width: 768px) {
+/* ── Mobile / tablet vertical ── */
+@media (max-width: 768px), (max-width: 1024px) and (orientation: portrait) {
   .sidebar {
     position: fixed;
     top: 0;
@@ -190,3 +172,4 @@ const anio = new Date().getFullYear()
   }
 }
 </style>
+

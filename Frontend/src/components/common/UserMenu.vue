@@ -115,15 +115,15 @@ async function onSubmit() {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: rgba(99,179,255,0.15);
-  border: 1px solid rgba(99,179,255,0.3);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.2s;
 }
-.avatar-btn:hover { background: rgba(99,179,255,0.25); }
+.avatar-btn:hover { background: color-mix(in srgb, var(--accent) 25%, transparent); }
 
 .avatar-initials {
   font-size: 0.68rem;

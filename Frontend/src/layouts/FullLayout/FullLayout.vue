@@ -41,7 +41,7 @@ const sidebarOpen = ref(false)
 
 .sidebar-overlay { display: none; }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-width: 1024px) and (orientation: portrait) {
   .layout {
     grid-template-columns: 1fr;
   }

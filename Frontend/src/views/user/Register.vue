@@ -2,7 +2,7 @@
   <div class="auth-page">
     <!-- Panel izquierdo -->
     <div class="auth-panel">
-      <div class="panel-logo">FINANZAS<span>.</span></div>
+      <div class="panel-logo">FINANZAS</div>
       <p class="panel-tagline">Tus finanzas,<br>bajo control.</p>
       <ul class="panel-features">
         <li>
@@ -27,7 +27,7 @@
     <!-- Panel derecho -->
     <div class="auth-right">
       <div class="auth-card">
-        <div class="auth-logo-mobile">FINANZAS<span>.</span></div>
+        <div class="auth-logo-mobile">FINANZAS</div>
         <h1 class="auth-title">Crear cuenta</h1>
         <p class="auth-subtitle">Empieza a controlar tus finanzas hoy</p>
 
@@ -66,14 +66,25 @@
                 :type="showPassword ? 'text' : 'password'"
                 class="field-input"
                 :class="{ 'input-error': errors.password }"
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Crea una contraseña segura"
                 autocomplete="new-password"
+                @focus="passwordFocused = true"
+                @blur="passwordFocused = false"
               />
               <button type="button" class="eye-btn" @click="showPassword = !showPassword" tabindex="-1">
                 <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
               </button>
             </div>
+            <transition name="pw-reqs">
+              <ul v-if="passwordFocused" class="pw-requirements">
+                <li v-for="req in passwordRequirements" :key="req.id" :class="{ met: req.test(form.password) }">
+                  <svg v-if="req.test(form.password)" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="9"/></svg>
+                  {{ req.label }}
+                </li>
+              </ul>
+            </transition>
             <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
           </div>
 
@@ -99,6 +110,7 @@ import { ref, reactive } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { z } from 'zod'
+import { passwordRequirements, passwordSchema } from '@/schemas'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -108,11 +120,12 @@ const errors = reactive({ nombre: '', email: '', password: '' })
 const serverError = ref('')
 const loading = ref(false)
 const showPassword = ref(false)
+const passwordFocused = ref(false)
 
 const schema = z.object({
   nombre: z.string().min(2, { message: 'Mínimo 2 caracteres' }).max(80, { message: 'Máximo 80 caracteres' }),
   email: z.email({ message: 'Correo inválido' }),
-  password: z.string().min(6, { message: 'Mínimo 6 caracteres' })
+  password: passwordSchema
 })
 
 async function onSubmit() {
@@ -149,7 +162,7 @@ async function onSubmit() {
 .auth-panel {
   background: #080d12;
   background-image:
-    radial-gradient(ellipse 80% 60% at 20% 50%, rgba(99,179,255,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 80% 60% at 20% 50%, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 70%),
     linear-gradient(180deg, #080d12 0%, #0d1620 100%);
   padding: 3rem 3.5rem;
   display: flex;
@@ -163,7 +176,7 @@ async function onSubmit() {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(99,179,255,0.04) 1px, transparent 1px);
+  background-image: radial-gradient(color-mix(in srgb, var(--accent) 4%, transparent) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
@@ -265,7 +278,7 @@ async function onSubmit() {
 }
 .field-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(99,179,255,0.1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 .field-input.input-error { border-color: #f56565; }
 .field-error { font-size: 0.72rem; color: #f56565; }
@@ -279,6 +292,32 @@ async function onSubmit() {
   transition: color 0.15s;
 }
 .eye-btn:hover { color: var(--text-primary); }
+
+.pw-requirements {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.pw-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  transition: color 0.15s;
+}
+.pw-requirements li svg { flex-shrink: 0; color: var(--text-muted); transition: color 0.15s; }
+.pw-requirements li.met { color: var(--text-secondary); }
+.pw-requirements li.met svg { color: var(--green); }
+
+.pw-reqs-enter-active, .pw-reqs-leave-active { transition: opacity 0.15s, transform 0.15s; }
+.pw-reqs-enter-from, .pw-reqs-leave-to { opacity: 0; transform: translateY(-4px); }
 
 .server-error {
   font-size: 0.8rem;

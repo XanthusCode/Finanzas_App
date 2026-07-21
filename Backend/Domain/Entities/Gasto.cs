@@ -15,6 +15,7 @@
         public int? NumCuotas { get; set; }
         public int? CuotaActual { get; set; }
         public Guid? GastoOrigenId { get; set; }
+        public Guid? CuentaId { get; set; }
     }
 
     public enum TipoGasto

@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, watch} from 'vue';
+import {ref, watch, nextTick} from 'vue';
 
 const props = withDefaults(defineProps<{
   modelValue: number
@@ -48,22 +48,44 @@ watch(() => props.modelValue, (val) => {
   }
 }, { immediate: true })
  
-function onInput(e: Event) {
-  const raw = (e.target as HTMLInputElement).value
-  const numeric = clean(raw)
- 
-  emit('update:modelValue', numeric)
- 
-  // reformatea mientras escribe
-  const formatted = numeric ? '$ ' + numeric.toLocaleString('es-CO') : ''
-  displayed.value = formatted
- 
-  // mantiene el cursor al final
-  setTimeout(() => {
-    if (inputRef.value) {
-      inputRef.value.setSelectionRange(formatted.length, formatted.length)
+// cuenta cuántos dígitos hay antes de una posición dada del string
+function digitsBefore(s: string, pos: number): number {
+  return s.slice(0, pos).replace(/\D/g, '').length
+}
+
+// ubica la posición en `s` que deja exactamente `count` dígitos a la izquierda
+function positionForDigitCount(s: string, count: number): number {
+  if (count <= 0) return s.length > 0 ? 2 : 0 // justo después del prefijo "$ "
+  let seen = 0
+  for (let i = 0; i < s.length; i++) {
+    if (/\d/.test(s.charAt(i))) {
+      seen++
+      if (seen === count) return i + 1
     }
-  }, 0)
+  }
+  return s.length
+}
+
+function onInput(e: Event) {
+  const inputEl = e.target as HTMLInputElement
+  const raw = inputEl.value
+  const cursorPos = inputEl.selectionStart ?? raw.length
+  const digitsBeforeCursor = digitsBefore(raw, cursorPos)
+
+  const numeric = clean(raw)
+  emit('update:modelValue', numeric)
+
+  // reformatea mientras escribe
+  const formatted = numeric ? format(numeric) : ''
+  displayed.value = formatted
+
+  // conserva la posición relativa del cursor en vez de moverlo siempre al final
+  nextTick(() => {
+    if (inputRef.value) {
+      const pos = positionForDigitCount(formatted, digitsBeforeCursor)
+      inputRef.value.setSelectionRange(pos, pos)
+    }
+  })
 }
  
 function onFocus() {

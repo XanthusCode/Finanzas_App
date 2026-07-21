@@ -29,6 +29,19 @@ namespace Finanzas.Infrastructure.Repositories
             return meta;
         }
 
+        public async Task<IEnumerable<MovimientoMeta>> GetMovimientosAsync(Guid metaId) =>
+            await _db.MovimientosMeta
+                .Where(m => m.MetaId == metaId)
+                .OrderByDescending(m => m.Fecha)
+                .ToListAsync();
+
+        public async Task<MovimientoMeta> AddMovimientoAsync(MovimientoMeta movimiento)
+        {
+            _db.MovimientosMeta.Add(movimiento);
+            await _db.SaveChangesAsync();
+            return movimiento;
+        }
+
         public async Task DeleteAsync(Guid id)
         {
             var m = await _db.Metas.FindAsync(id);

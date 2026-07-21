@@ -23,7 +23,7 @@
     <template v-else>
       <div v-for="tipo in (['FIJO', 'VARIABLE'] as const)" :key="tipo" class="seccion">
         <div class="seccion-header">
-          <span class="seccion-titulo">{{ tipo === 'FIJO' ? 'Gastos fijos' : 'Gastos variables' }}</span>
+          <span class="seccion-titulo">{{ tipo === 'FIJO' ? 'Gastos fijos' : 'Gastos ocasionales' }}</span>
           <span class="seccion-resumen">
             {{ itemsConLimite(tipo).length }} de {{ itemsPorTipo(tipo).length }} con límite
           </span>
@@ -190,7 +190,7 @@ onMounted(async () => {
 
 .banner-danger {
   display: flex; align-items: center; gap: 0.5rem;
-  background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2);
+  background: color-mix(in srgb, var(--red) 8%, transparent); border: 1px solid color-mix(in srgb, var(--red) 20%, transparent);
   border-radius: 8px; padding: 0.6rem 0.9rem;
   font-size: 0.78rem; color: var(--red); margin-bottom: 1rem;
 }
@@ -213,7 +213,7 @@ onMounted(async () => {
   margin-bottom: 0.5rem;
   transition: border-color 0.15s;
 }
-.budget-card:hover { border-color: rgba(99,179,255,0.25); }
+.budget-card:hover { border-color: color-mix(in srgb, var(--accent) 25%, transparent); }
 
 /* Top row: nombre + acciones */
 .bc-top {
@@ -229,9 +229,9 @@ onMounted(async () => {
   font-size: 0.6rem; font-weight: 700; padding: 0.15rem 0.5rem;
   border-radius: 999px; letter-spacing: 0.03em;
 }
-.badge-ok     { background: rgba(52,211,153,0.12); color: #34d399; }
-.badge-warn   { background: rgba(245,158,11,0.12); color: #f59e0b; }
-.badge-danger { background: rgba(248,113,113,0.12); color: var(--red); }
+.badge-ok     { background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); }
+.badge-warn   { background: color-mix(in srgb, var(--amber) 12%, transparent); color: var(--amber); }
+.badge-danger { background: color-mix(in srgb, var(--red) 12%, transparent); color: var(--red); }
 .badge-sin-limite { display: none; }
 
 /* Barra */
@@ -240,8 +240,8 @@ onMounted(async () => {
   overflow: hidden; margin-bottom: 0.45rem;
 }
 .bc-bar { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
-.bar-ok     { background: #34d399; }
-.bar-warn   { background: #f59e0b; }
+.bar-ok     { background: var(--green); }
+.bar-warn   { background: var(--amber); }
 .bar-danger { background: var(--red); }
 
 /* Números debajo de la barra */
@@ -252,7 +252,7 @@ onMounted(async () => {
 .bc-reste   { font-size: 0.65rem; }
 .bc-limite  { font-size: 0.65rem; color: var(--text-muted); margin-left: auto; }
 .bc-resto   { font-size: 0.65rem; font-weight: 600; }
-.resto-ok   { color: #34d399; }
+.resto-ok   { color: var(--green); }
 .resto-over { color: var(--red); }
 
 /* Sin límite */
@@ -262,11 +262,11 @@ onMounted(async () => {
 .bc-gastado-solo { font-size: 0.72rem; color: var(--text-muted); }
 .btn-asignar {
   font-size: 0.65rem; font-weight: 600; color: var(--accent);
-  background: rgba(99,179,255,0.08); border: 1px solid rgba(99,179,255,0.2);
+  background: color-mix(in srgb, var(--accent) 8%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
   border-radius: 5px; padding: 0.25rem 0.65rem; cursor: pointer;
   transition: background 0.15s; white-space: nowrap;
 }
-.btn-asignar:hover { background: rgba(99,179,255,0.16); }
+.btn-asignar:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
 
 /* Modo edición */
 .bc-edit { display: flex; flex-direction: column; gap: 0.65rem; }
@@ -282,8 +282,8 @@ onMounted(async () => {
   padding: 4px 5px; border-radius: 4px; transition: color 0.15s, background 0.15s;
   display: flex; align-items: center; justify-content: center;
 }
-.icon-btn:hover        { color: var(--accent); background: rgba(99,179,255,0.08); }
-.icon-btn.danger:hover { color: var(--red);    background: rgba(248,113,113,0.08); }
+.icon-btn:hover        { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.icon-btn.danger:hover { color: var(--red);    background: color-mix(in srgb, var(--red) 8%, transparent); }
 
 /* Loading */
 .loading-list { display: flex; flex-direction: column; gap: 0.5rem; }

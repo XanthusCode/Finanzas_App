@@ -1,4 +1,4 @@
-﻿namespace Finanzas.Application.DTOs
+namespace Finanzas.Application.DTOs
 {
     public class CategoriaDto
     {

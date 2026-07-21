@@ -86,8 +86,8 @@ onMounted(async () => {
   padding: 0.3rem 0.5rem;
   border-radius: 5px;
 }
-.alerta-row.warn   { background: rgba(245,158,11,0.08); color: #f59e0b; }
-.alerta-row.danger { background: rgba(248,113,113,0.08); color: var(--red); }
+.alerta-row.warn   { background: color-mix(in srgb, var(--amber) 8%, transparent); color: var(--amber); }
+.alerta-row.danger { background: color-mix(in srgb, var(--red) 8%, transparent); color: var(--red); }
 
 .alerta-cat { flex: 1; }
 .alerta-pct { font-weight: 600; font-size: 0.72rem; }
