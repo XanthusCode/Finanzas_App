@@ -35,7 +35,7 @@ namespace Finanzas.Application.Services
         {
             var user = await _userRepo.GetByEmailAsync(dto.Email);
             if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-                return (false, "Credenciales incorrectas.", null);
+                return (false, "Correo o contraseña incorrectos. Verifica tus datos e intenta de nuevo.", null);
 
             return (true, string.Empty, BuildResponse(user));
         }

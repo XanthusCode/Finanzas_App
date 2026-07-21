@@ -19,43 +19,47 @@
     <template v-else>
       <!-- KPIs anuales -->
       <div class="kpi-grid">
-        <div class="kpi-card">
-          <span class="kpi-label">Ingresos totales</span>
-          <span class="kpi-val">{{ fmt(totalIngresos) }}</span>
+        <div class="kpi-card" style="--ca: var(--accent)">
+          <div class="kpi-top">
+            <span class="kpi-label">Ingresos totales</span>
+            <svg class="kpi-icon" style="color:var(--accent)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          </div>
+          <div class="kpi-value" style="color: var(--accent)">{{ fmt(totalIngresos) }}</div>
         </div>
-        <div class="kpi-card">
-          <span class="kpi-label">Gastos totales</span>
-          <span class="kpi-val">{{ fmt(totalGastos) }}</span>
+        <div class="kpi-card" style="--ca: var(--red)">
+          <div class="kpi-top">
+            <span class="kpi-label">Gastos totales</span>
+            <svg class="kpi-icon" style="color:var(--red)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div class="kpi-value" style="color: var(--red)">{{ fmt(totalGastos) }}</div>
         </div>
-        <div class="kpi-card">
-          <span class="kpi-label">Ahorro total</span>
-          <span class="kpi-val" :style="{ color: totalAhorro >= 0 ? 'var(--accent)' : 'var(--red)' }">
+        <div class="kpi-card" style="--ca: var(--green)">
+          <div class="kpi-top">
+            <span class="kpi-label">Ahorro total</span>
+            <svg class="kpi-icon" style="color:var(--green)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <div class="kpi-value" :style="{ color: totalAhorro >= 0 ? 'var(--green)' : 'var(--red)' }">
             {{ totalAhorro >= 0 ? '+' : '' }}{{ fmt(totalAhorro) }}
-          </span>
+          </div>
         </div>
-        <div class="kpi-card">
-          <span class="kpi-label">% Ahorro promedio</span>
-          <span class="kpi-val" :style="{ color: pctAhorroPromedio >= 20 ? 'var(--accent)' : pctAhorroPromedio >= 10 ? '#f59e0b' : 'var(--red)' }">
+        <div class="kpi-card kpi-ahorro" style="--ca: var(--green)">
+          <div class="kpi-top">
+            <span class="kpi-label">% Ahorro promedio</span>
+            <svg class="kpi-icon" style="color:var(--green)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>
+          </div>
+          <div class="kpi-value" :style="{ color: pctAhorroPromedio >= 20 ? 'var(--green)' : pctAhorroPromedio >= 10 ? 'var(--amber)' : 'var(--red)' }">
             {{ pctAhorroPromedio.toFixed(1) }}%
-          </span>
+          </div>
+          <div class="kpi-bar-wrap">
+            <div class="kpi-bar" :style="{ width: Math.min(Math.max(pctAhorroPromedio, 0), 100) + '%', background: pctAhorroPromedio >= 20 ? 'var(--green)' : pctAhorroPromedio >= 10 ? 'var(--amber)' : 'var(--red)' }" />
+          </div>
         </div>
       </div>
 
-      <!-- Minigráfico de ahorro -->
-      <div v-if="mesesConDatos.length > 1" class="sparkline-card">
-        <span class="spark-label">Ahorro mes a mes</span>
-        <div class="sparkline">
-          <div v-for="(m, i) in datosMeses" :key="i" class="spark-col">
-            <div class="spark-bar-wrap">
-              <div
-                class="spark-bar"
-                :class="m.ahorro >= 0 ? 'spark-pos' : 'spark-neg'"
-                :style="{ height: pctSpark(m.ahorro) + '%' }"
-              />
-            </div>
-            <span class="spark-mes">{{ MESES[m.mes - 1] }}</span>
-          </div>
-        </div>
+      <!-- Tendencia del año -->
+      <div v-if="mesesConDatos.length > 1" class="card" style="margin-bottom: 1rem">
+        <p class="card-title">Ingresos vs. gastos {{ anio }}</p>
+        <BarChart :labels="MESES" :datasets="tendenciaDatasets" />
       </div>
 
       <!-- Tabla mensual -->
@@ -66,7 +70,7 @@
               <th>Mes</th>
               <th class="num">Ingresos</th>
               <th class="num">Gastos fijos</th>
-              <th class="num">Gastos variables</th>
+              <th class="num">Gastos ocasionales</th>
               <th class="num">Total gastos</th>
               <th class="num">Ahorro</th>
               <th class="num">% Ahorro</th>
@@ -133,7 +137,7 @@
               <span class="mes-card-val">{{ m.totalFijos > 0 ? fmt(m.totalFijos) : '—' }}</span>
             </div>
             <div class="mes-card-item">
-              <span class="mes-card-lbl">Gastos variables</span>
+              <span class="mes-card-lbl">Gastos ocasionales</span>
               <span class="mes-card-val">{{ m.totalVariables > 0 ? fmt(m.totalVariables) : '—' }}</span>
             </div>
             <div class="mes-card-item">
@@ -166,7 +170,7 @@
               <span class="mes-card-val">{{ fmt(totalFijos) }}</span>
             </div>
             <div class="mes-card-item">
-              <span class="mes-card-lbl">Gastos variables</span>
+              <span class="mes-card-lbl">Gastos ocasionales</span>
               <span class="mes-card-val">{{ fmt(totalVariables) }}</span>
             </div>
             <div class="mes-card-item">
@@ -191,6 +195,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { resumenService } from '@/services/api'
 import { fmtCOP as fmt } from '@/utils'
 import type { Resumen } from '@/types'
+import BarChart from '@/components/charts/BarChart.vue'
 
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
 
@@ -227,13 +232,10 @@ const pctAhorroPromedio = computed(() => {
   return con.reduce((s, m) => s + m.pctAhorro, 0) / con.length
 })
 
-const maxAbsAhorro = computed(() =>
-  Math.max(...datosMeses.value.map(m => Math.abs(m.ahorro)), 1)
-)
-
-function pctSpark(ahorro: number): number {
-  return Math.round((Math.abs(ahorro) / maxAbsAhorro.value) * 80)
-}
+const tendenciaDatasets = computed(() => [
+  { label: 'Ingresos', data: datosMeses.value.map(m => m.totalIngresos), color: 'rgba(99,179,255,0.7)'  },
+  { label: 'Gastos',   data: datosMeses.value.map(m => m.totalGastos),   color: 'rgba(248,113,113,0.7)' },
+])
 
 function esActual(m: Resumen): boolean {
   return anio.value === anioHoy && m.mes === mesHoy
@@ -268,22 +270,36 @@ onMounted(cargar)
 .year-btn:disabled { opacity: 0.3; cursor: default; }
 .year-label { font-size: 1rem; font-weight: 700; min-width: 48px; text-align: center; }
 
-/* KPIs */
+/* KPIs — mismo estilo que Dashboard.vue */
 .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
-.kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 1rem; display: flex; flex-direction: column; gap: 0.25rem; }
-.kpi-label { font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
-.kpi-val   { font-size: 1.05rem; font-weight: 700; }
+.kpi-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--ca, var(--border));
+  border-radius: 10px 10px 0 0;
+}
+.kpi-ahorro {
+  background: linear-gradient(135deg, var(--surface) 40%, color-mix(in srgb, var(--green) 5%, transparent) 100%);
+  border-color: color-mix(in srgb, var(--green) 15%, transparent);
+}
+.kpi-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.kpi-label { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
+.kpi-icon { opacity: 0.7; flex-shrink: 0; }
+.kpi-value { font-size: 1.25rem; font-family: var(--ff-display); font-weight: 700; margin-bottom: 0.5rem; }
+.kpi-bar-wrap { height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+.kpi-bar { height: 100%; border-radius: 2px; max-width: 100%; }
 
-/* Sparkline */
-.sparkline-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; margin-bottom: 1rem; }
-.spark-label { font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 0.5rem; }
-.sparkline { display: flex; align-items: flex-end; gap: 4px; height: 56px; }
-.spark-col { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 3px; height: 100%; }
-.spark-bar-wrap { flex: 1; display: flex; align-items: flex-end; width: 100%; }
-.spark-bar { width: 100%; border-radius: 3px 3px 0 0; min-height: 2px; transition: height 0.4s ease; }
-.spark-pos { background: #34d399; }
-.spark-neg { background: var(--red); opacity: 0.7; }
-.spark-mes { font-size: 0.52rem; color: var(--text-muted); white-space: nowrap; }
+.card-title { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; }
 
 /* Tabla */
 .tabla-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
@@ -300,14 +316,14 @@ onMounted(cargar)
 
 .td-mes { font-weight: 600; color: var(--text-primary) !important; }
 .row-vacio td { opacity: 0.35; }
-.row-actual td { background: rgba(99,179,255,0.04); }
+.row-actual td { background: color-mix(in srgb, var(--accent) 4%, transparent); }
 .row-actual .td-mes::after { content: ' ·'; color: var(--accent); }
 
 .row-total td { font-weight: 700; color: var(--text-primary); border-top: 1px solid var(--border); background: var(--surface2); }
 
-.aho-pos  { color: #34d399 !important; font-weight: 600; }
+.aho-pos  { color: var(--green) !important; font-weight: 600; }
 .aho-neg  { color: var(--red) !important; font-weight: 600; }
-.aho-warn { color: #f59e0b !important; font-weight: 600; }
+.aho-warn { color: var(--amber) !important; font-weight: 600; }
 
 /* Tarjetas mensuales (mobile) */
 .meses-cards { display: none; }
@@ -327,7 +343,7 @@ onMounted(cargar)
 .mes-card-val { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
 
 .mes-vacio { opacity: 0.4; }
-.mes-actual { border-color: rgba(99,179,255,0.3); background: rgba(99,179,255,0.04); }
+.mes-actual { border-color: color-mix(in srgb, var(--accent) 30%, transparent); background: color-mix(in srgb, var(--accent) 4%, transparent); }
 .mes-actual .mes-card-nombre::after { content: ' ·'; color: var(--accent); }
 
 .mes-card-total { background: var(--surface2); }

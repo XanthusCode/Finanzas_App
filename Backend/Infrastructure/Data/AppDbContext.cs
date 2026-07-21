@@ -16,7 +16,11 @@ namespace Finanzas.Infrastructure.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Presupuesto> Presupuestos { get; set; }
         public DbSet<Meta> Metas { get; set; }
+        public DbSet<MovimientoMeta> MovimientosMeta { get; set; }
         public DbSet<Deuda> Deudas { get; set; }
+        public DbSet<Abono> Abonos { get; set; }
+        public DbSet<Cuenta> Cuentas { get; set; }
+        public DbSet<MovimientoCuenta> MovimientosCuenta { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -31,6 +35,8 @@ namespace Finanzas.Infrastructure.Data
                 e.Property(g => g.NumCuotas).IsRequired(false);
                 e.Property(g => g.CuotaActual).IsRequired(false);
                 e.Property(g => g.GastoOrigenId).IsRequired(false);
+                e.Property(g => g.CuentaId).IsRequired(false);
+                e.HasOne<Cuenta>().WithMany().HasForeignKey(g => g.CuentaId).OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<Ingreso>(e =>
@@ -39,6 +45,10 @@ namespace Finanzas.Infrastructure.Data
                 e.Property(i => i.Concepto).IsRequired().HasMaxLength(100);
                 e.Property(i => i.Monto).HasColumnType("decimal(12,2)");
                 e.HasOne<User>().WithMany().HasForeignKey(i => i.UserId).OnDelete(DeleteBehavior.Cascade);
+                e.Property(i => i.CuentaId).IsRequired(false);
+                e.HasOne<Cuenta>().WithMany().HasForeignKey(i => i.CuentaId).OnDelete(DeleteBehavior.SetNull);
+                e.Property(i => i.Frecuencia).HasConversion<string>().IsRequired(false);
+                e.Property(i => i.DiaPago).IsRequired(false);
             });
 
             modelBuilder.Entity<Categoria>(e =>
@@ -76,6 +86,13 @@ namespace Finanzas.Infrastructure.Data
                 e.HasOne<User>().WithMany().HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.Cascade);
             });
 
+            modelBuilder.Entity<MovimientoMeta>(e =>
+            {
+                e.HasKey(m => m.Id);
+                e.Property(m => m.Monto).HasColumnType("decimal(12,2)");
+                e.HasOne<Meta>().WithMany().HasForeignKey(m => m.MetaId).OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<Deuda>(e =>
             {
                 e.HasKey(d => d.Id);
@@ -84,6 +101,29 @@ namespace Finanzas.Infrastructure.Data
                 e.Property(d => d.Monto).HasColumnType("decimal(12,2)");
                 e.Property(d => d.Tipo).HasConversion<string>();
                 e.HasOne<User>().WithMany().HasForeignKey(d => d.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Abono>(e =>
+            {
+                e.HasKey(a => a.Id);
+                e.Property(a => a.Monto).HasColumnType("decimal(12,2)");
+                e.HasOne<Deuda>().WithMany().HasForeignKey(a => a.DeudaId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Cuenta>(e =>
+            {
+                e.HasKey(c => c.Id);
+                e.Property(c => c.Nombre).IsRequired().HasMaxLength(100);
+                e.Property(c => c.Tipo).HasConversion<string>();
+                e.HasOne<User>().WithMany().HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<MovimientoCuenta>(e =>
+            {
+                e.HasKey(m => m.Id);
+                e.Property(m => m.Monto).HasColumnType("decimal(12,2)");
+                e.Property(m => m.Descripcion).HasMaxLength(150);
+                e.HasOne<Cuenta>().WithMany().HasForeignKey(m => m.CuentaId).OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

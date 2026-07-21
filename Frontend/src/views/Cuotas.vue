@@ -200,7 +200,7 @@ onMounted(async () => {
 .res-label { font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
 .res-val   { font-size: 1.1rem; font-weight: 700; }
 .res-val.accent { color: var(--accent); }
-.res-val.warn   { color: #f59e0b; }
+.res-val.warn   { color: var(--amber); }
 
 .section-titulo {
   font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
@@ -227,11 +227,11 @@ onMounted(async () => {
 .plan-right  { display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; }
 .plan-monto  { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
 .plan-cuotas { font-size: 0.62rem; color: var(--text-muted); }
-.badge-done  { font-size: 0.62rem; background: rgba(99,179,255,0.12); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; }
+.badge-done  { font-size: 0.62rem; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 4px; }
 
 .plan-bar-wrap { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
 .plan-bar      { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.5s ease; }
-.plan-bar-done { background: #34d399; }
+.plan-bar-done { background: var(--green); }
 
 .plan-footer { display: flex; justify-content: space-between; align-items: center; }
 .plan-pagado { font-size: 0.62rem; color: var(--text-muted); }

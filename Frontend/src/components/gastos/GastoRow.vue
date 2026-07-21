@@ -1,9 +1,9 @@
 <template>
   <div class="gasto-row">
     <div class="row-left">
-      <span class="tag" :class="gasto.tipo === 'FIJO' ? 'tag-red' : 'tag-amber'">
-        {{ gasto.tipo === 'FIJO' ? 'Fijo' : 'Variable' }}
-      </span>
+      <div class="cat-icon-badge" :style="{ background: guessColor(gasto.categoria) + '22', color: guessColor(gasto.categoria) }">
+        <component :is="guessIcono(gasto.categoria)" :size="14" :stroke-width="2" />
+      </div>
       <div>
         <div class="row-name">
           {{ gasto.categoria }}
@@ -28,6 +28,7 @@
 <script setup lang="ts">
 import type { Gasto } from '@/types'
 import { fmtCOP as fmt } from '@/utils'
+import { guessIcono, guessColor } from '@/composables/useCategoriaOptions'
 
 defineProps<{ gasto: Gasto }>()
 const emit = defineEmits<{ delete: [id: string], edit: [gasto: Gasto], create: [gasto: Gasto] }>()
@@ -47,6 +48,16 @@ const emit = defineEmits<{ delete: [id: string], edit: [gasto: Gasto], create: [
 .row-det   { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.1rem; }
 .row-right { display: flex; align-items: center; gap: 0.5rem; }
 .row-monto { font-size: 0.78rem; color: var(--text-primary); margin-right: 0.25rem; }
+
+.cat-icon-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
 .recurrente-icon { color: var(--accent); flex-shrink: 0; }
 .cuota-badge {
@@ -68,6 +79,6 @@ const emit = defineEmits<{ delete: [id: string], edit: [gasto: Gasto], create: [
   align-items: center;
   justify-content: center;
 }
-.icon-btn:hover       { color: var(--accent); background: rgba(99, 179, 255, 0.08); }
-.icon-btn.danger:hover { color: var(--red);  background: rgba(248, 113, 113, 0.08); }
+.icon-btn:hover       { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.icon-btn.danger:hover { color: var(--red);  background: color-mix(in srgb, var(--red) 8%, transparent); }
 </style>

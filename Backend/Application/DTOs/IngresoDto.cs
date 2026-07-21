@@ -1,4 +1,4 @@
-﻿namespace Finanzas.Application.DTOs
+namespace Finanzas.Application.DTOs
 {
     public class IngresoDto
     {
@@ -8,6 +8,9 @@
         public int Mes { get; set; }
         public int Anio { get; set; }
         public bool EsRecurrente { get; set; }
+        public Guid? CuentaId { get; set; }
+        public string? Frecuencia { get; set; }
+        public int? DiaPago { get; set; }
     }
 
     public class CrearIngresoDto
@@ -17,6 +20,9 @@
         public int Mes { get; set; }
         public int Anio { get; set; }
         public bool EsRecurrente { get; set; }
+        public Guid? CuentaId { get; set; }
+        public string? Frecuencia { get; set; }
+        public int? DiaPago { get; set; }
     }
 
     public class EditarIngresoDto
@@ -24,5 +30,8 @@
         public string Concepto { get; set; } = string.Empty;
         public decimal Monto { get; set; }
         public bool EsRecurrente { get; set; }
+        public Guid? CuentaId { get; set; }
+        public string? Frecuencia { get; set; }
+        public int? DiaPago { get; set; }
     }
 }

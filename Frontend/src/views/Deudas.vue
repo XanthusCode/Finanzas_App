@@ -48,9 +48,16 @@
               </span>
             </div>
             <span class="deuda-desc">{{ d.descripcion }}</span>
+            <div class="deuda-progress">
+              <div class="deuda-progress-bar">
+                <div class="deuda-progress-fill deuda-progress-fill--accent" :style="{ width: pctPagado(d) + '%' }" />
+              </div>
+              <span class="deuda-progress-lbl">{{ fmt(d.montoPagado) }} de {{ fmt(d.monto) }} ({{ pctPagado(d) }}%)</span>
+            </div>
           </div>
-          <span class="deuda-monto me-deben-color">{{ fmt(d.monto) }}</span>
+          <span class="deuda-monto me-deben-color">{{ fmt(d.montoRestante) }}</span>
           <div class="deuda-actions">
+            <button v-if="!d.pagada" class="btn btn-sm" @click="abrirAbonoModal(d)">Abonar</button>
             <button class="btn btn-sm" :class="d.pagada ? '' : 'btn-primary'" @click="togglePagada(d)">
               {{ d.pagada ? 'Reabrir' : 'Cobrado' }}
             </button>
@@ -77,9 +84,16 @@
               </span>
             </div>
             <span class="deuda-desc">{{ d.descripcion }}</span>
+            <div class="deuda-progress">
+              <div class="deuda-progress-bar">
+                <div class="deuda-progress-fill deuda-progress-fill--red" :style="{ width: pctPagado(d) + '%' }" />
+              </div>
+              <span class="deuda-progress-lbl">{{ fmt(d.montoPagado) }} de {{ fmt(d.monto) }} ({{ pctPagado(d) }}%)</span>
+            </div>
           </div>
-          <span class="deuda-monto le-debo-color">{{ fmt(d.monto) }}</span>
+          <span class="deuda-monto le-debo-color">{{ fmt(d.montoRestante) }}</span>
           <div class="deuda-actions">
+            <button v-if="!d.pagada" class="btn btn-sm" @click="abrirAbonoModal(d)">Abonar</button>
             <button class="btn btn-sm" :class="d.pagada ? '' : 'btn-primary'" @click="togglePagada(d)">
               {{ d.pagada ? 'Reabrir' : 'Pagado' }}
             </button>
@@ -129,12 +143,39 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de abono -->
+    <div v-if="abonoModalVisible" class="modal-backdrop" @click.self="cerrarAbonoModal">
+      <div class="modal">
+        <p class="modal-title">Registrar abono</p>
+
+        <div class="field-group">
+          <label class="field-label">Monto del abono</label>
+          <CurrencyInput v-model="abonoMonto" class="input" />
+        </div>
+
+        <div v-if="abonoHistorial.length > 0" class="abono-historial">
+          <span class="field-label">Abonos anteriores</span>
+          <div v-for="a in abonoHistorial" :key="a.id" class="abono-historial-row">
+            <span>{{ fmtFecha(a.fecha) }}</span>
+            <span>{{ fmt(a.monto) }}</span>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" @click="cerrarAbonoModal">Cancelar</button>
+          <button class="btn btn-primary" :disabled="abonoMonto <= 0 || abonoGuardando" @click="guardarAbono">
+            {{ abonoGuardando ? '…' : 'Abonar' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive } from 'vue'
-import type { Deuda } from '@/types'
+import type { Deuda, Abono } from '@/types'
 import { deudasService } from '@/services/api'
 import { fmtCOP as fmt } from '@/utils'
 import { useToast } from '@/composables/useToast'
@@ -146,6 +187,12 @@ const deudas  = ref<Deuda[]>([])
 const loading = ref(false)
 const guardando = ref(false)
 const formVisible = ref(false)
+
+const abonoModalVisible = ref(false)
+const abonoDeudaId      = ref<string | null>(null)
+const abonoMonto        = ref(0)
+const abonoGuardando    = ref(false)
+const abonoHistorial    = ref<Abono[]>([])
 
 const form = reactive({
   tipo: 'ME_DEBEN' as 'ME_DEBEN' | 'LE_DEBO',
@@ -174,6 +221,41 @@ const pendientesLeDebo  = computed(() => leDebo.value.filter(d => !d.pagada).len
 
 function estaVencida(d: Deuda) {
   return !d.pagada && !!d.fechaLimite && new Date(d.fechaLimite) < new Date()
+}
+
+function pctPagado(d: Deuda) {
+  if (d.monto <= 0) return 0
+  return Math.min(100, Math.round((d.montoPagado / d.monto) * 100))
+}
+
+async function abrirAbonoModal(d: Deuda) {
+  abonoDeudaId.value = d.id!
+  abonoMonto.value = 0
+  abonoHistorial.value = []
+  abonoModalVisible.value = true
+  const { data } = await deudasService.getAbonos(d.id!)
+  abonoHistorial.value = data
+}
+
+function cerrarAbonoModal() {
+  abonoModalVisible.value = false
+  abonoDeudaId.value = null
+}
+
+async function guardarAbono() {
+  if (!abonoDeudaId.value || abonoMonto.value <= 0) return
+  abonoGuardando.value = true
+  try {
+    const { data } = await deudasService.crearAbono(abonoDeudaId.value, abonoMonto.value)
+    const idx = deudas.value.findIndex(d => d.id === abonoDeudaId.value)
+    if (idx !== -1) deudas.value[idx] = data
+    cerrarAbonoModal()
+    toast.success('Abono registrado')
+  } catch {
+    toast.error('No se pudo registrar el abono')
+  } finally {
+    abonoGuardando.value = false
+  }
 }
 
 function fmtFecha(f: string) {
@@ -306,12 +388,37 @@ onMounted(cargar)
 .deuda-monto  { font-size: 0.9rem; font-weight: 700; flex-shrink: 0; }
 .deuda-actions { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
 
+.deuda-progress { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.3rem; }
+.deuda-progress-bar {
+  flex: 1;
+  max-width: 160px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--surface2);
+  overflow: hidden;
+}
+.deuda-progress-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+.deuda-progress-fill--accent { background: var(--accent); }
+.deuda-progress-fill--red    { background: var(--red); }
+.deuda-progress-lbl { font-size: 0.62rem; color: var(--text-muted); white-space: nowrap; }
+
+.abono-historial { display: flex; flex-direction: column; gap: 0.4rem; max-height: 140px; overflow-y: auto; }
+.abono-historial-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.abono-historial-row:last-child { border-bottom: none; }
+
 .icon-btn {
   background: none; border: none; color: var(--text-muted); cursor: pointer;
   padding: 4px 5px; border-radius: 4px; transition: color 0.15s, background 0.15s;
   display: flex; align-items: center;
 }
-.icon-btn.danger:hover { color: var(--red); background: rgba(248,113,113,0.08); }
+.icon-btn.danger:hover { color: var(--red); background: color-mix(in srgb, var(--red) 8%, transparent); }
 
 /* Modal */
 .modal-backdrop {
@@ -335,7 +442,7 @@ onMounted(cargar)
   background: var(--surface2); border: 1px solid var(--border); color: var(--text-secondary);
   transition: all 0.15s;
 }
-.tipo-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(99,179,255,0.08); }
+.tipo-btn.active { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
 
 .loading-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .skeleton-row {

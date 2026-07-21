@@ -39,19 +39,59 @@
       </div>
     </Transition>
 
-    <!-- Modal abonar -->
+    <!-- Modal gestionar saldo -->
     <Teleport to="body">
       <div v-if="abonarMeta" class="overlay" @click.self="abonarMeta = null">
-        <div class="modal fade-up">
-          <p class="modal-title">Abonar a "{{ abonarMeta.nombre }}"</p>
-          <p class="modal-sub">Actual: {{ fmt(abonarMeta.montoActual) }} / {{ fmt(abonarMeta.montoObjetivo) }}</p>
-          <div class="field" style="margin: 1rem 0">
-            <label>Monto a abonar (COP)</label>
+        <div class="modal fade-up modal-saldo">
+          <p class="modal-title">Gestionar saldo</p>
+          <p class="modal-sub">{{ abonarMeta.nombre }}</p>
+
+          <div class="saldo-card">
+            <div class="saldo-card-row">
+              <span class="saldo-label">Saldo actual</span>
+              <span class="saldo-value">{{ fmt(abonarMeta.montoActual) }}</span>
+            </div>
+            <div class="meta-progress-bar-wrap">
+              <div class="meta-progress-bar" :style="{ width: pctMeta(abonarMeta) + '%' }" />
+            </div>
+            <div class="saldo-card-row saldo-card-row--sub">
+              <span>{{ pctMeta(abonarMeta) }}% de la meta</span>
+              <span>Objetivo: {{ fmt(abonarMeta.montoObjetivo) }}</span>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top: 1rem">
+            <label>Monto (COP)</label>
             <CurrencyInput v-model="montoAbono" />
           </div>
+
+          <div class="field" style="margin-top: .75rem; margin-bottom: 2.2rem">
+            <label>Tipo de movimiento</label>
+            <div class="tipo-toggle">
+              <button
+                type="button"
+                class="tipo-btn tipo-btn--abonar"
+                :class="{ active: tipoMovimiento === 'abonar' }"
+                @click="tipoMovimiento = 'abonar'"
+              >➕ Abonar</button>
+              <button
+                type="button"
+                class="tipo-btn tipo-btn--retirar"
+                :class="{ active: tipoMovimiento === 'retirar' }"
+                @click="tipoMovimiento = 'retirar'"
+              >➖ Retirar</button>
+            </div>
+          </div>
+
+          <div v-if="montoAbono > 0" class="saldo-preview" :class="tipoMovimiento === 'retirar' ? 'saldo-preview--retirar' : 'saldo-preview--abonar'">
+            <span>Nuevo saldo</span>
+            <strong>{{ fmt(nuevoSaldoPreview) }}</strong>
+          </div>
+          <p v-if="excedeSaldo" class="field-error">No puedes retirar más dinero del disponible</p>
+
           <div class="modal-actions">
             <button class="btn" @click="abonarMeta = null">Cancelar</button>
-            <button class="btn btn-primary" :disabled="saving" @click="confirmarAbono">{{ saving ? '...' : 'Abonar' }}</button>
+            <button class="btn btn-primary" :disabled="saving || montoAbono <= 0 || excedeSaldo" @click="confirmarMovimiento">{{ saving ? '...' : 'Guardar' }}</button>
           </div>
         </div>
       </div>
@@ -82,6 +122,25 @@
       </div>
     </Teleport>
 
+     <!-- Modal para ver el historial -->
+     <Teleport to="body">
+      <div v-if="verHistorialMeta" class="overlay" @click.self="verHistorialMeta = null">
+        <div class="modal fade-up">
+          <p class="modal-title">Historial de la meta {{ verHistorialMeta?.nombre }}</p>
+            <p v-if="historial.length === 0" class="modal-sub">Sin movimientos todavía</p>
+            <div v-for="item in historial" :key="item.id ?? item.fecha" class="historial-item">
+              <span>{{ formatFecha(item.fecha) }}</span>
+              <span>{{ item.monto >= 0 ? '➕ Abono' : '➖ Retiro' }}</span>
+              <span>{{ fmt(Math.abs(item.monto)) }}</span>
+          </div>
+
+          <div class="modal-actions" style="margin-top: 1.25rem">
+            <button class="btn" @click="verHistorialMeta = null">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <div v-if="loadingInit" class="loading-list">
       <div v-for="i in 2" :key="i" class="skeleton-row" style="height: 80px" />
     </div>
@@ -89,12 +148,13 @@
     <template v-else-if="store.metas.length > 0">
       <div class="metas-grid">
         <div v-for="meta in store.metas" :key="meta.id" class="meta-card" :class="{ 'meta-completada': meta.completada }">
-          <div class="meta-header">
-            <span class="meta-nombre">{{ meta.nombre }}</span>
+          <div style="display: flex; align-items: center;" class="meta-header">
+            <span  class="meta-nombre">{{ meta.nombre }}</span>
             <div style="display: flex; gap: 0.35rem; align-items: center;">
               <span v-if="meta.completada" class="badge-completada">✓ Lograda</span>
-              <button v-if="!meta.completada" class="btn btn-sm" @click="iniciarAbono(meta)">Abonar</button>
-              <button class="icon-btn" title="Editar" @click="iniciarEdicion(meta)">
+              <button v-if="isDesktop" class="btn btn-sm" @click="verHistorial(meta)">Ver historial</button>
+              <button  v-if="isDesktop" class="btn btn-sm" @click="iniciarAbono(meta)">Gestionar saldo</button>
+              <button  class="icon-btn" title="Editar" @click="iniciarEdicion(meta)">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
               <button class="icon-btn danger" @click="borrarMeta(meta.id!)">
@@ -137,6 +197,9 @@
               ~{{ fmtFechaEstimada(calcularProyeccionMeta(meta).fechaEstimada!) }}
             </div>
           </template>
+
+          <button v-if="isMobile" style="margin-top: 0.75rem;" class="btn btn-sm" @click="verHistorial(meta)">Ver historial</button>
+          <button  v-if="isMobile" class="btn btn-sm" @click="iniciarAbono(meta)">Gestionar saldo</button>
         </div>
       </div>
     </template>
@@ -159,10 +222,13 @@ import { useFinanceStore } from '@/stores/finance'
 import { useToast } from '@/composables/useToast'
 import { fmtCOP as fmt } from '@/utils'
 import { Teleport } from 'vue'
+import { useDeviceType } from '@/composables/useDeviceType'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
-import type { Meta } from '@/types'
+import type { Meta, MovimientoMeta } from '@/types'
 import { calcularProyeccionMeta } from '@/composables/useMetaProjection'
 
+
+const { isMobile, isTablet, isDesktop } = useDeviceType()
 const store = useFinanceStore()
 const toast = useToast()
 
@@ -185,7 +251,10 @@ const saving       = ref(false)
 const abonarMeta   = ref<Meta | null>(null)
 const montoAbono   = ref(0)
 const editandoMeta = ref<Meta | null>(null)
+const verHistorialMeta  = ref<Meta | null>(null)
+const tipoMovimiento = ref<'abonar' | 'retirar'>('abonar')
 const editForm     = reactive({ nombre: '', montoObjetivo: 0, fechaLimite: '' })
+const historial = ref<MovimientoMeta[]>([])
 
 const form = reactive({ nombre: '', montoObjetivo: 0, fechaLimite: '' })
 const errors = ref<Partial<Record<'nombre' | 'montoObjetivo', string>>>({})
@@ -206,7 +275,19 @@ function fmtFechaEstimada(fecha: Date): string {
 function iniciarAbono(meta: Meta) {
   abonarMeta.value = meta
   montoAbono.value = 0
+  tipoMovimiento.value = 'abonar'
 }
+
+const nuevoSaldoPreview = computed(() => {
+  if (!abonarMeta.value) return 0
+  return tipoMovimiento.value === 'retirar'
+    ? abonarMeta.value.montoActual - montoAbono.value
+    : abonarMeta.value.montoActual + montoAbono.value
+})
+
+const excedeSaldo = computed(() =>
+  tipoMovimiento.value === 'retirar' && !!abonarMeta.value && montoAbono.value > abonarMeta.value.montoActual
+)
 
 function iniciarEdicion(meta: Meta) {
   editandoMeta.value        = meta
@@ -257,15 +338,29 @@ async function crearMeta() {
   }
 }
 
-async function confirmarAbono() {
-  if (!abonarMeta.value || montoAbono.value <= 0) return
+async function verHistorial(meta: Meta) {
+  verHistorialMeta.value = meta
+  try {
+    historial.value = await store.cargarHistorialMeta(meta.id!)
+  } catch {
+    toast.error('No se pudo cargar el historial')
+    verHistorialMeta.value = null
+  }
+}
+
+async function confirmarMovimiento() {
+  if (!abonarMeta.value || montoAbono.value <= 0 || excedeSaldo.value) return
+
+  const montoFirmado = tipoMovimiento.value === 'retirar' ? -montoAbono.value : montoAbono.value
+
   saving.value = true
   try {
-    await store.abonarMeta(abonarMeta.value.id!, montoAbono.value)
-    toast.success('Abono registrado')
+    await store.registrarMovimientoMeta(abonarMeta.value.id!, montoFirmado)
+    toast.success('Movimiento registrado')
     abonarMeta.value = null
-  } catch {
-    toast.error('No se pudo registrar el abono')
+    montoAbono.value = 0
+  } catch (err: any) {
+    toast.error(err?.response?.data?.message || 'No se pudo registrar el movimiento')
   } finally {
     saving.value = false
   }
@@ -317,12 +412,12 @@ onMounted(async () => {
   flex-direction: column;
   gap: 0.6rem;
 }
-.meta-card.meta-completada { border-color: rgba(99,179,255,0.3); }
+.meta-card.meta-completada { border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
 
 .meta-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
 .meta-nombre { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
 
-.badge-completada { font-size: 0.62rem; background: rgba(99,179,255,0.12); color: var(--accent); padding: 0.2rem 0.5rem; border-radius: 4px; white-space: nowrap; }
+.badge-completada { font-size: 0.62rem; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); padding: 0.2rem 0.5rem; border-radius: 4px; white-space: nowrap; }
 
 .meta-progress-bar-wrap { height: 5px; border-radius: 3px; background: var(--surface2); overflow: hidden; }
 .meta-progress-bar { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.5s ease; }
@@ -347,8 +442,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
 }
-.icon-btn:hover        { color: var(--accent); background: rgba(99, 179, 255, 0.08); }
-.icon-btn.danger:hover { color: var(--red);   background: rgba(248, 113, 113, 0.08); }
+.icon-btn:hover        { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.icon-btn.danger:hover { color: var(--red);   background: color-mix(in srgb, var(--red) 8%, transparent); }
 
 /* Empty state */
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 0 3rem; text-align: center; gap: 0.4rem; }
@@ -362,7 +457,7 @@ onMounted(async () => {
 
 /* Modal abonar */
 .overlay { position: fixed; inset: 0; background: rgba(8,12,16,0.75); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 500; }
-.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; width: 320px; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; width: 400px; }
 .modal-title { font-family: var(--ff-display); font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.25rem; }
 .modal-sub   { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.5rem; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
@@ -377,8 +472,8 @@ onMounted(async () => {
   border-radius: 4px;
   width: fit-content;
 }
-.meta-urgencia.warn   { background: rgba(245,158,11,0.1); color: #f59e0b; }
-.meta-urgencia.danger { background: rgba(248,113,113,0.1); color: var(--red); }
+.meta-urgencia.warn   { background: color-mix(in srgb, var(--amber) 10%, transparent); color: var(--amber); }
+.meta-urgencia.danger { background: color-mix(in srgb, var(--red) 10%, transparent); color: var(--red); }
 
 .meta-estimada {
   font-size: 0.62rem;
@@ -389,6 +484,67 @@ onMounted(async () => {
   display: flex; align-items: center; gap: 0.3rem;
   font-size: 0.62rem; color: var(--accent);
 }
+
+.modal-saldo { width: 380px; }
+
+.saldo-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.saldo-card-row { display: flex; justify-content: space-between; align-items: baseline; }
+.saldo-card-row--sub { font-size: 0.65rem; color: var(--text-muted); }
+.saldo-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.saldo-value { font-family: var(--ff-display); font-size: 1.35rem; color: var(--text-primary); }
+
+.tipo-toggle { display: flex; gap: 0.5rem; margin-top: 0.4rem; }
+.tipo-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.tipo-btn:hover { border-color: var(--border-hover); }
+.tipo-btn--abonar.active  { border-color: var(--green); color: var(--green); background: color-mix(in srgb, var(--green) 10%, transparent); }
+.tipo-btn--retirar.active { border-color: var(--red);   color: var(--red);   background: color-mix(in srgb, var(--red) 10%, transparent); }
+
+.saldo-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.9rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+.saldo-preview strong { font-family: var(--ff-display); font-size: 0.95rem; }
+.saldo-preview--abonar  { background: color-mix(in srgb, var(--green) 8%, transparent); border: 1px solid color-mix(in srgb, var(--green) 25%, transparent); }
+.saldo-preview--abonar strong  { color: var(--green); }
+.saldo-preview--retirar { background: color-mix(in srgb, var(--red) 8%, transparent); border: 1px solid color-mix(in srgb, var(--red) 25%, transparent); }
+.saldo-preview--retirar strong { color: var(--red); }
+
+.historial-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+.historial-item:last-child { border-bottom: none; }
 
 @media (max-width: 500px) {
   .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }

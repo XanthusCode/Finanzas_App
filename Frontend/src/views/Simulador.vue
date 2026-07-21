@@ -203,8 +203,8 @@ onMounted(() => { if (!store.resumen) store.cargarDatos() })
   margin-bottom: 1rem;
   border: 1px solid;
 }
-.banner-positivo { background: rgba(52,211,153,0.06); border-color: rgba(52,211,153,0.2); }
-.banner-negativo { background: rgba(248,113,113,0.06); border-color: rgba(248,113,113,0.2); }
+.banner-positivo { background: color-mix(in srgb, var(--green) 6%, transparent); border-color: color-mix(in srgb, var(--green) 20%, transparent); }
+.banner-negativo { background: color-mix(in srgb, var(--red) 6%, transparent); border-color: color-mix(in srgb, var(--red) 20%, transparent); }
 
 
 .resultado-comparacion { display: flex; align-items: center; gap: 1.25rem; }
@@ -216,8 +216,8 @@ onMounted(() => { if (!store.resumen) store.cargarDatos() })
 .resultado-sim    { color: var(--accent); }
 .resultado-arrow  { color: var(--text-muted); }
 .resultado-delta  { font-size: 1rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 6px; }
-.delta-pos { color: var(--accent); background: rgba(52,211,153,0.1); }
-.delta-neg { color: var(--red);   background: rgba(248,113,113,0.1); }
+.delta-pos { color: var(--accent); background: color-mix(in srgb, var(--green) 10%, transparent); }
+.delta-neg { color: var(--red);   background: color-mix(in srgb, var(--red) 10%, transparent); }
 
 /* Filas */
 .sim-row {
@@ -253,7 +253,7 @@ onMounted(() => { if (!store.resumen) store.cargarDatos() })
   transition: width 0.15s ease;
 }
 .fill-ok     { background: var(--accent); }
-.fill-warn   { background: #f59e0b; }
+.fill-warn   { background: var(--amber); }
 .fill-danger { background: var(--red); }
 
 .sim-bar-actual {

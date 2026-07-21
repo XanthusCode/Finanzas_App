@@ -26,6 +26,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Repositorios
 builder.Services.AddScoped<IGastosRepository, GastosRepository>();
 builder.Services.AddScoped<IDeudaRepository, DeudaRepository>();
+builder.Services.AddScoped<ICuentaRepository, CuentaRepository>();
 builder.Services.AddScoped<IIngresosRepository, IngresosRepository>();
 builder.Services.AddScoped<ICategoriasRepository, CategoriasRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -41,6 +42,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<PresupuestosService>();
 builder.Services.AddScoped<MetasService>();
 builder.Services.AddScoped<DeudaService>();
+builder.Services.AddScoped<CuentaService>();
 builder.Services.AddScoped<ReporteService>();
 
 // AutoMapper
@@ -93,6 +95,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// Endpoint liviano para keep-alive (evita el cold start de Render en el plan free).
+// No toca la base de datos a propósito, para que responda lo más rápido posible.
+app.MapGet("/health", () => Results.Ok("OK"));
+
 // Crear/migrar esquema al arrancar
 using (var scope = app.Services.CreateScope())
 {
@@ -102,6 +108,73 @@ using (var scope = app.Services.CreateScope())
     // Este bloque se ejecuta una sola vez: cuando el Id sea de tipo integer.
 
     db.Database.EnsureCreated();
+
+    // EnsureCreated() no agrega tablas nuevas si la base de datos ya existía de antes
+    // (solo crea el esquema completo en bases de datos nuevas). Por eso las tablas
+    // agregadas después del primer arranque se crean manualmente aquí.
+    db.Database.ExecuteSqlRaw("""
+        CREATE TABLE IF NOT EXISTS "Abonos" (
+            "Id" uuid NOT NULL PRIMARY KEY,
+            "DeudaId" uuid NOT NULL,
+            "Monto" numeric(12,2) NOT NULL,
+            "Fecha" timestamp with time zone NOT NULL,
+            CONSTRAINT "FK_Abonos_Deudas_DeudaId" FOREIGN KEY ("DeudaId") REFERENCES "Deudas" ("Id") ON DELETE CASCADE
+        );
+        """);
+
+    db.Database.ExecuteSqlRaw("""
+        CREATE TABLE IF NOT EXISTS "Cuentas" (
+            "Id" uuid NOT NULL PRIMARY KEY,
+            "UserId" uuid NOT NULL,
+            "Nombre" character varying(100) NOT NULL,
+            "Tipo" text NOT NULL,
+            "Activa" boolean NOT NULL,
+            "CreadoEn" timestamp with time zone NOT NULL,
+            CONSTRAINT "FK_Cuentas_Users_UserId" FOREIGN KEY ("UserId") REFERENCES "Users" ("Id") ON DELETE CASCADE
+        );
+        CREATE TABLE IF NOT EXISTS "MovimientosCuenta" (
+            "Id" uuid NOT NULL PRIMARY KEY,
+            "CuentaId" uuid NOT NULL,
+            "Monto" numeric(12,2) NOT NULL,
+            "Descripcion" character varying(150),
+            "Fecha" timestamp with time zone NOT NULL,
+            CONSTRAINT "FK_MovimientosCuenta_Cuentas_CuentaId" FOREIGN KEY ("CuentaId") REFERENCES "Cuentas" ("Id") ON DELETE CASCADE
+        );
+        """);
+
+    db.Database.ExecuteSqlRaw("""
+        CREATE TABLE IF NOT EXISTS "MovimientosMeta" (
+            "Id" uuid NOT NULL PRIMARY KEY,
+            "MetaId" uuid NOT NULL,
+            "Monto" numeric(12,2) NOT NULL,
+            "Fecha" timestamp with time zone NOT NULL,
+            CONSTRAINT "FK_MovimientosMeta_Metas_MetaId" FOREIGN KEY ("MetaId") REFERENCES "Metas" ("Id") ON DELETE CASCADE
+        );
+        """);
+
+    // Vincula gastos/ingresos a una cuenta (columna agregada después del primer arranque).
+    db.Database.ExecuteSqlRaw("""
+        ALTER TABLE "Gastos" ADD COLUMN IF NOT EXISTS "CuentaId" uuid NULL;
+        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "CuentaId" uuid NULL;
+
+        DO $mig$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_Gastos_Cuentas_CuentaId') THEN
+                ALTER TABLE "Gastos" ADD CONSTRAINT "FK_Gastos_Cuentas_CuentaId" FOREIGN KEY ("CuentaId") REFERENCES "Cuentas" ("Id") ON DELETE SET NULL;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_Ingresos_Cuentas_CuentaId') THEN
+                ALTER TABLE "Ingresos" ADD CONSTRAINT "FK_Ingresos_Cuentas_CuentaId" FOREIGN KEY ("CuentaId") REFERENCES "Cuentas" ("Id") ON DELETE SET NULL;
+            END IF;
+        END
+        $mig$;
+        """);
+
+    // Frecuencia y día de pago para ingresos recurrentes (columnas agregadas después del primer arranque).
+    db.Database.ExecuteSqlRaw("""
+        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "Frecuencia" text NULL;
+        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "DiaPago" integer NULL;
+        """);
+
 }
 
 app.Run();

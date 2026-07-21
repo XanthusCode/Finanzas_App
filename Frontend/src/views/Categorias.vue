@@ -15,7 +15,7 @@
       <!-- Fijas -->
       <div class="card" style="margin-bottom: 0.75rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <p class="card-title">Gastos fijos</p>
+          <p class="card-title">Categorias de gastos fijos</p>
 
           <button v-if="!(showForm && form.tipo === 'FIJO')" class="btn btn-sm" @click="abrirForm(undefined, 'FIJO')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nueva categoría
@@ -28,14 +28,18 @@
 
         <template v-for="cat in store.categoriasFijas" :key="cat.id">
           <div v-if="editando?.id === cat.id" class="inline-form-row">
-            <span class="tag tag-red">Fijo</span>
+            <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '22', color: guessColor(form.nombre) }">
+              <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
+            </div>
             <input v-model="form.nombre" class="input input-inline" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
             <button class="btn btn-sm" @click="cancelar">Cancelar</button>
             <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
           </div>
           <div v-else class="cat-row">
             <div class="cat-info">
-              <span class="tag tag-red">Fijo</span>
+              <div class="cat-icon-badge" :style="{ background: guessColor(cat.nombre) + '22', color: guessColor(cat.nombre) }">
+                <component :is="guessIcono(cat.nombre)" :size="14" :stroke-width="2" />
+              </div>
               <span class="cat-name">{{ cat.nombre }}</span>
             </div>
             <div class="cat-actions">
@@ -50,34 +54,40 @@
         </template>
 
         <div v-if="showForm && form.tipo === 'FIJO' && !editando" class="inline-form-row">
-          <span class="tag tag-red">Fijo</span>
+          <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '22', color: guessColor(form.nombre) }">
+            <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
+          </div>
           <input v-model="form.nombre" class="input input-inline" placeholder="Nombre de la categoría" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
           <button class="btn btn-sm" @click="cancelar">Cancelar</button>
           <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
         </div>
       </div>
 
-      <!-- Variables -->
+      <!-- Ocasionales -->
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <p class="card-title">Gastos variables</p>
+          <p class="card-title">Categorias de gastos ocasionales</p>
           <button v-if="!(showForm && form.tipo === 'VARIABLE')" class="btn btn-sm" @click="abrirForm(undefined, 'VARIABLE')">+ Nueva categoría</button>
         </div>
 
         <div v-if="store.categoriasVariables.length === 0 && !(showForm && form.tipo === 'VARIABLE')" class="empty">
-          Sin categorías variables
+          Sin categorías ocasionales
         </div>
 
         <template v-for="cat in store.categoriasVariables" :key="cat.id">
           <div v-if="editando?.id === cat.id" class="inline-form-row">
-            <span class="tag tag-amber">Variable</span>
+            <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '22', color: guessColor(form.nombre) }">
+              <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
+            </div>
             <input v-model="form.nombre" class="input input-inline" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
             <button class="btn btn-sm" @click="cancelar">Cancelar</button>
             <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
           </div>
           <div v-else class="cat-row">
             <div class="cat-info">
-              <span class="tag tag-amber">Variable</span>
+              <div class="cat-icon-badge" :style="{ background: guessColor(cat.nombre) + '22', color: guessColor(cat.nombre) }">
+                <component :is="guessIcono(cat.nombre)" :size="14" :stroke-width="2" />
+              </div>
               <span class="cat-name">{{ cat.nombre }}</span>
             </div>
             <div class="cat-actions">
@@ -92,11 +102,13 @@
         </template>
 
         <div v-if="showForm && form.tipo === 'VARIABLE' && !editando" class="inline-form-row">
-          <span class="tag tag-amber">Variable</span>
+          <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '22', color: guessColor(form.nombre) }">
+            <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
+          </div>
           <input v-model="form.nombre" class="input input-inline" placeholder="Nombre de la categoría" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
           <button class="btn btn-sm" @click="cancelar">Cancelar</button>
           <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
-        </div> 
+        </div>
       </div>
     </template>
 
@@ -113,6 +125,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useFinanceStore } from '@/stores/finance'
 import { useToast } from '@/composables/useToast'
+import { guessIcono, guessColor } from '@/composables/useCategoriaOptions'
 import type { Categoria } from '@/types'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 
@@ -201,9 +214,19 @@ onMounted(async () => {
 
 .cat-row      { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--border); }
 .cat-row:last-of-type { border-bottom: none; }
-.cat-info     { display: flex; align-items: center; gap: 0.75rem; }
+.cat-info     { display: flex; align-items: center; gap: 0.65rem; }
 .cat-name     { font-size: 0.82rem; color: var(--text-primary); }
 .cat-actions  { display: flex; gap: 0.35rem; }
+
+.cat-icon-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
 .inline-form-row {
   display: flex;
@@ -211,12 +234,14 @@ onMounted(async () => {
   gap: 0.5rem;
   padding: 0.5rem 0;
   border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 .input-inline {
   flex: 1;
   height: 30px;
   font-size: 0.78rem;
   padding: 0 0.6rem;
+  min-width: 120px;
 }
 .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
 
@@ -232,8 +257,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
 }
-.icon-btn:hover        { color: var(--accent); background: rgba(99, 179, 255, 0.08); }
-.icon-btn.danger:hover { color: var(--red);   background: rgba(248, 113, 113, 0.08); }
+.icon-btn:hover        { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.icon-btn.danger:hover { color: var(--red);   background: color-mix(in srgb, var(--red) 8%, transparent); }
 .empty { font-size: 0.72rem; color: var(--text-muted); padding: 1rem 0; text-align: center; }
 
 /* Skeleton loading */

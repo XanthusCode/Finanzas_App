@@ -9,5 +9,9 @@ namespace Finanzas.Application.Interfaces
         Task<Deuda> CreateAsync(Deuda deuda);
         Task<Deuda> UpdateAsync(Deuda deuda);
         Task DeleteAsync(Guid id);
+
+        Task<Dictionary<Guid, decimal>> GetMontosPagadosAsync(Guid userId);
+        Task<IEnumerable<Abono>> GetAbonosAsync(Guid deudaId);
+        Task<Abono> AddAbonoAsync(Abono abono);
     }
 }

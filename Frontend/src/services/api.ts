@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta, ResumenCategoria, Deuda } from '@/types'
+import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta, MovimientoMeta, ResumenCategoria, Deuda, Abono, Cuenta, MovimientoCuenta, TipoCuenta } from '@/types'
 
 const TOKEN_KEY = 'finanzas_token'
 
@@ -102,8 +102,10 @@ export const metasService = {
     api.post<Meta>('/metas', meta),
   update: (id: string, meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite'>) =>
     api.put<Meta>(`/metas/${id}`, meta),
-  abonar: (id: string, monto: number) =>
-    api.post<Meta>(`/metas/${id}/abonar`, { monto }),
+  getHistorial: (id: string) =>
+    api.get<MovimientoMeta[]>(`/metas/${id}/historial`),
+  crearMovimiento: (id: string, monto: number) =>
+    api.post<Meta>(`/metas/${id}/movimientos`, { monto }),
   delete: (id: string) =>
     api.delete(`/metas/${id}`)
 }
@@ -111,12 +113,31 @@ export const metasService = {
 export const deudasService = {
   getAll: () =>
     api.get<Deuda[]>('/deudas'),
-  create: (deuda: Omit<Deuda, 'id' | 'pagada' | 'creadoEn'>) =>
+  create: (deuda: Omit<Deuda, 'id' | 'pagada' | 'creadoEn' | 'montoPagado' | 'montoRestante'>) =>
     api.post<Deuda>('/deudas', deuda),
   togglePagada: (id: string) =>
     api.patch<Deuda>(`/deudas/${id}/pagar`),
   delete: (id: string) =>
-    api.delete(`/deudas/${id}`)
+    api.delete(`/deudas/${id}`),
+  getAbonos: (id: string) =>
+    api.get<Abono[]>(`/deudas/${id}/abonos`),
+  crearAbono: (id: string, monto: number) =>
+    api.post<Deuda>(`/deudas/${id}/abonos`, { monto })
+}
+
+export const cuentasService = {
+  getAll: () =>
+    api.get<Cuenta[]>('/cuentas'),
+  create: (cuenta: { nombre: string; tipo: TipoCuenta; saldoInicial: number }) =>
+    api.post<Cuenta>('/cuentas', cuenta),
+  update: (id: string, cuenta: { nombre: string; tipo: TipoCuenta }) =>
+    api.put<Cuenta>(`/cuentas/${id}`, cuenta),
+  delete: (id: string) =>
+    api.delete(`/cuentas/${id}`),
+  getMovimientos: (id: string) =>
+    api.get<MovimientoCuenta[]>(`/cuentas/${id}/movimientos`),
+  crearMovimiento: (id: string, monto: number, descripcion?: string) =>
+    api.post<Cuenta>(`/cuentas/${id}/movimientos`, { monto, descripcion })
 }
 
 export const perfilService = {

@@ -31,13 +31,29 @@ public class MetasController(MetasService service) : BaseController
         return Ok(actualizada);
     }
 
-    [HttpPost("{id:guid}/abonar")]
-    public async Task<IActionResult> Abonar(Guid id, [FromBody] AbonarMetaDto dto)
+    [HttpGet("{id:guid}/historial")]
+    public async Task<IActionResult> GetMovimientos(Guid id)
     {
-        var actualizada = await _service.AbonarAsync(id, dto, UserId);
-        if (actualizada is null) return NotFound();
-        return Ok(actualizada);
+        var movimientos = await _service.GetMovimientosAsync(id, UserId);
+        return movimientos is null ? NotFound() : Ok(movimientos);
     }
+
+    [HttpPost("{id:guid}/movimientos")]
+    public async Task<IActionResult> CrearMovimiento(Guid id, [FromBody] CrearMovimientoMetaDto dto)
+    {
+        if (dto.Monto == 0) return BadRequest(new { message = "El monto del movimiento no puede ser 0." });
+
+        try
+        {
+            var result = await _service.RegistrarMovimientoAsync(id, dto, UserId);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)

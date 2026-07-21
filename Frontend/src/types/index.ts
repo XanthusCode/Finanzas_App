@@ -10,7 +10,10 @@ export interface Gasto {
   numCuotas?: number
   cuotaActual?: number
   gastoOrigenId?: string
+  cuentaId?: string
 }
+
+export type FrecuenciaIngreso = 'DIARIO' | 'SEMANAL' | 'QUINCENAL' | 'MENSUAL' | 'BIMESTRAL' | 'TRIMESTRAL' | 'ANUAL' | 'PERSONALIZADO'
 
 export interface Ingreso {
   esRecurrente?: boolean
@@ -19,6 +22,9 @@ export interface Ingreso {
   monto: number
   mes: number
   anio: number
+  cuentaId?: string
+  frecuencia?: FrecuenciaIngreso
+  diaPago?: number
 }
 
 export interface Resumen {
@@ -74,4 +80,36 @@ export interface Deuda {
   fechaLimite?: string
   pagada: boolean
   creadoEn?: string
+  montoPagado: number
+  montoRestante: number
+}
+
+export interface Abono {
+  id?: string
+  monto: number
+  fecha: string
+}
+
+export type TipoCuenta = 'EFECTIVO' | 'BANCO' | 'BILLETERA_DIGITAL' | 'TARJETA_CREDITO' | 'ALCANCIA' | 'CRIPTO' | 'OTRO'
+
+export interface Cuenta {
+  id?: string
+  nombre: string
+  tipo: TipoCuenta
+  activa: boolean
+  saldo: number
+  creadoEn?: string
+}
+
+export interface MovimientoCuenta {
+  id?: string
+  monto: number
+  descripcion?: string
+  fecha: string
+}
+
+export interface MovimientoMeta {
+  id?: string
+  monto: number // firmado: positivo = abono, negativo = retiro
+  fecha: string
 }

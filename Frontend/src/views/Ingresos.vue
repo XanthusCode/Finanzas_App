@@ -12,9 +12,8 @@
           CSV
         </button>
         <button class="btn btn-primary" :disabled="!!editando" @click="showForm ? cerrarForm() : abrirForm()">
-          <svg v-if="showForm" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          <svg v-else width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          {{ showForm ? 'Cancelar' : 'Agregar' }}
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar
         </button>
       </div>
     </div>
@@ -35,10 +34,29 @@
               <span v-if="errors.monto" class="field-error">{{ errors.monto }}</span>
             </div>
           </div>
+          <div v-if="store.cuentas.length > 0" class="field">
+            <label>Cuenta <span class="label-optional">(opcional)</span></label>
+            <select v-model="form.cuentaId" class="input">
+              <option value="">Ninguna</option>
+              <option v-for="c in store.cuentas" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+            </select>
+          </div>
           <label class="check-label">
             <input type="checkbox" v-model="form.esRecurrente" />
             Repetir cada mes
           </label>
+          <div v-if="form.esRecurrente" class="form-row">
+            <div class="field">
+              <label>Frecuencia</label>
+              <select v-model="form.frecuencia" class="input">
+                <option v-for="(label, val) in FRECUENCIA_LABEL" :key="val" :value="val">{{ label }}</option>
+              </select>
+            </div>
+            <div v-if="mostrarDiaPago" class="field">
+              <label>Día de pago <span class="label-optional">(opcional)</span></label>
+              <input v-model.number="form.diaPago" type="number" min="1" max="31" class="input" placeholder="ej. 15" />
+            </div>
+          </div>
           <div class="form-actions">
             <button type="button" class="btn" @click="cerrarForm">Cancelar</button>
             <button type="submit" class="btn btn-primary" :disabled="saving">
@@ -75,7 +93,7 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">Ingresos del mes</span>
-          <span class="tag" style="border-color: rgba(99,179,255,0.3); color: var(--accent);">
+          <span class="tag" style="border-color: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--accent);">
             {{ fmt(total) }}
           </span>
         </div>
@@ -94,6 +112,29 @@
                   <span v-if="errors.monto" class="field-error">{{ errors.monto }}</span>
                 </div>
               </div>
+              <div v-if="store.cuentas.length > 0" class="field">
+                <label>Cuenta <span class="label-optional">(opcional)</span></label>
+                <select v-model="form.cuentaId" class="input">
+                  <option value="">Ninguna</option>
+                  <option v-for="c in store.cuentas" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+                </select>
+              </div>
+              <label class="check-label">
+                <input type="checkbox" v-model="form.esRecurrente" />
+                Repetir cada mes
+              </label>
+              <div v-if="form.esRecurrente" class="form-row">
+                <div class="field">
+                  <label>Frecuencia</label>
+                  <select v-model="form.frecuencia" class="input">
+                    <option v-for="(label, val) in FRECUENCIA_LABEL" :key="val" :value="val">{{ label }}</option>
+                  </select>
+                </div>
+                <div v-if="mostrarDiaPago" class="field">
+                  <label>Día de pago <span class="label-optional">(opcional)</span></label>
+                  <input v-model.number="form.diaPago" type="number" min="1" max="31" class="input" placeholder="ej. 15" />
+                </div>
+              </div>
               <div class="form-actions">
                 <button type="button" class="btn" @click="cerrarForm">Cancelar</button>
                 <button type="submit" class="btn btn-primary" :disabled="saving">
@@ -102,9 +143,14 @@
               </div>
             </form>
           </div>
-          <div v-else class="ingreso-row">
-            <div>
+          <div  v-else-if="!editando" class="ingreso-row">
+            <div style="display: flex; align-items: center; gap: 0.50rem;">
               <div class="row-name">{{ i.concepto }}</div>
+               
+              <div v-if="i.esRecurrente" class="row-frecuencia recurrente-icon">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                {{ i.frecuencia ? FRECUENCIA_LABEL[i.frecuencia] : 'Recurrente' }}<span v-if="i.diaPago"> · día {{ i.diaPago }}</span>
+              </div>
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <span class="row-monto">{{ fmt(i.monto) }}</span>
@@ -150,10 +196,21 @@ import MonthSelector from '@/components/common/MonthSelector.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import { ingresoSchema } from '@/schemas'
-import type { Ingreso } from '@/types'
+import type { Ingreso, FrecuenciaIngreso } from '@/types'
 
 const store = useFinanceStore()
 const toast = useToast()
+
+const FRECUENCIA_LABEL: Record<FrecuenciaIngreso, string> = {
+  DIARIO: 'Diario',
+  SEMANAL: 'Semanal',
+  QUINCENAL: 'Quincenal',
+  MENSUAL: 'Mensual',
+  BIMESTRAL: 'Bimestral',
+  TRIMESTRAL: 'Trimestral',
+  ANUAL: 'Anual',
+  PERSONALIZADO: 'Personalizado',
+}
 
 const showForm        = ref(false)
 const saving          = ref(false)
@@ -162,9 +219,17 @@ const showConfirm     = ref(false)
 const pendingDeleteId = ref<string | null>(null)
 const editando        = ref<Ingreso | null>(null)
 
-const form   = reactive({ concepto: '', monto: 0, esRecurrente: false })
+const form = reactive({
+  concepto: '', monto: 0, esRecurrente: false, cuentaId: '',
+  frecuencia: 'MENSUAL' as FrecuenciaIngreso,
+  diaPago: undefined as number | undefined,
+})
 const errors = ref<Partial<Record<'concepto' | 'monto', string>>>({})
 const total  = computed(() => store.ingresos.reduce((s, i) => s + i.monto, 0))
+
+const mostrarDiaPago = computed(() =>
+  !['DIARIO', 'SEMANAL', 'PERSONALIZADO'].includes(form.frecuencia)
+)
 
 async function onSubmit() {
   errors.value = {}
@@ -177,7 +242,14 @@ async function onSubmit() {
     return
   }
   saving.value = true
-  const payload = { concepto: form.concepto, monto: form.monto, esRecurrente: form.esRecurrente }
+  const payload = {
+    concepto: form.concepto,
+    monto: form.monto,
+    esRecurrente: form.esRecurrente,
+    cuentaId: form.cuentaId || undefined,
+    frecuencia: form.esRecurrente ? form.frecuencia : undefined,
+    diaPago: form.esRecurrente && mostrarDiaPago.value ? form.diaPago : undefined,
+  }
   try {
     if (editando.value?.id) {
       await store.editarIngreso(editando.value.id, payload)
@@ -199,6 +271,9 @@ function abrirForm(ingreso?: Ingreso) {
   form.concepto        = ingreso?.concepto     ?? ''
   form.monto           = ingreso?.monto        ?? 0
   form.esRecurrente    = ingreso?.esRecurrente ?? false
+  form.cuentaId        = ingreso?.cuentaId     ?? ''
+  form.frecuencia      = ingreso?.frecuencia   ?? 'MENSUAL'
+  form.diaPago         = ingreso?.diaPago      ?? undefined
   showForm.value       = ingreso == null
 }
 
@@ -208,6 +283,9 @@ function cerrarForm() {
   form.concepto     = ''
   form.monto        = 0
   form.esRecurrente = false
+  form.cuentaId     = ''
+  form.frecuencia   = 'MENSUAL'
+  form.diaPago      = undefined
   errors.value      = {}
 }
 
@@ -249,7 +327,7 @@ function descargarCSV() {
   )
 }
 
-onMounted(() => store.cargarDatos())
+onMounted(() => { store.cargarDatos(); store.cargarCuentas() })
 </script>
 
 <style scoped>
@@ -280,6 +358,8 @@ onMounted(() => store.cargarDatos())
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
+.recurrente-icon { color: var(--accent); flex-shrink: 0; }
+
 /* Empty state */
 .empty-state {
   display: flex;
@@ -293,7 +373,7 @@ onMounted(() => store.cargarDatos())
 .empty-state-title { font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; margin-top: 0.5rem; }
 .empty-state-sub   { font-size: 0.72rem; color: var(--text-muted); max-width: 280px; }
 
-.ingreso-form { display: flex; flex-direction: column; gap: 0.75rem; }
+.ingreso-form { display: flex; flex-direction: column; gap: 0.75rem; width: 100%; }
 .form-row  { display: flex; gap: 0.75rem; }
 .field     { display: flex; flex-direction: column; flex: 1; }
 .form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
@@ -304,6 +384,7 @@ onMounted(() => store.cargarDatos())
 .ingreso-row:last-child { border-bottom: none; }
 .row-name  { font-size: 0.78rem; color: var(--text-primary); }
 .row-monto { font-size: 0.78rem; color: var(--text-primary); }
+.row-frecuencia { display: flex; align-items: center; gap: 0.3rem; font-size: 0.65rem; margin-top: 0.15rem; }
 
 .icon-btn {
   background: none;
@@ -317,10 +398,10 @@ onMounted(() => store.cargarDatos())
   align-items: center;
   justify-content: center;
 }
-.icon-btn:hover        { color: var(--accent); background: rgba(99, 179, 255, 0.08); }
-.icon-btn.danger:hover { color: var(--red);   background: rgba(248, 113, 113, 0.08); }
+.icon-btn:hover        { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.icon-btn.danger:hover { color: var(--red);   background: color-mix(in srgb, var(--red) 8%, transparent); }
 
-.inline-form-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+.inline-form-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; }
 .input-inline    { flex: 1; height: 30px; font-size: 0.78rem; padding: 0 0.6rem; }
 .btn-sm          { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
 
@@ -329,7 +410,7 @@ onMounted(() => store.cargarDatos())
 
 .recurrentes-banner {
   display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-  background: var(--surface); border: 1px solid rgba(99,179,255,0.2);
+  background: var(--surface); border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
   border-left: 3px solid var(--accent); border-radius: 8px;
   padding: 0.6rem 0.85rem; margin-bottom: 1rem;
   font-size: 0.75rem; color: var(--text-secondary);

@@ -54,9 +54,9 @@ const { toasts, dismiss } = useToast()
   background: var(--surface);
 }
 
-.toast--success { border-color: rgba(52, 211, 153, 0.35); }
-.toast--error   { border-color: rgba(248, 113, 113, 0.35); }
-.toast--info    { border-color: rgba(99, 179, 255, 0.35); }
+.toast--success { border-color: color-mix(in srgb, var(--green) 35%, transparent); }
+.toast--error   { border-color: color-mix(in srgb, var(--red) 35%, transparent); }
+.toast--info    { border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
 
 .toast-icon { flex-shrink: 0; }
 .toast--success .toast-icon { color: var(--green); }

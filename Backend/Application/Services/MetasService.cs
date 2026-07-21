@@ -37,15 +37,35 @@ namespace Finanzas.Application.Services
             return _mapper.Map<MetaDto>(actualizada);
         }
 
-        public async Task<MetaDto?> AbonarAsync(Guid id, AbonarMetaDto dto, Guid userId)
+        public async Task<MetaDto?> RegistrarMovimientoAsync(Guid id, CrearMovimientoMetaDto dto, Guid userId)
         {
             var meta = await _repo.GetByIdAsync(id, userId);
             if (meta is null) return null;
 
-            meta.MontoActual = Math.Min(meta.MontoActual + dto.Monto, meta.MontoObjetivo);
-            meta.Completada = meta.MontoActual >= meta.MontoObjetivo;
+            var nuevoSaldo = meta.MontoActual + dto.Monto;
+            if (nuevoSaldo < 0)
+                throw new InvalidOperationException("No puedes retirar más dinero del disponible en esta meta.");
+
+            meta.MontoActual = nuevoSaldo;
+            meta.Completada  = meta.MontoActual >= meta.MontoObjetivo;
             var actualizada = await _repo.UpdateAsync(meta);
+
+            await _repo.AddMovimientoAsync(new MovimientoMeta
+            {
+                MetaId = id,
+                Monto  = dto.Monto
+            });
+
             return _mapper.Map<MetaDto>(actualizada);
+        }
+
+        public async Task<IEnumerable<MovimientoMetaDto>?> GetMovimientosAsync(Guid id, Guid userId)
+        {
+            var meta = await _repo.GetByIdAsync(id, userId);
+            if (meta is null) return null;
+
+            var movimientos = await _repo.GetMovimientosAsync(id);
+            return _mapper.Map<IEnumerable<MovimientoMetaDto>>(movimientos);
         }
 
         public async Task<bool> DeleteAsync(Guid id, Guid userId)

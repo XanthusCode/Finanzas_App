@@ -9,5 +9,7 @@ namespace Finanzas.Application.Interfaces
         Task<Meta> CreateAsync(Meta meta);
         Task<Meta> UpdateAsync(Meta meta);
         Task DeleteAsync(Guid id);
+        Task<IEnumerable<MovimientoMeta>> GetMovimientosAsync(Guid metaId);
+        Task<MovimientoMeta> AddMovimientoAsync(MovimientoMeta movimiento);
     }
 }
