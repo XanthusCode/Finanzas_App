@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta, MovimientoMeta, ResumenCategoria, Deuda, Abono, Cuenta, MovimientoCuenta, TipoCuenta } from '@/types'
+import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta, MovimientoMeta, ResumenCategoria, Deuda, Abono, Cuenta, MovimientoCuenta, TipoCuenta, Suscripcion, HeatmapDia, Insights, ReciboExtraido } from '@/types'
 
 const TOKEN_KEY = 'finanzas_token'
 
@@ -46,7 +46,19 @@ export const gastosService = {
   getResumenCategoria: (mes: number, anio: number) =>
     api.get<ResumenCategoria[]>(`/gastos/resumen-categoria?mes=${mes}&anio=${anio}`),
   getCuotas: () =>
-    api.get<Gasto[]>('/gastos/cuotas')
+    api.get<Gasto[]>('/gastos/cuotas'),
+  getSuscripciones: () =>
+    api.get<Suscripcion[]>('/gastos/suscripciones'),
+  getHeatmap: (anio: number) =>
+    api.get<HeatmapDia[]>(`/gastos/heatmap?anio=${anio}`),
+ importarRecibo: (file: File) => {
+  const formData = new FormData()
+  formData.append('recibo', file)
+  return api.post<ReciboExtraido>('/gastos/importar-recibo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
 }
 
 export const ingresosService = {
@@ -72,7 +84,9 @@ export const resumenService = {
   getGastosPorCategoria: (anio: number) =>
     api.get<GastoCategoriaAnual[]>(`/resumen/gastos-por-categoria?anio=${anio}`),
   getReporte: (mes: number, anio: number) =>
-    api.get(`/resumen/reporte?mes=${mes}&anio=${anio}`, { responseType: 'blob' })
+    api.get(`/resumen/reporte?mes=${mes}&anio=${anio}`, { responseType: 'blob' }),
+  getInsights: (mes: number, anio: number) =>
+    api.get<Insights>(`/resumen/insights?mes=${mes}&anio=${anio}`)
 }
 
 export const categoriasService = {

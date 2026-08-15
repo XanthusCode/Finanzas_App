@@ -9,12 +9,14 @@ public class ResumenController(
     ResumenService service,
     ReporteService reporteService,
     IGastosRepository gastosRepo,
-    IIngresosRepository ingresosRepo) : BaseController
+    IIngresosRepository ingresosRepo,
+    InsightsService insightsService) : BaseController
 {
     private readonly ResumenService    _service       = service;
     private readonly ReporteService    _reporteService = reporteService;
     private readonly IGastosRepository  _gastosRepo    = gastosRepo;
     private readonly IIngresosRepository _ingresosRepo  = ingresosRepo;
+    private readonly InsightsService    _insightsService = insightsService;
 
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery] int mes, [FromQuery] int anio)
@@ -58,5 +60,14 @@ public class ResumenController(
         var filename = $"reporte-{(mes >= 1 && mes <= 12 ? nombreMes[mes] : mes.ToString()).ToLower()}-{anio}.pdf";
 
         return File(pdf, "application/pdf", filename);
+    }
+
+    [HttpGet("insights")]
+    public async Task<IActionResult> GetInsights([FromQuery] int mes, [FromQuery] int anio)
+    {
+        var (huboDatos, texto) = await _insightsService.GenerarAsync(mes, anio, UserId);
+        if (!huboDatos) return Ok(new { estado = "sin_datos" });
+        if (texto is null) return Ok(new { estado = "error" });
+        return Ok(new { estado = "ok", texto });
     }
 }

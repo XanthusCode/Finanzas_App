@@ -1,7 +1,7 @@
 <template>
   <header class="lnav" :class="{ 'lnav--scrolled': scrolled }">
     <div class="lnav-inner">
-      <div class="lnav-logo">FINANZAS</div>
+      <AppLogo class="lnav-logo" />
 
       <nav class="lnav-links">
         <button
@@ -35,7 +35,7 @@
   </Transition>
   <aside class="ldrawer" :class="{ 'ldrawer--open': drawerOpen }">
     <div class="ldrawer-header">
-      <span class="lnav-logo">FINANZAS</span>
+      <AppLogo class="lnav-logo" />
       <button class="icon-btn" @click="drawerOpen = false">
         <X :size="18" :stroke-width="2" />
       </button>
@@ -72,6 +72,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { Menu, X, LayoutGrid, ListChecks, HelpCircle, Mail, LogIn, UserPlus, Home } from 'lucide-vue-next'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { scrollToSection } from '@/composables/useLanding'
+import AppLogo from '@/components/common/AppLogo.vue'
 
 const scrolled = ref(false)
 const drawerOpen = ref(false)

@@ -53,6 +53,13 @@ public class GastosController(GastosService service) : BaseController
         return Ok(new { importados = count });
     }
 
+    [HttpPost("importar-recibo")]
+    public async Task<IActionResult> ImportarRecibo(IFormFile recibo)
+    {
+        var extraido = await _service.EscanearReciboAsync(recibo);
+        return Ok(extraido);
+    }
+
     [HttpGet("resumen-categoria")]
     public async Task<IActionResult> GetResumenCategoria([FromQuery] int mes, [FromQuery] int anio)
     {
@@ -65,5 +72,19 @@ public class GastosController(GastosService service) : BaseController
     {
         var cuotas = await _service.GetCuotasAsync(UserId);
         return Ok(cuotas);
+    }
+
+    [HttpGet("suscripciones")]
+    public async Task<IActionResult> GetSuscripciones()
+    {
+        var suscripciones = await _service.GetSuscripcionesAsync(UserId);
+        return Ok(suscripciones);
+    }
+
+    [HttpGet("heatmap")]
+    public async Task<IActionResult> GetHeatmap([FromQuery] int anio)
+    {
+        var heatmap = await _service.GetHeatmapAsync(anio, UserId);
+        return Ok(heatmap);
     }
 }

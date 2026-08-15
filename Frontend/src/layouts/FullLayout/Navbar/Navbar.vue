@@ -6,21 +6,29 @@
       </button>
       <span class="topbar-page">{{ pageTitle }}</span>
     </div>
-    <UserMenu />
+    <div class="topbar-right">
+      <button class="theme-toggle" title="Cambiar tema" @click="toggleTheme">
+        <Sun v-if="theme === 'dark'" :size="16" :stroke-width="2" />
+        <Moon v-else :size="16" :stroke-width="2" />
+      </button>
+      <UserMenu />
+    </div>
   </header>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { Sun, Moon } from 'lucide-vue-next'
 import UserMenu from '@/components/common/UserMenu.vue'
+import { useAppearance } from '@/composables/useAppearance'
 
 defineEmits(['toggle-sidebar'])
 
 const route = useRoute()
+const { theme, toggleTheme } = useAppearance()
 
 const PAGE_TITLES: Record<string, string> = {
-  '/':            'Dashboard',
   '/dashboard':   'Dashboard',
   '/gastos':      'Gastos',
   '/ingresos':    'Ingresos',
@@ -29,6 +37,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/metas':       'Metas',
   '/deudas':      'Deudas',
   '/cuotas':      'Cuotas',
+  '/cuentas':     'Cuentas',
   '/simulador':   'Simulador',
   '/proyeccion':  'Proyección',
   '/historial':   'Historial',
@@ -79,7 +88,27 @@ const pageTitle = computed(() => PAGE_TITLES[route.path] ?? '')
 }
 .hamburger:hover { color: var(--text-primary); background: var(--surface2); }
 
-@media (max-width: 768px) {
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 6px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.theme-toggle:hover { color: var(--accent); background: var(--surface2); }
+
+@media (max-width: 768px), (max-width: 1024px) and (orientation: portrait) {
   .topbar {
     padding: 0 1rem;
   }

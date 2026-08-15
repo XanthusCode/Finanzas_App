@@ -5,7 +5,7 @@ using Finanzas.Domain.Entities;
 
 namespace Finanzas.Application.Services
 {
-    public class DeudaService(IDeudaRepository repo, IMapper mapper)
+    public class DeudaService(IDeudaRepository repo, IIngresosRepository ingresosRepo, IGastosRepository gastosRepo, IMapper mapper)
     {
         private readonly IDeudaRepository _repo   = repo;
         private readonly IMapper          _mapper = mapper;
@@ -37,7 +37,50 @@ namespace Finanzas.Application.Services
         {
             var deuda = await _repo.GetByIdAsync(id, userId);
             if (deuda is null) return null;
+
+            var estabaPagada = deuda.Pagada;
             deuda.Pagada = !deuda.Pagada;
+
+            if (!estabaPagada && deuda.Pagada)
+            {
+                var pagados     = await _repo.GetMontosPagadosAsync(userId);
+                var totalPagado = pagados.GetValueOrDefault(id);
+                var restante    = deuda.Monto - totalPagado;
+                var hoy         = DateTime.UtcNow;
+
+                if (restante > 0 && deuda.Tipo == TipoDeuda.ME_DEBEN)
+                {
+                    await ingresosRepo.CreateAsync(new Ingreso
+                    {
+                        Concepto = $"Deuda cobrada: {deuda.Persona}",
+                        Monto = restante,
+                        Mes = hoy.Month,
+                        Anio = hoy.Year,
+                        UserId = userId,
+                        DeudaId = deuda.Id
+                    });
+                }
+                else if (restante > 0 && deuda.Tipo == TipoDeuda.LE_DEBO)
+                {
+                    await gastosRepo.CreateAsync(new Gasto
+                    {
+                        Categoria = "Deuda",
+                        Detalle = $"Deuda pagada: {deuda.Persona}",
+                        Monto = restante,
+                        Tipo = TipoGasto.VARIABLE,
+                        Mes = hoy.Month,
+                        Anio = hoy.Year,
+                        UserId = userId,
+                        DeudaId = deuda.Id
+                    });
+                }
+            }
+            else if (estabaPagada && !deuda.Pagada)
+            {
+                await ingresosRepo.DeleteByDeudaIdAsync(id);
+                await gastosRepo.DeleteByDeudaIdAsync(id);
+            }
+
             var actualizada = await _repo.UpdateAsync(deuda);
             return _mapper.Map<DeudaDto>(actualizada);
         }
@@ -46,6 +89,8 @@ namespace Finanzas.Application.Services
         {
             var deuda = await _repo.GetByIdAsync(id, userId);
             if (deuda is null) return false;
+            await ingresosRepo.DeleteByDeudaIdAsync(id);
+            await gastosRepo.DeleteByDeudaIdAsync(id);
             await _repo.DeleteAsync(id);
             return true;
         }
@@ -56,6 +101,33 @@ namespace Finanzas.Application.Services
             if (deuda is null) return null;
 
             await _repo.AddAbonoAsync(new Abono { DeudaId = deudaId, Monto = dto.Monto });
+
+            if (deuda.Tipo == TipoDeuda.ME_DEBEN)
+            {
+                var hoy = DateTime.UtcNow;
+                await ingresosRepo.CreateAsync(new Ingreso
+                {
+                    Concepto = $"Deuda cobrada: {deuda.Persona}",
+                    Monto = dto.Monto,
+                    Mes = hoy.Month,
+                    Anio = hoy.Year,
+                    UserId = userId
+                });
+            }
+            else if (deuda.Tipo == TipoDeuda.LE_DEBO)
+            {
+                var hoy = DateTime.UtcNow;
+                await gastosRepo.CreateAsync(new Gasto
+                {
+                    Categoria = "Deuda",
+                    Detalle = $"Deuda pagada: {deuda.Persona}",
+                    Monto = dto.Monto,
+                    Tipo = TipoGasto.VARIABLE,
+                    Mes = hoy.Month,
+                    Anio = hoy.Year,
+                    UserId = userId
+                });
+            }
 
             var pagados      = await _repo.GetMontosPagadosAsync(userId);
             var totalPagado  = pagados.GetValueOrDefault(deudaId);

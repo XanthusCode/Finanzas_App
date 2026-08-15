@@ -2,7 +2,7 @@
   <div class="auth-page">
     <!-- Panel izquierdo -->
     <div class="auth-panel">
-      <div class="panel-logo">FINANZAS</div>
+      <div class="panel-logo"><AppLogo /></div>
       <p class="panel-tagline">Tus finanzas,<br>bajo control.</p>
       <ul class="panel-features">
         <li>
@@ -27,7 +27,7 @@
     <!-- Panel derecho -->
     <div class="auth-right">
       <div class="auth-card">
-        <div class="auth-logo-mobile">FINANZAS</div>
+        <div class="auth-logo-mobile"><AppLogo /></div>
         <h1 class="auth-title">Crear cuenta</h1>
         <p class="auth-subtitle">Empieza a controlar tus finanzas hoy</p>
 
@@ -111,6 +111,7 @@ import { useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { z } from 'zod'
 import { passwordRequirements, passwordSchema } from '@/schemas'
+import AppLogo from '@/components/common/AppLogo.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -160,10 +161,10 @@ async function onSubmit() {
 }
 
 .auth-panel {
-  background: #080d12;
+  background: #0d0f12;
   background-image:
     radial-gradient(ellipse 80% 60% at 20% 50%, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 70%),
-    linear-gradient(180deg, #080d12 0%, #0d1620 100%);
+    linear-gradient(180deg, #0d0f12 0%, #14181c 100%);
   padding: 3rem 3.5rem;
   display: flex;
   flex-direction: column;
@@ -280,8 +281,8 @@ async function onSubmit() {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
 }
-.field-input.input-error { border-color: #f56565; }
-.field-error { font-size: 0.72rem; color: #f56565; }
+.field-input.input-error { border-color: var(--red); }
+.field-error { font-size: 0.72rem; color: var(--red); }
 
 .input-wrap { position: relative; }
 .input-wrap .field-input { width: 100%; padding-right: 2.5rem; box-sizing: border-box; }
@@ -321,9 +322,9 @@ async function onSubmit() {
 
 .server-error {
   font-size: 0.8rem;
-  color: #f56565;
-  background: rgba(245, 101, 101, 0.08);
-  border: 1px solid rgba(245, 101, 101, 0.2);
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--red) 20%, transparent);
   border-radius: 8px;
   padding: 0.6rem 0.85rem;
   margin: 0;

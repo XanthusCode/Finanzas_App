@@ -5,21 +5,13 @@ export const fmtCOP = (n: number): string => {
   return (n < 0 ? '-$' : '$') + abs.toLocaleString('es-CO')
 }
 
-export function exportCSV(rows: Record<string, unknown>[], filename: string) {
+export async function exportExcel(rows: Record<string, unknown>[], filename: string, sheetName = 'Datos') {
   if (rows.length === 0) return
-  const headers = Object.keys(rows[0]!)
-  const csv = [
-    headers.join(','),
-    ...rows.map(r => headers.map(h => {
-      const v = String(r[h] ?? '')
-      return v.includes(',') ? `"${v}"` : v
-    }).join(','))
-  ].join('\n')
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-  const url  = URL.createObjectURL(blob)
-  const a    = Object.assign(document.createElement('a'), { href: url, download: filename })
-  a.click()
-  URL.revokeObjectURL(url)
+  const XLSX = await import('xlsx')
+  const hoja = XLSX.utils.json_to_sheet(rows)
+  const libro = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(libro, hoja, sheetName)
+  XLSX.writeFile(libro, filename)
 }
 
 export const decodeToken = (token: string): { email: string; nombre: string; exp: number } | null => {

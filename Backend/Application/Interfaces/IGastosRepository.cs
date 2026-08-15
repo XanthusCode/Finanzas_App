@@ -13,6 +13,7 @@ namespace Finanzas.Application.Interfaces
         Task<Gasto> CreateAsync(Gasto gasto);
         Task<Gasto> UpdateAsync(Gasto gasto);
         Task DeleteAsync(Guid id);
+        Task DeleteByDeudaIdAsync(Guid deudaId);
         Task<IEnumerable<ResumenCategoriaDto>> GetResumenCategoriaAsync(int mes, int anio, Guid userId);
         Task<IEnumerable<Gasto>> GetCuotasAsync(Guid userId);
     }

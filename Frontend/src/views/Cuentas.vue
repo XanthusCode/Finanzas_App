@@ -5,7 +5,10 @@
         <div class="section-label">Finanzas</div>
         <h1 class="page-title">Cuentas</h1>
       </div>
-      <button class="btn btn-primary btn-sm" @click="abrirForm()">+ Nueva cuenta</button>
+      <button class="btn btn-primary btn-sm btn-new-account" @click="abrirForm()">
+         <svg  width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nueva cuenta
+      </button>
     </div>
 
     <!-- Resumen -->
@@ -374,5 +377,14 @@ onMounted(cargar)
 @media (max-width: 500px) {
   .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
   .page-title { font-size: 2rem; }
+
+  .resumen-card {
+    max-width: 100%;
+  }
+
+  .btn-new-account {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>

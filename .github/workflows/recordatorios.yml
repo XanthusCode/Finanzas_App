@@ -1,0 +1,15 @@
+name: Procesar recordatorios
+
+on:
+  schedule:
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+
+jobs:
+  procesar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: POST /recordatorios/procesar
+        run: |
+          curl -fsS -X POST https://finanzas-app-htr1.onrender.com/recordatorios/procesar \
+            -H "X-Cron-Secret: ${{ secrets.RECORDATORIOS_CRON_SECRET }}"

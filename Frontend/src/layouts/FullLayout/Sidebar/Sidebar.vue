@@ -1,9 +1,7 @@
 <template>
   <aside class="sidebar" :class="{ 'sidebar--open': open }">
     <div class="sidebar-header">
-      <div class="sidebar-logo">
-        FINANZAS
-      </div>
+      <AppLogo class="sidebar-logo" />
       <button class="sidebar-close" @click="$emit('close')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -46,6 +44,7 @@
 
 <script setup lang="ts">
 import { menu } from './SidebarItems'
+import AppLogo from '@/components/common/AppLogo.vue'
 
 defineProps<{ open: boolean }>()
 defineEmits(['close'])
@@ -115,20 +114,18 @@ const anio = new Date().getFullYear()
   align-items: center;
   gap: 0.65rem;
   padding: 0.6rem 0.75rem;
-  padding-left: calc(0.75rem - 2px);
-  border-left: 2px solid transparent;
   border-radius: 6px;
   font-size: 0.78rem;
   color: var(--text-secondary);
   text-decoration: none;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s;
   letter-spacing: 0.03em;
 }
 .nav-item:hover { background: var(--surface2); color: var(--text-primary); }
 .nav-item--active {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--accent);
-  border-left-color: var(--accent);
+  font-weight: 600;
 }
 
 .nav-divider {

@@ -4,17 +4,36 @@ import {
 } from 'lucide-vue-next'
 
 export const COLOR_PALETTE = [
-  '#63b3ff', // accent
-  '#a78bfa', // violeta
-  '#34d399', // verde
-  '#f87171', // rojo
-  '#fbbf24', // ámbar
-  '#fb923c', // naranja
-  '#f472b6', // rosa
-  '#22d3ee', // cian
-  '#a3e635', // lima
-  '#94a3b8', // gris
+  '#6a8caf', // azul polvo
+  '#7fa3a3', // verde azulado
+  '#8f8fbd', // lavanda
+  '#b08baf', // malva
+  '#7fa88f', // salvia
+  '#c2a06b', // dorado
+  '#a3798f', // rosa apagado
+  '#6bb0a8', // aguamarina
+  '#9b8fc2', // violeta
+  '#8a97a3', // gris neutro
 ]
+
+// Mismos tonos pero más oscuros/saturados — los de arriba pierden casi todo el
+// contraste sobre un fondo claro (blanco de tarjeta + su propio tinte al 13%).
+const COLOR_PALETTE_LIGHT = [
+  '#306088', // azul polvo
+  '#227775', // verde azulado
+  '#4744a7', // lavanda
+  '#983e7a', // malva
+  '#297a4b', // salvia
+  '#956723', // dorado
+  '#9b3b5e', // rosa apagado
+  '#227769', // aguamarina
+  '#6146a4', // violeta
+  '#57616b', // gris neutro
+]
+
+function esTemaClaro() {
+  return typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light'
+}
 
 // Palabras clave (sin tildes) → ícono. Se evalúan en orden, la primera que aparezca en el
 // nombre de la categoría gana. Así el ícono se infiere solo, sin pedirle al usuario que elija uno.
@@ -57,5 +76,6 @@ export function guessColor(nombre: string) {
     hash = (hash << 5) - hash + nombre.charCodeAt(i)
     hash |= 0
   }
-  return COLOR_PALETTE[Math.abs(hash) % COLOR_PALETTE.length]!
+  const idx = Math.abs(hash) % COLOR_PALETTE.length
+  return (esTemaClaro() ? COLOR_PALETTE_LIGHT : COLOR_PALETTE)[idx]!
 }

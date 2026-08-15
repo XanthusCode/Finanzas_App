@@ -18,9 +18,9 @@
 
       <div class="shots-window">
         <div class="mock-titlebar">
-          <span class="mock-dot" style="background:#f87171" />
-          <span class="mock-dot" style="background:#fbbf24" />
-          <span class="mock-dot" style="background:#34d399" />
+          <span class="mock-dot" style="background:#c17165" />
+          <span class="mock-dot" style="background:#c2a06b" />
+          <span class="mock-dot" style="background:#5c9678" />
           <span class="mock-titlebar-label">finanzas.app/{{ active }}</span>
         </div>
 

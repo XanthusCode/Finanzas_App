@@ -51,5 +51,15 @@ namespace Finanzas.Infrastructure.Repositories
                 await _db.SaveChangesAsync();
             }
         }
+
+        public async Task DeleteByDeudaIdAsync(Guid deudaId)
+        {
+            var ingresos = await _db.Ingresos.Where(i => i.DeudaId == deudaId).ToListAsync();
+            if (ingresos.Count > 0)
+            {
+                _db.Ingresos.RemoveRange(ingresos);
+                await _db.SaveChangesAsync();
+            }
+        }
     }
 }

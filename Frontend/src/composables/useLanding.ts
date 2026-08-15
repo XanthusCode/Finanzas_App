@@ -62,7 +62,7 @@ export const faqItems: LandingFaqItem[] = [
   { question: '¿Necesito conectar mi cuenta bancaria?', answer: 'No. Registras tus movimientos manualmente, así que no compartes tus credenciales bancarias con nadie.' },
   { question: '¿Mis datos están seguros?', answer: 'Tu información se guarda asociada únicamente a tu cuenta y se protege con autenticación mediante token. Solo tú puedes acceder a tus datos.' },
   { question: '¿Puedo usarla desde el celular?', answer: 'Sí, la aplicación es responsive y se adapta a celulares y tablets además del navegador de escritorio.' },
-  { question: '¿Puedo exportar mi información?', answer: 'Sí, puedes exportar tus gastos a CSV desde la vista de Gastos.' },
+  { question: '¿Puedo exportar mi información?', answer: 'Sí, puedes exportar tus gastos e ingresos a Excel desde sus respectivas vistas, además de generar un reporte mensual en PDF desde el Dashboard.' },
 ]
 
 export function scrollToSection(id: string) {

@@ -7,6 +7,7 @@ export const useFinanceStore = defineStore('finance', () => {
   const gastos     = ref<Gasto[]>([])
   const ingresos   = ref<Ingreso[]>([])
   const resumen    = ref<Resumen | null>(null)
+  const resumenAnterior = ref<Resumen | null>(null)
   const loading    = ref(false)
   const categorias = ref<Categoria[]>([])
   const presupuestos = ref<Presupuesto[]>([])
@@ -57,20 +58,27 @@ export const useFinanceStore = defineStore('finance', () => {
     gastos.value = []
     ingresos.value = []
     resumen.value = null
+    resumenAnterior.value = null
     try {
-      const [rGastos, rIngresos, rResumen] = await Promise.all([
+      const mesAnterior  = mesActual.value === 1 ? 12 : mesActual.value - 1
+      const anioAnterior = mesActual.value === 1 ? anioActual.value - 1 : anioActual.value
+
+      const [rGastos, rIngresos, rResumen, rResumenAnterior] = await Promise.all([
         gastosService.getAll(mesActual.value, anioActual.value),
         ingresosService.getAll(mesActual.value, anioActual.value),
-        resumenService.get(mesActual.value, anioActual.value)
+        resumenService.get(mesActual.value, anioActual.value),
+        resumenService.get(mesAnterior, anioAnterior)
       ])
       gastos.value   = rGastos.data
       ingresos.value = rIngresos.data
       resumen.value  = rResumen.data
+      resumenAnterior.value = rResumenAnterior.data
     } catch (e) {
       console.error('Error cargando datos:', e)
       gastos.value   = []
       ingresos.value = []
       resumen.value  = null
+      resumenAnterior.value = null
     } finally {
       loading.value = false
     }
@@ -97,6 +105,12 @@ export const useFinanceStore = defineStore('finance', () => {
     await gastosService.delete(id)
     gastos.value = gastos.value.filter(g => g.id !== id)
     await cargarResumen()
+  }
+
+  async function cargarRecibo(file: File) {
+    const { data } = await gastosService.importarRecibo(file)
+    await cargarDatos()
+    return data
   }
 
   async function importarGastos(filas: Omit<Gasto, 'id' | 'mes' | 'anio'>[]) {
@@ -243,7 +257,7 @@ export const useFinanceStore = defineStore('finance', () => {
   }
 
   return {
-    gastos, ingresos, resumen, loading,
+    gastos, ingresos, resumen, resumenAnterior, loading,
     mesActual, anioActual,
     promptRecurrentes, descartarPromptRecurrentes,
     promptIngresosRecurrentes, descartarPromptIngresosRecurrentes, copiarIngresosRecurrentes,
@@ -253,7 +267,7 @@ export const useFinanceStore = defineStore('finance', () => {
     resumenAnual, cargarResumenAnual,
     tendencia, cargarTendencia,
     gastosPorCategoria, cargarGastosPorCategoria,
-    cargarDatos, agregarGasto, editarGasto, eliminarGasto, copiarRecurrentes, importarGastos,
+    cargarDatos, agregarGasto, editarGasto, eliminarGasto, copiarRecurrentes, importarGastos, importarRecibo: cargarRecibo,
     agregarIngreso, editarIngreso, eliminarIngreso, cambiarMes,
     presupuestos, cargarPresupuestos, guardarPresupuesto, eliminarPresupuesto,
     metas, cargarMetas, crearMeta, editarMeta, registrarMovimientoMeta, eliminarMeta, cargarHistorialMeta,

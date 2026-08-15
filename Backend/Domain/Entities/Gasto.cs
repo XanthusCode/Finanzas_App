@@ -9,6 +9,7 @@
         public TipoGasto Tipo { get; set; }
         public int Mes { get; set; }
         public int Anio { get; set; }
+        public DateTime? Fecha { get; set; }
         public Guid UserId { get; set; }
         public bool EsRecurrente { get; set; }
         public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
@@ -16,11 +17,21 @@
         public int? CuotaActual { get; set; }
         public Guid? GastoOrigenId { get; set; }
         public Guid? CuentaId { get; set; }
+        public Guid? DeudaId { get; set; }
     }
 
     public enum TipoGasto
     {
         FIJO,
         VARIABLE
+    }
+
+    public class ReciboExtraidoDto
+    {
+        public decimal Monto { get; set; }
+        public string? Comercio { get; set; }
+        public string? Descripcion { get; set; }
+        public DateTime? Fecha { get; set; }
+        public string? CategoriaSugerida { get; set; }
     }
 }

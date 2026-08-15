@@ -59,6 +59,12 @@
       </div>
     </div>
 
+    <div class="form-row">
+      <div class="field">
+      <label>Fecha <span class="label-optional">(opcional)</span></label>
+      <input v-model="form.fecha" type="date" class="input" />
+    </div>
+
     <div v-if="store.cuentas.length > 0" class="field">
       <label>Cuenta <span class="label-optional">(opcional)</span></label>
       <div class="select-wrap">
@@ -69,6 +75,8 @@
         <ChevronDown class="select-icon" :size="14" :stroke-width="2" />
       </div>
     </div>
+    </div>
+    
 
     <label class="recurrente-label">
       <input type="checkbox" v-model="form.esRecurrente" class="recurrente-check" />
@@ -126,6 +134,7 @@ const form = ref({
   monto:        props.gasto?.monto        ?? 0,
   esRecurrente: props.gasto?.esRecurrente ?? false,
   cuentaId:     props.gasto?.cuentaId     ?? '',
+  fecha:        props.gasto?.fecha?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
   esCuotas:     false,
   numCuotas:    2,
 })
@@ -176,6 +185,7 @@ function submit() {
     monto: form.value.monto,
     esRecurrente: form.value.esRecurrente,
     cuentaId: form.value.cuentaId || undefined,
+    fecha: form.value.fecha || undefined,
     mes: 0,
     anio: 0,
     ...(form.value.esCuotas && form.value.numCuotas >= 2 ? { numCuotas: form.value.numCuotas } : {}),
