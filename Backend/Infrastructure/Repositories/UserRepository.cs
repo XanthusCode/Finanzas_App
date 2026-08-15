@@ -31,5 +31,8 @@ namespace Finanzas.Infrastructure.Repositories
             await _db.SaveChangesAsync();
             return user;
         }
+
+        public async Task<IEnumerable<User>> GetAllAsync() =>
+            await _db.Users.ToListAsync();
     }
 }

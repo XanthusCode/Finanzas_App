@@ -15,5 +15,6 @@
         public Guid? CuentaId { get; set; }
         public FrecuenciaIngreso? Frecuencia { get; set; }
         public int? DiaPago { get; set; }
+        public Guid? DeudaId { get; set; }
     }
 }

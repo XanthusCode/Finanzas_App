@@ -2,7 +2,7 @@
   <footer id="footer" class="lfoot">
     <div class="lfoot-inner">
       <div class="lfoot-brand">
-        <div class="lfoot-logo">FINANZAS</div>
+        <AppLogo class="lfoot-logo" />
         <p class="lfoot-tagline">Controla tus finanzas. Cumple tus metas.</p>
       </div>
 
@@ -38,6 +38,7 @@
 import { RouterLink } from 'vue-router'
 import { Mail } from '@lucide/vue'
 import { scrollToSection } from '@/composables/useLanding'
+import AppLogo from '@/components/common/AppLogo.vue'
 
 const year = new Date().getFullYear()
 </script>

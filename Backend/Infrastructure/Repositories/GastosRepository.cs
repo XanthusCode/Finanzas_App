@@ -57,6 +57,16 @@ namespace Finanzas.Infrastructure.Repositories
             }
         }
 
+        public async Task DeleteByDeudaIdAsync(Guid deudaId)
+        {
+            var gastos = await _db.Gastos.Where(g => g.DeudaId == deudaId).ToListAsync();
+            if (gastos.Count > 0)
+            {
+                _db.Gastos.RemoveRange(gastos);
+                await _db.SaveChangesAsync();
+            }
+        }
+
         public async Task<IEnumerable<ResumenCategoriaDto>> GetResumenCategoriaAsync(int mes, int anio, Guid userId) =>
             await _db.Gastos
                 .Where(g => g.Mes == mes && g.Anio == anio && g.UserId == userId)

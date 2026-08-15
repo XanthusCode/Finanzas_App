@@ -4,12 +4,11 @@ const THEME_KEY = 'finanzas_theme'
 const ACCENT_KEY = 'finanzas_accent'
 
 export const ACCENT_PRESETS: { name: string; value: string | null }[] = [
-  { name: 'Azul (predeterminado)', value: null },
-  { name: 'Violeta', value: '#a78bfa' },
-  { name: 'Verde', value: '#34d399' },
-  { name: 'Rosa', value: '#f472b6' },
-  { name: 'Naranja', value: '#fb923c' },
-  { name: 'Cian', value: '#22d3ee' },
+  { name: 'Acero (predeterminado)', value: null },
+  { name: 'Bosque', value: '#4a8a6e' },
+  { name: 'Vino', value: '#a85a6e' },
+  { name: 'Dorado', value: '#c2a06b' },
+  { name: 'Pizarra', value: '#6b6f78' },
 ]
 
 const theme = ref<'dark' | 'light'>(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark')

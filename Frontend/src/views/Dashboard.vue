@@ -29,64 +29,60 @@
             <span class="kpi-label">Ingresos</span>
             <svg class="kpi-icon" style="color:var(--accent)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
           </div>
-          <div class="kpi-value" style="color: var(--accent)">{{ fmtAnim(counters.ingresos) }}</div>
+          <div class="kpi-value-row">
+            <span class="kpi-value">{{ fmtAnim(counters.ingresos) }}</span>
+            <span v-if="variacion?.ingresos" class="kpi-var" :class="variacion.ingresos.esBueno ? 'kpi-var--good' : 'kpi-var--bad'">{{ variacion.ingresos.v >= 0 ? '▲' : '▼' }}{{ Math.abs(variacion.ingresos.v) }}%</span>
+          </div>
         </div>
         <div class="kpi-card" style="--ca: var(--red)">
           <div class="kpi-top">
             <span class="kpi-label">Gastos fijos</span>
             <svg class="kpi-icon" style="color:var(--red)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </div>
-          <div class="kpi-value" style="color: var(--red)">{{ fmtAnim(counters.fijos) }}</div>
+          <div class="kpi-value-row">
+            <span class="kpi-value">{{ fmtAnim(counters.fijos) }}</span>
+            <span v-if="variacion?.fijos" class="kpi-var" :class="variacion.fijos.esBueno ? 'kpi-var--good' : 'kpi-var--bad'">{{ variacion.fijos.v >= 0 ? '▲' : '▼' }}{{ Math.abs(variacion.fijos.v) }}%</span>
+          </div>
           <div class="kpi-bar-wrap">
             <div class="kpi-bar" :style="{ width: pcts.fijos + '%', background: 'var(--red)' }" />
           </div>
-          <div class="kpi-pct">{{ Math.round(pcts.fijos) }}% del ingreso</div>
+          <div class="kpi-pct">
+            <span class="kpi-pct-badge kpi-pct-badge--red">{{ Math.round(pcts.fijos) }}%</span> del ingreso
+          </div>
         </div>
         <div class="kpi-card" style="--ca: var(--amber)">
           <div class="kpi-top">
             <span class="kpi-label">Gastos ocasionales</span>
             <svg class="kpi-icon" style="color:var(--amber)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>
           </div>
-          <div class="kpi-value" style="color: var(--amber)">{{ fmtAnim(counters.variables) }}</div>
+          <div class="kpi-value-row">
+            <span class="kpi-value">{{ fmtAnim(counters.variables) }}</span>
+            <span v-if="variacion?.variables" class="kpi-var" :class="variacion.variables.esBueno ? 'kpi-var--good' : 'kpi-var--bad'">{{ variacion.variables.v >= 0 ? '▲' : '▼' }}{{ Math.abs(variacion.variables.v) }}%</span>
+          </div>
           <div class="kpi-bar-wrap">
             <div class="kpi-bar" :style="{ width: pcts.variables + '%', background: 'var(--amber)' }" />
           </div>
-          <div class="kpi-pct">{{ Math.round(pcts.variables) }}% del ingreso</div>
+          <div class="kpi-pct">
+            <span class="kpi-pct-badge kpi-pct-badge--amber">{{ Math.round(pcts.variables) }}%</span> del ingreso
+          </div>
         </div>
         <div class="kpi-card kpi-ahorro" style="--ca: var(--green)">
           <div class="kpi-top">
-            <span class="kpi-label">Dinero restante</span>
+            <span class="kpi-label">Dinero restante del mes</span>
             <svg class="kpi-icon" style="color:var(--green)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
           </div>
-          <div class="kpi-value" style="color: var(--green)">{{ fmtAnim(counters.ahorro) }}</div>
+          <div class="kpi-value-row">
+            <span class="kpi-value">{{ fmtAnim(counters.ahorro) }}</span>
+            <span v-if="variacion?.ahorro" class="kpi-var" :class="variacion.ahorro.esBueno ? 'kpi-var--good' : 'kpi-var--bad'">{{ variacion.ahorro.v >= 0 ? '▲' : '▼' }}{{ Math.abs(variacion.ahorro.v) }}%</span>
+          </div>
           <div class="kpi-bar-wrap">
             <div class="kpi-bar" :style="{ width: pcts.ahorro + '%', background: 'var(--green)' }" />
           </div>
-          <div class="kpi-pct">{{ Math.round(pcts.ahorro) }}% del ingreso</div>
+          <div class="kpi-pct">
+            <span class="kpi-pct-badge kpi-pct-badge--green">{{ Math.round(pcts.ahorro) }}%</span> del ingreso
+          </div>
         </div>
       </div>
-
-      <!-- Alertas de presupuesto -->
-      <div v-if="alertasPresupuesto.length > 0" class="presupuesto-alerts">
-        <div
-          v-for="a in alertasPresupuesto"
-          :key="a.categoria"
-          class="presupuesto-alert"
-          :class="a.pct >= 100 ? 'alert-danger' : 'alert-warn'"
-        >
-          <div class="alert-top">
-            <span class="alert-cat">{{ a.categoria }}</span>
-            <span class="alert-pct">{{ a.pct }}%</span>
-          </div>
-          <div class="alert-bar-wrap">
-            <div class="alert-bar" :style="{ width: Math.min(a.pct, 100) + '%' }" />
-          </div>
-          <div class="alert-nums">{{ fmt(a.gastado) }} de {{ fmt(a.limite) }}</div>
-        </div>
-      </div>
-
-      <!-- Alertas de deudas -->
-      <DeudasAlerta style="margin-bottom: 1rem" />
 
       <!-- Ahorro anual banner -->
       <div ref="bannerRef" class="anual-banner" style="opacity: 0">
@@ -125,10 +121,74 @@
         </div>
       </div>
 
+      <!-- Análisis con IA -->
+      <div class="card insights-card" style="margin-bottom: 1rem">
+        <div class="insights-header">
+          <p class="card-title" style="margin-bottom: 0">Análisis con IA</p>
+          <button class="btn btn-sm" :disabled="cargandoInsights" @click="generarInsights">
+            {{ cargandoInsights ? 'Analizando…' : (insights ? 'Actualizar análisis' : 'Analizar mi mes') }}
+          </button>
+        </div>
+        <div v-if="insights" class="insights-lineas">
+          <div v-for="(linea, i) in insightsLineas" :key="i" class="insights-linea">
+            <svg class="insights-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M15.09 14c.18-1 .48-1.6 1.14-2.3A6 6 0 1 0 7.77 11.7c.66.7.96 1.3 1.14 2.3"/></svg>
+            <span>{{ linea }}</span>
+          </div>
+        </div>
+        <p v-else-if="insightsNoDisponible" class="insights-empty">No hay suficientes datos este mes para generar el análisis.</p>
+        <p v-else-if="insightsError" class="insights-empty">No se pudo generar el análisis.</p>
+        <p v-else class="insights-empty">Analiza tus hábitos de gasto este mes con IA.</p>
+      </div>
+
+      <!-- Regla 50/30/20 -->
+      <div v-if="regla5030.length > 0" class="card" style="margin-bottom: 1rem">
+        <p class="card-title">Regla 50/30/20</p>
+        <div class="regla-rows">
+          <div v-for="r in regla5030" :key="r.label" class="regla-row">
+            <div class="regla-top">
+              <span class="regla-label">{{ r.label }}</span>
+              <span class="regla-vals">{{ r.pct }}%<span class="regla-meta"> · meta {{ r.meta }}%</span></span>
+            </div>
+            <div class="regla-bar-wrap">
+              <div class="regla-bar" :style="{ width: Math.min(r.pct, 100) + '%', background: r.color }" />
+              <div class="regla-goal" :style="{ left: r.meta + '%' }" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alertas de presupuesto -->
+      <div v-if="alertasPresupuesto.length > 0" class="presupuesto-alerts">
+        <div
+          v-for="a in alertasPresupuesto"
+          :key="a.categoria"
+          class="presupuesto-alert"
+          :class="a.pct >= 100 ? 'alert-danger' : 'alert-warn'"
+        >
+          <div class="alert-top">
+            <span class="alert-cat">{{ a.categoria }}</span>
+            <span class="alert-pct-badge" :class="a.pct >= 100 ? 'alert-pct-badge--red' : 'alert-pct-badge--amber'">{{ a.pct }}%</span>
+          </div>
+          <div class="alert-bar-wrap">
+            <div class="alert-bar" :style="{ width: Math.min(a.pct, 100) + '%' }" />
+          </div>
+          <div class="alert-nums">{{ fmt(a.gastado) }} de {{ fmt(a.limite) }}</div>
+        </div>
+      </div>
+
+      <!-- Alertas de deudas -->
+      <DeudasAlerta style="margin-bottom: 1rem" />
+
       <!-- Tendencia del año -->
       <div class="card" style="margin-bottom: 1rem">
         <p class="card-title">Tendencia {{ store.anioActual }}</p>
         <BarChart :labels="tendenciaLabels" :datasets="tendenciaDatasets" />
+      </div>
+
+      <!-- Heatmap de gastos -->
+      <div v-if="heatmapData.length > 0" class="card" style="margin-bottom: 1rem">
+        <p class="card-title">Mapa de gastos {{ store.anioActual }}</p>
+        <GastoHeatmap :data="heatmapData" :anio="store.anioActual" />
       </div>
 
       <!-- Gasto por categoría anual -->
@@ -139,7 +199,7 @@
 
       <!-- 3 columnas: donut | fijos | variables -->
       <div ref="bottomRef" class="bottom-grid">
-        <div class="card" style="opacity: 0">
+        <div class="card" style="opacity: 0; max-height: 400px; overflow-y: auto">
           <p class="card-title">Distribución del mes</p>
           <div class="donut-section">
             <DonutChart
@@ -163,7 +223,7 @@
           </div>
         </div>
 
-        <div class="card" style="opacity: 0">
+        <div class="card" style="opacity: 0; max-height: 400px; overflow-y: auto">
           <p class="card-title">Gastos fijos <span class="tag tag-red">{{ fmt(resumen?.totalFijos) }}</span></p>
           <div v-if="store.gastosFijos.length === 0" class="empty">Sin gastos registrados</div>
           <div v-for="g in store.gastosFijos" :key="g.id" class="expense-row" style="opacity: 0">
@@ -175,7 +235,7 @@
           </div>
         </div>
 
-        <div class="card" style="opacity: 0">
+        <div class="card" style="opacity: 0; max-height: 400px; overflow-y: auto">
           <p class="card-title">Gastos ocasionales <span class="tag tag-amber">{{ fmt(resumen?.totalVariables) }}</span></p>
           <div v-if="store.gastosVariables.length === 0" class="empty">Sin gastos registrados</div>
           <div v-for="g in store.gastosVariables" :key="g.id" class="expense-row" style="opacity: 0">
@@ -205,6 +265,20 @@
           </div>
         </div>
       </div>
+
+      <!-- Suscripciones olvidadas -->
+      <div v-if="suscripciones.length > 0" class="card" style="margin-top: 0.75rem">
+        <p class="card-title">¿Sigues usando esto?</p>
+        <div class="susc-list">
+          <div v-for="s in suscripciones" :key="s.categoria + s.detalle + s.monto" class="susc-row">
+            <div>
+              <div class="susc-nombre">{{ s.categoria }}<span v-if="s.detalle"> · {{ s.detalle }}</span></div>
+              <div class="susc-meses">Llevas {{ s.mesesActivo }} meses pagando esto</div>
+            </div>
+            <div class="susc-monto">{{ fmt(s.monto) }}</div>
+          </div>
+        </div>
+      </div>
     </template>
 
     <template v-else>
@@ -225,8 +299,11 @@ import MonthSelector from '@/components/common/MonthSelector.vue'
 import DeudasAlerta from '@/components/common/DeudasAlerta.vue'
 import DonutChart from '@/components/charts/DonutChart.vue'
 import BarChart from '@/components/charts/BarChart.vue'
+import GastoHeatmap from '@/components/charts/GastoHeatmap.vue'
 import { usePresupuestoMensual } from '@/composables/usePresupuestoMensual'
-import { resumenService } from '@/services/api'
+import { COLOR_PALETTE } from '@/composables/useCategoriaOptions'
+import { resumenService, gastosService } from '@/services/api'
+import type { Suscripcion, HeatmapDia } from '@/types'
 
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
 
@@ -248,10 +325,40 @@ const pcts         = reactive({ fijos: 0, variables: 0, ahorro: 0 })
 const progressWidth = ref(0)
 
 const distribucion = computed(() => [
-  { label: 'Gastos fijos',     val: resumen.value?.totalFijos    ?? 0, color: '#f87171' },
-  { label: 'Gastos ocasionales', val: resumen.value?.totalVariables ?? 0, color: '#fbbf24' },
-  { label: 'Dinero restante',    val: resumen.value?.ahorro        ?? 0, color: '#34d399' },
+  { label: 'Gastos fijos',     val: resumen.value?.totalFijos    ?? 0, color: '#c17165' },
+  { label: 'Gastos ocasionales', val: resumen.value?.totalVariables ?? 0, color: '#c2a06b' },
+  { label: 'Dinero restante',    val: resumen.value?.ahorro        ?? 0, color: '#5c9678' },
 ])
+
+const variacion = computed(() => {
+  const ant = store.resumenAnterior
+  const act = resumen.value
+  if (!ant || !act) return null
+
+  const build = (actual: number, anterior: number, masEsMalo: boolean) => {
+    if (anterior <= 0) return null
+    const v = Math.round((actual - anterior) / anterior * 100)
+    return { v, esBueno: masEsMalo ? v <= 0 : v >= 0 }
+  }
+
+  return {
+    ingresos:  build(act.totalIngresos,  ant.totalIngresos,  false),
+    fijos:     build(act.totalFijos,     ant.totalFijos,     true),
+    variables: build(act.totalVariables, ant.totalVariables, true),
+    ahorro:    build(act.ahorro,         ant.ahorro,         false),
+  }
+})
+
+const regla5030 = computed(() => {
+  const r = resumen.value
+  if (!r || r.totalIngresos <= 0) return []
+  const pct = (n: number) => Math.round(n / r.totalIngresos * 100)
+  return [
+    { label: 'Necesidades', pct: pct(r.totalFijos),     meta: 50, color: 'var(--red)' },
+    { label: 'Gustos',      pct: pct(r.totalVariables), meta: 30, color: 'var(--amber)' },
+    { label: 'Ahorro',      pct: Math.max(0, pct(r.ahorro)), meta: 20, color: 'var(--green)' },
+  ]
+})
 
 const healthLabel = computed(() => {
   const p = resumen.value?.pctAhorro ?? 0
@@ -348,8 +455,8 @@ const pct     = (a?: number, b?: number) => (a && b) ? Math.round(a / b * 100) :
 
 const tendenciaLabels   = computed(() => MESES)
 const tendenciaDatasets = computed(() => [
-  { label: 'Ingresos', data: store.tendencia.map(r => r.totalIngresos), color: 'rgba(99,179,255,0.7)'  },
-  { label: 'Gastos',   data: store.tendencia.map(r => r.totalGastos),   color: 'rgba(248,113,113,0.7)' },
+  { label: 'Ingresos', data: store.tendencia.map(r => r.totalIngresos), color: 'rgba(91,122,149,0.75)' },
+  { label: 'Gastos',   data: store.tendencia.map(r => r.totalGastos),   color: 'rgba(193,113,101,0.75)' },
 ])
 
 const topCategorias = computed(() => {
@@ -372,14 +479,7 @@ const alertasPresupuesto = computed(() =>
     .sort((a, b) => b.pct - a.pct)
 )
 
-const CAT_COLORS = [
-  'rgba(99,179,255,0.7)',
-  'rgba(248,113,113,0.7)',
-  'rgba(251,191,36,0.7)',
-  'rgba(52,211,153,0.7)',
-  'rgba(167,139,250,0.7)',
-  'rgba(251,146,60,0.7)',
-]
+const CAT_COLORS = COLOR_PALETTE
 
 const categoriaDatasets = computed(() =>
   store.gastosPorCategoria.map((c, i) => ({
@@ -389,6 +489,14 @@ const categoriaDatasets = computed(() =>
   }))
 )
 
+const suscripciones = ref<Suscripcion[]>([])
+const heatmapData   = ref<HeatmapDia[]>([])
+
+async function cargarHeatmap() {
+  const { data } = await gastosService.getHeatmap(store.anioActual)
+  heatmapData.value = data
+}
+
 onMounted(async () => {
   store.cargarDatos()
   store.cargarResumenAnual()
@@ -396,11 +504,57 @@ onMounted(async () => {
   store.cargarGastosPorCategoria()
   await store.cargarPresupuestos()
   await cargarPresupuesto()
+  await cargarHeatmap()
+
+  const { data } = await gastosService.getSuscripciones()
+  suscripciones.value = data
+
+  cargarInsightsCache()
 })
+
+watch(anioDash, cargarHeatmap)
 
 watch([mesDash, anioDash], cargarPresupuesto)
 
 const descargandoPDF = ref(false)
+
+const insights = ref<string | null>(null)
+const cargandoInsights = ref(false)
+const insightsNoDisponible = ref(false)
+const insightsError = ref(false)
+
+const insightsLineas = computed(() => insights.value?.split('\n').filter(Boolean) ?? [])
+
+function insightsKey(mes: number, anio: number) {
+  return `finanzas_insights_${anio}_${mes}`
+}
+
+function cargarInsightsCache() {
+  insights.value = localStorage.getItem(insightsKey(store.mesActual, store.anioActual))
+  insightsNoDisponible.value = false
+  insightsError.value = false
+}
+
+watch([mesDash, anioDash], cargarInsightsCache)
+
+async function generarInsights() {
+  cargandoInsights.value = true
+  insightsNoDisponible.value = false
+  insightsError.value = false
+  try {
+    const { data } = await resumenService.getInsights(store.mesActual, store.anioActual)
+    if (data.estado === 'ok' && data.texto) {
+      insights.value = data.texto
+      localStorage.setItem(insightsKey(store.mesActual, store.anioActual), data.texto)
+    }
+    else if (data.estado === 'sin_datos') insightsNoDisponible.value = true
+    else insightsError.value = true
+  } catch {
+    insightsError.value = true
+  } finally {
+    cargandoInsights.value = false
+  }
+}
 
 async function descargarPDF() {
   descargandoPDF.value = true
@@ -442,29 +596,31 @@ async function descargarPDF() {
   position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--ca, var(--border));
   border-radius: 10px;
   padding: 1rem 1.1rem;
   overflow: hidden;
 }
-.kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--ca, var(--border));
-  border-radius: 10px 10px 0 0;
-}
 .kpi-ahorro {
   background: linear-gradient(135deg, var(--surface) 40%, color-mix(in srgb, var(--green) 5%, transparent) 100%);
   border-color: color-mix(in srgb, var(--green) 15%, transparent);
+  border-left-color: var(--green);
 }
 .kpi-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
 .kpi-label { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
 .kpi-icon { opacity: 0.7; flex-shrink: 0; }
-.kpi-value { font-size: 1.25rem; font-family: var(--ff-display); font-weight: 700; margin-bottom: 0.5rem; }
+.kpi-value-row { display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.5rem; }
+.kpi-value { font-size: 1.25rem; font-family: var(--ff-display); font-weight: 700; color: var(--text-primary); }
+.kpi-var { font-size: 0.62rem; font-weight: 700; }
+.kpi-var--good { color: var(--green); }
+.kpi-var--bad  { color: var(--red); }
 .kpi-bar-wrap { height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; margin-bottom: 0.35rem; }
 .kpi-bar { height: 100%; border-radius: 2px; max-width: 100%; }
-.kpi-pct { font-size: 0.62rem; color: var(--text-muted); }
+.kpi-pct { font-size: 0.62rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; }
+.kpi-pct-badge { font-size: 0.62rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px; }
+.kpi-pct-badge--red   { background: color-mix(in srgb, var(--red) 12%, transparent);   color: var(--red); }
+.kpi-pct-badge--amber { background: color-mix(in srgb, var(--amber) 14%, transparent); color: var(--amber); }
+.kpi-pct-badge--green { background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); }
 
 /* Ahorro anual banner */
 .anual-banner {
@@ -504,6 +660,37 @@ async function descargarPDF() {
 .health-amber { border-color: color-mix(in srgb, var(--amber) 35%, transparent); color: var(--amber); background: color-mix(in srgb, var(--amber) 5%, transparent); }
 .health-red   { border-color: color-mix(in srgb, var(--red) 35%, transparent);   color: var(--red);   background: color-mix(in srgb, var(--red) 5%, transparent); }
 
+/* Insights con IA */
+.insights-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
+.insights-lineas { display: flex; flex-direction:row; justify-content: space-between; gap: 0.5rem; }
+.insights-linea {
+  max-width: 450px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+  padding: 0.65rem 0.85rem;
+  background: var(--surface2);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+}
+.insights-icon { flex-shrink: 0; margin-top: 0.15rem; color: var(--accent); }
+.insights-empty { font-size: 0.75rem; color: var(--text-muted); }
+
+/* Regla 50/30/20 */
+.regla-rows { display: flex; flex-direction: column; gap: 0.85rem; }
+.regla-row { display: flex; flex-direction: column; gap: 0.35rem; }
+.regla-top { display: flex; justify-content: space-between; align-items: baseline; }
+.regla-label { font-size: 0.72rem; color: var(--text-primary); font-weight: 500; }
+.regla-vals { font-size: 0.7rem; color: var(--text-primary); font-weight: 600; }
+.regla-meta { font-size: 0.62rem; color: var(--text-muted); font-weight: 400; }
+.regla-bar-wrap { position: relative; height: 5px; background: var(--surface2); border-radius: 3px; overflow: visible; }
+.regla-bar { height: 100%; border-radius: 3px; max-width: 100%; transition: width 0.5s ease; }
+.regla-goal { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text-muted); border-radius: 1px; }
+
 /* 3-col bottom */
 .bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
 
@@ -542,6 +729,14 @@ async function descargarPDF() {
 .top-cat-bar  { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
 .top-cat-monto { font-size: 0.72rem; color: var(--text-secondary); min-width: 80px; text-align: right; flex-shrink: 0; }
 
+/* Suscripciones olvidadas */
+.susc-list { display: flex; flex-direction: column; }
+.susc-row { display: flex; justify-content: space-between; align-items: center; padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
+.susc-row:last-child { border-bottom: none; }
+.susc-nombre { font-size: 0.75rem; color: var(--text-primary); }
+.susc-meses { font-size: 0.62rem; color: var(--text-muted); margin-top: 0.1rem; }
+.susc-monto { font-size: 0.75rem; color: var(--amber); font-weight: 600; flex-shrink: 0; margin-left: 0.5rem; }
+
 /* Alertas de presupuesto */
 .presupuesto-alerts {
   display: grid;
@@ -562,9 +757,9 @@ async function descargarPDF() {
 .presupuesto-alert.alert-danger { border-left: 3px solid var(--red); }
 .alert-top  { display: flex; justify-content: space-between; align-items: center; }
 .alert-cat  { font-size: 0.72rem; color: var(--text-primary); font-weight: 500; }
-.alert-pct  { font-size: 0.65rem; font-weight: 700; }
-.alert-warn  .alert-pct { color: var(--amber); }
-.alert-danger .alert-pct { color: var(--red); }
+.alert-pct-badge { font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 4px; }
+.alert-pct-badge--amber { background: color-mix(in srgb, var(--amber) 14%, transparent); color: var(--amber); }
+.alert-pct-badge--red   { background: color-mix(in srgb, var(--red) 14%, transparent);   color: var(--red); }
 .alert-bar-wrap { height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
 .alert-warn   .alert-bar { height: 100%; background: var(--amber); border-radius: 2px; }
 .alert-danger .alert-bar { height: 100%; background: var(--red);   border-radius: 2px; }
@@ -592,6 +787,13 @@ async function descargarPDF() {
 @media (max-width: 480px) {
   .kpi-grid { grid-template-columns: 1fr; }
   .anual-big { font-size: 1.5rem; }
+
+  .anual-progress-wrap { 
+    margin-top: 1rem;
+  }
+
+  /* Insights con IA */
+.insights-lineas { flex-direction: column; }
 }
 
 </style>

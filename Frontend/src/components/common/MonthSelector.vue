@@ -61,6 +61,7 @@ function next() {
 @media (max-width: 500px) {
  .month-selector {
     gap: 0.35rem;
+    justify-content: space-between;
   }
 }
 </style>

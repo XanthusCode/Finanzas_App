@@ -60,7 +60,7 @@
               v-for="preset in ACCENT_PRESETS" :key="preset.name" type="button"
               class="accent-swatch"
               :class="{ 'accent-swatch--active': accent === preset.value }"
-              :style="{ background: preset.value ?? '#63b3ff' }"
+              :style="{ background: preset.value ?? 'var(--accent)' }"
               :title="preset.name"
               @click="setAccent(preset.value)"
             />

@@ -44,6 +44,10 @@ builder.Services.AddScoped<MetasService>();
 builder.Services.AddScoped<DeudaService>();
 builder.Services.AddScoped<CuentaService>();
 builder.Services.AddScoped<ReporteService>();
+builder.Services.AddScoped<RecordatoriosService>();
+builder.Services.AddHttpClient<EmailService>();
+builder.Services.AddScoped<InsightsService>();
+builder.Services.AddHttpClient<GroqService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
@@ -95,9 +99,15 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// Endpoint liviano para keep-alive (evita el cold start de Render en el plan free).
-// No toca la base de datos a propósito, para que responda lo más rápido posible.
-app.MapGet("/health", () => Results.Ok("OK"));
+// Endpoint de keep-alive: evita el cold start de Render Y el auto-suspend de Neon
+// (Neon en el plan free suspende el cómputo tras ~5 min sin actividad en la BD,
+// independiente de si el proceso de Render está despierto). Por eso SÍ debe tocar
+// la base de datos con una consulta mínima, no solo responder desde el proceso.
+app.MapGet("/health", async (AppDbContext db) =>
+{
+    await db.Database.ExecuteSqlRawAsync("SELECT 1");
+    return Results.Ok("OK");
+});
 
 // Crear/migrar esquema al arrancar
 using (var scope = app.Services.CreateScope())
@@ -112,6 +122,8 @@ using (var scope = app.Services.CreateScope())
     // EnsureCreated() no agrega tablas nuevas si la base de datos ya existía de antes
     // (solo crea el esquema completo en bases de datos nuevas). Por eso las tablas
     // agregadas después del primer arranque se crean manualmente aquí.
+    // Todo en un solo ExecuteSqlRaw: cada llamada es un round-trip a Postgres y esto
+    // corre en cada cold start de Render, así que menos round-trips = arranque más rápido.
     db.Database.ExecuteSqlRaw("""
         CREATE TABLE IF NOT EXISTS "Abonos" (
             "Id" uuid NOT NULL PRIMARY KEY,
@@ -120,9 +132,7 @@ using (var scope = app.Services.CreateScope())
             "Fecha" timestamp with time zone NOT NULL,
             CONSTRAINT "FK_Abonos_Deudas_DeudaId" FOREIGN KEY ("DeudaId") REFERENCES "Deudas" ("Id") ON DELETE CASCADE
         );
-        """);
 
-    db.Database.ExecuteSqlRaw("""
         CREATE TABLE IF NOT EXISTS "Cuentas" (
             "Id" uuid NOT NULL PRIMARY KEY,
             "UserId" uuid NOT NULL,
@@ -140,9 +150,7 @@ using (var scope = app.Services.CreateScope())
             "Fecha" timestamp with time zone NOT NULL,
             CONSTRAINT "FK_MovimientosCuenta_Cuentas_CuentaId" FOREIGN KEY ("CuentaId") REFERENCES "Cuentas" ("Id") ON DELETE CASCADE
         );
-        """);
 
-    db.Database.ExecuteSqlRaw("""
         CREATE TABLE IF NOT EXISTS "MovimientosMeta" (
             "Id" uuid NOT NULL PRIMARY KEY,
             "MetaId" uuid NOT NULL,
@@ -150,12 +158,14 @@ using (var scope = app.Services.CreateScope())
             "Fecha" timestamp with time zone NOT NULL,
             CONSTRAINT "FK_MovimientosMeta_Metas_MetaId" FOREIGN KEY ("MetaId") REFERENCES "Metas" ("Id") ON DELETE CASCADE
         );
-        """);
 
-    // Vincula gastos/ingresos a una cuenta (columna agregada después del primer arranque).
-    db.Database.ExecuteSqlRaw("""
         ALTER TABLE "Gastos" ADD COLUMN IF NOT EXISTS "CuentaId" uuid NULL;
         ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "CuentaId" uuid NULL;
+        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "Frecuencia" text NULL;
+        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "DiaPago" integer NULL;
+        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "DeudaId" uuid NULL;
+        ALTER TABLE "Gastos" ADD COLUMN IF NOT EXISTS "Fecha" timestamp with time zone NULL;
+        ALTER TABLE "Gastos" ADD COLUMN IF NOT EXISTS "DeudaId" uuid NULL;
 
         DO $mig$
         BEGIN
@@ -168,13 +178,6 @@ using (var scope = app.Services.CreateScope())
         END
         $mig$;
         """);
-
-    // Frecuencia y día de pago para ingresos recurrentes (columnas agregadas después del primer arranque).
-    db.Database.ExecuteSqlRaw("""
-        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "Frecuencia" text NULL;
-        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "DiaPago" integer NULL;
-        """);
-
 }
 
 app.Run();

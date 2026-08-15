@@ -7,9 +7,9 @@
       </div>
       <div class="header-actions">
         <MonthSelector :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
-        <button v-if="store.ingresos.length > 0" class="btn" @click="descargarCSV">
+        <button v-if="store.ingresos.length > 0" class="btn" @click="descargarExcel">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          CSV
+          Excel
         </button>
         <button class="btn btn-primary" :disabled="!!editando" @click="showForm ? cerrarForm() : abrirForm()">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -191,7 +191,7 @@
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useFinanceStore } from '@/stores/finance'
 import { useToast } from '@/composables/useToast'
-import { fmtCOP as fmt, exportCSV } from '@/utils'
+import { fmtCOP as fmt, exportExcel } from '@/utils'
 import MonthSelector from '@/components/common/MonthSelector.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
@@ -320,10 +320,17 @@ async function confirmDelete() {
   }
 }
 
-function descargarCSV() {
-  exportCSV(
-    store.ingresos.map(i => ({ Concepto: i.concepto, Monto: i.monto })),
-    `ingresos-${store.mesActual}-${store.anioActual}.csv`
+function descargarExcel() {
+  exportExcel(
+    store.ingresos.map(i => ({
+      Concepto: i.concepto,
+      Monto: i.monto,
+      Recurrente: i.esRecurrente ? 'Sí' : 'No',
+      Frecuencia: i.frecuencia ? FRECUENCIA_LABEL[i.frecuencia] : '',
+      'Día de pago': i.diaPago ?? '',
+    })),
+    `ingresos-${store.mesActual}-${store.anioActual}.xlsx`,
+    'Ingresos'
   )
 }
 

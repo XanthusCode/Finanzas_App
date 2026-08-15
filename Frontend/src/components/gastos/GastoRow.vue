@@ -1,7 +1,7 @@
 <template>
   <div class="gasto-row">
     <div class="row-left">
-      <div class="cat-icon-badge" :style="{ background: guessColor(gasto.categoria) + '22', color: guessColor(gasto.categoria) }">
+      <div class="cat-icon-badge" :style="{ background: guessColor(gasto.categoria) + '4d', color: guessColor(gasto.categoria) }">
         <component :is="guessIcono(gasto.categoria)" :size="14" :stroke-width="2" />
       </div>
       <div>
@@ -62,8 +62,8 @@ const emit = defineEmits<{ delete: [id: string], edit: [gasto: Gasto], create: [
 .recurrente-icon { color: var(--accent); flex-shrink: 0; }
 .cuota-badge {
   font-size: 0.58rem; font-weight: 600; letter-spacing: 0.04em;
-  background: rgba(168,85,247,0.12); color: #a855f7;
-  border: 1px solid rgba(168,85,247,0.25);
+  background: color-mix(in srgb, var(--accent2) 15%, transparent); color: var(--accent2);
+  border: 1px solid color-mix(in srgb, var(--accent2) 30%, transparent);
   border-radius: 4px; padding: 1px 5px;
 }
 

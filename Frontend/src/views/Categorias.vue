@@ -28,7 +28,7 @@
 
         <template v-for="cat in store.categoriasFijas" :key="cat.id">
           <div v-if="editando?.id === cat.id" class="inline-form-row">
-            <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '22', color: guessColor(form.nombre) }">
+            <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '4d', color: guessColor(form.nombre) }">
               <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
             </div>
             <input v-model="form.nombre" class="input input-inline" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
@@ -37,7 +37,7 @@
           </div>
           <div v-else class="cat-row">
             <div class="cat-info">
-              <div class="cat-icon-badge" :style="{ background: guessColor(cat.nombre) + '22', color: guessColor(cat.nombre) }">
+              <div class="cat-icon-badge" :style="{ background: guessColor(cat.nombre) + '4d', color: guessColor(cat.nombre) }">
                 <component :is="guessIcono(cat.nombre)" :size="14" :stroke-width="2" />
               </div>
               <span class="cat-name">{{ cat.nombre }}</span>
@@ -54,7 +54,7 @@
         </template>
 
         <div v-if="showForm && form.tipo === 'FIJO' && !editando" class="inline-form-row">
-          <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '22', color: guessColor(form.nombre) }">
+          <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '4d', color: guessColor(form.nombre) }">
             <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
           </div>
           <input v-model="form.nombre" class="input input-inline" placeholder="Nombre de la categoría" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
@@ -76,7 +76,7 @@
 
         <template v-for="cat in store.categoriasVariables" :key="cat.id">
           <div v-if="editando?.id === cat.id" class="inline-form-row">
-            <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '22', color: guessColor(form.nombre) }">
+            <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '4d', color: guessColor(form.nombre) }">
               <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
             </div>
             <input v-model="form.nombre" class="input input-inline" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
@@ -85,7 +85,7 @@
           </div>
           <div v-else class="cat-row">
             <div class="cat-info">
-              <div class="cat-icon-badge" :style="{ background: guessColor(cat.nombre) + '22', color: guessColor(cat.nombre) }">
+              <div class="cat-icon-badge" :style="{ background: guessColor(cat.nombre) + '4d', color: guessColor(cat.nombre) }">
                 <component :is="guessIcono(cat.nombre)" :size="14" :stroke-width="2" />
               </div>
               <span class="cat-name">{{ cat.nombre }}</span>
@@ -102,7 +102,7 @@
         </template>
 
         <div v-if="showForm && form.tipo === 'VARIABLE' && !editando" class="inline-form-row">
-          <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '22', color: guessColor(form.nombre) }">
+          <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '4d', color: guessColor(form.nombre) }">
             <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
           </div>
           <input v-model="form.nombre" class="input input-inline" placeholder="Nombre de la categoría" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />

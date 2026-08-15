@@ -9,5 +9,6 @@ namespace Finanzas.Application.Interfaces
         Task<bool> ExistsAsync(string email);
         Task<User> CreateAsync(User user);
         Task<User> UpdateAsync(User user);
+        Task<IEnumerable<User>> GetAllAsync();
     }
 }

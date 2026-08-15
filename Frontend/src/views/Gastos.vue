@@ -7,15 +7,21 @@
       </div>
       <div class="header-actions">
         <MonthSelector :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
-        <button v-if="store.gastos.length > 0" class="btn btn-primary" @click="descargarCSV">
+        <button v-if="store.gastos.length > 0" class="btn btn-primary" @click="descargarExcel">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          CSV
+          Excel
         </button>
         <button class="btn" @click="csvInput?.click()">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           Importar
         </button>
         <input ref="csvInput" type="file" accept=".csv" style="display:none" @change="onImportCSV" />
+        <input ref="reciboInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none" @change="onImportRecibo" />
+
+        <button class="btn " @click="reciboInput?.click()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          Escanear Recibo
+        </button>
       </div>
     </div>
 
@@ -176,6 +182,8 @@
       message="¿Seguro que quieres eliminar este gasto? Esta acción no se puede deshacer."
       @confirm="confirmDelete"
     />
+
+    <EscanearReciboModal v-model="showReciboModal" :datos="datosRecibo" @submit="onSubmitRecibo" />
   </div>
 </template>
 
@@ -184,16 +192,20 @@ import { ref, computed, onMounted } from 'vue'
 import { ChevronDown } from '@lucide/vue'
 import { useFinanceStore } from '@/stores/finance'
 import { useToast } from '@/composables/useToast'
-import { fmtCOP as fmt, exportCSV } from '@/utils'
-import type { Gasto } from '@/types'
+import { fmtCOP as fmt, exportExcel } from '@/utils'
+import type { Gasto, ReciboExtraido } from '@/types'
 import MonthSelector from '@/components/common/MonthSelector.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import GastoForm from '@/components/gastos/GastoForm.vue'
 import GastoRow from '@/components/gastos/GastoRow.vue'
+import EscanearReciboModal from '@/components/gastos/EscanearReciboModal.vue'
 
 const store    = useFinanceStore()
 const toast    = useToast()
 const csvInput = ref<HTMLInputElement>()
+const reciboInput = ref<HTMLInputElement>()
+const showReciboModal = ref(false)
+const datosRecibo = ref<ReciboExtraido | null>(null)
 
 const tipoAbierto     = ref<'FIJO' | 'VARIABLE' | null>(null)
 const editando        = ref<Gasto | null>(null)
@@ -301,10 +313,33 @@ async function onImportCSV(e: Event) {
   }
 }
 
-function descargarCSV() {
-  exportCSV(
+async function onImportRecibo(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  try {
+    datosRecibo.value = await store.importarRecibo(file)
+    showReciboModal.value = true
+  } catch {
+    toast.error('Error al escanear el recibo')
+  } finally {
+    if (reciboInput.value) reciboInput.value.value = ''
+  }
+}
+
+async function onSubmitRecibo(gasto: Omit<Gasto, 'id'>) {
+  try {
+    await store.agregarGasto(gasto)
+    toast.success('Gasto agregado')
+  } catch {
+    toast.error('No se pudo guardar el gasto')
+  }
+}
+
+function descargarExcel() {
+  exportExcel(
     store.gastos.map(g => ({ Tipo: g.tipo, Categoria: g.categoria, Detalle: g.detalle, Monto: g.monto, Recurrente: g.esRecurrente ? 'Sí' : 'No' })),
-    `gastos-${store.mesActual}-${store.anioActual}.csv`
+    `gastos-${store.mesActual}-${store.anioActual}.xlsx`,
+    'Gastos'
   )
 }
 
@@ -448,7 +483,9 @@ onMounted(() => { store.cargarDatos(); store.cargarCategorias(); store.cargarCue
   .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
   .page-title { font-size: 2rem;  }
   .section-label { font-size: 0.75rem; }
-  .header-actions { gap: 0.4rem; font-size: 0.9rem; }
+  .header-actions { flex-direction: column; gap: 0.4rem; font-size: 0.9rem; align-items: center; display: block; justify-content: space-between; margin-bottom: 0.5rem; }
+
+  .btn { margin-top: 3%; margin-left: 5px; }
 
   .filter-bar { display: block; }
   .search-wrap { margin-bottom: 0.5rem; }

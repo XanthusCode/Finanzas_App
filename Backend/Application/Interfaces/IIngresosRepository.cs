@@ -11,5 +11,6 @@ namespace Finanzas.Application.Interfaces
         Task<Ingreso> CreateAsync(Ingreso ingreso);
         Task<Ingreso> UpdateAsync(Ingreso ingreso);
         Task DeleteAsync(Guid id);
+        Task DeleteByDeudaIdAsync(Guid deudaId);
     }
 }

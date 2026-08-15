@@ -15,8 +15,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { Chart, BarController, BarElement, CategoryScale, LinearScale, Tooltip } from 'chart.js'
+import { useAppearance } from '@/composables/useAppearance'
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip)
 
@@ -29,10 +30,17 @@ const canvasRef = ref<HTMLCanvasElement>()
 let chart: Chart | null = null
 
 const datasets = props.datasets
+const { theme } = useAppearance()
+
+function cssVar(name: string) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
 
 function buildChart() {
   if (!canvasRef.value) return
   chart?.destroy()
+  const tickColor = cssVar('--text-secondary')
+  const gridColor = cssVar('--chart-grid')
   chart = new Chart(canvasRef.value, {
     type: 'bar',
     data: {
@@ -50,11 +58,11 @@ function buildChart() {
       maintainAspectRatio: false,
       plugins: { legend: { display: false }, tooltip: { mode: 'index' } },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#7a8aa0' } },
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: tickColor } },
         y: {
-          grid: { color: 'rgba(99,179,255,0.05)' },
+          grid: { color: gridColor },
           ticks: {
-            font: { size: 11 }, color: '#7a8aa0',
+            font: { size: 11 }, color: tickColor,
             callback: (v) => Number(v) >= 1000000
               ? (Number(v) / 1000000).toFixed(1) + 'M'
               : Number(v) >= 1000 ? (Number(v) / 1000) + 'k' : v
@@ -67,6 +75,8 @@ function buildChart() {
 
 onMounted(buildChart)
 watch(() => props.datasets, buildChart, { deep: true })
+watch(theme, buildChart)
+onBeforeUnmount(() => chart?.destroy())
 </script>
 
 <style scoped>

@@ -6,6 +6,7 @@ export interface Gasto {
   tipo: 'FIJO' | 'VARIABLE'
   mes: number
   anio: number
+  fecha?: string
   esRecurrente: boolean
   numCuotas?: number
   cuotaActual?: number
@@ -71,6 +72,23 @@ export interface ResumenCategoria {
   total: number
 }
 
+export interface Suscripcion {
+  categoria: string
+  detalle: string
+  monto: number
+  mesesActivo: number
+}
+
+export interface HeatmapDia {
+  fecha: string
+  total: number
+}
+
+export interface Insights {
+  estado: 'ok' | 'sin_datos' | 'error'
+  texto?: string
+}
+
 export interface Deuda {
   id?: string
   persona: string
@@ -112,4 +130,12 @@ export interface MovimientoMeta {
   id?: string
   monto: number // firmado: positivo = abono, negativo = retiro
   fecha: string
+}
+
+export interface ReciboExtraido {
+  monto: number
+  comercio: string | null
+  descripcion: string | null
+  fecha: string | null
+  categoriaSugerida: string | null
 }

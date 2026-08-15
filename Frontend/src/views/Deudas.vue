@@ -193,6 +193,7 @@ const abonoDeudaId      = ref<string | null>(null)
 const abonoMonto        = ref(0)
 const abonoGuardando    = ref(false)
 const abonoHistorial    = ref<Abono[]>([])
+const abonoDeudaTipo =  ref<'ME_DEBEN' | 'LE_DEBO' | null>(null)
 
 const form = reactive({
   tipo: 'ME_DEBEN' as 'ME_DEBEN' | 'LE_DEBO',
@@ -229,6 +230,7 @@ function pctPagado(d: Deuda) {
 }
 
 async function abrirAbonoModal(d: Deuda) {
+  abonoDeudaTipo.value = d.tipo
   abonoDeudaId.value = d.id!
   abonoMonto.value = 0
   abonoHistorial.value = []
@@ -250,7 +252,7 @@ async function guardarAbono() {
     const idx = deudas.value.findIndex(d => d.id === abonoDeudaId.value)
     if (idx !== -1) deudas.value[idx] = data
     cerrarAbonoModal()
-    toast.success('Abono registrado')
+    toast.success( abonoDeudaTipo.value === 'ME_DEBEN' ? 'Abono registrado como ingreso' : 'Abono registrado' )
   } catch {
     toast.error('No se pudo registrar el abono')
   } finally {
