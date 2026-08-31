@@ -4,21 +4,18 @@ namespace Finanzas.Application.DTOs
     {
         public Guid Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
-        public string Tipo { get; set; } = string.Empty;
         public bool Activa { get; set; }
     }
 
     public class CrearCategoriaDto
     {
         public string Nombre { get; set; } = string.Empty;
-        public string Tipo { get; set; } = string.Empty;
         public bool Activa { get; set; } = true;
     }
 
     public class EditarCategoriaDto
     {
         public string Nombre { get; set; } = string.Empty;
-        public string Tipo { get; set; } = string.Empty;
     }
 
 }

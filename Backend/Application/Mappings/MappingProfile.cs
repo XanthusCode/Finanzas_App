@@ -27,15 +27,12 @@ public class MappingProfile : Profile
             .ForMember(d => d.Frecuencia, o => o.MapFrom(s => ParseFrecuencia(s.Frecuencia)));
 
         // Categoria
-        CreateMap<Categoria, CategoriaDto>()
-            .ForMember(d => d.Tipo, o => o.MapFrom(s => s.Tipo.ToString()));
-        CreateMap<CrearCategoriaDto, Categoria>()
-            .ForMember(d => d.Tipo, o => o.MapFrom(s => Enum.Parse<TipoGasto>(s.Tipo)));
+        CreateMap<Categoria, CategoriaDto>();
+        CreateMap<CrearCategoriaDto, Categoria>();
         CreateMap<EditarCategoriaDto, Categoria>()
             .ForMember(d => d.Id,     o => o.Ignore())
             .ForMember(d => d.UserId, o => o.Ignore())
-            .ForMember(d => d.Activa, o => o.Ignore())
-            .ForMember(d => d.Tipo,   o => o.MapFrom(s => Enum.Parse<TipoGasto>(s.Tipo)));
+            .ForMember(d => d.Activa, o => o.Ignore());
 
         // Presupuesto
         CreateMap<Presupuesto, PresupuestoDto>();

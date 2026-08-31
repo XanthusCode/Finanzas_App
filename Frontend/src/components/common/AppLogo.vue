@@ -7,7 +7,7 @@
       <path d="M16.5 16.5V7" />
       <circle cx="16.5" cy="7" r="1.4" fill="currentColor" stroke="none" />
     </svg>
-    <span class="app-logo-text">FINANZAS</span>
+    <span class="app-logo-text">Zaldo</span>
   </div>
 </template>
 

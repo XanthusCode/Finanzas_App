@@ -12,7 +12,10 @@
         </div>
       </div>
       <div class="field">
-        <label>Categoría</label>
+        <div class="label-row">
+          <label>Categoría</label>
+          <span v-if="creandoCategoria" class="char-counter" :class="{ 'char-counter--limit': nuevaCategoriaNombre.length >= 100 }">{{ nuevaCategoriaNombre.length }}/100</span>
+        </div>
         <div v-if="!creandoCategoria" class="categoria-row">
           <div class="select-wrap">
             <select v-model="form.categoria" class="input" :class="{ 'input-error': errors.categoria }">
@@ -29,6 +32,7 @@
           <input
             v-model="nuevaCategoriaNombre"
             class="input"
+            maxlength="100"
             placeholder="Nombre de la categoría"
             autofocus
             @keydown.enter.prevent="crearCategoria"
@@ -48,8 +52,11 @@
 
     <div class="form-row">
       <div class="field" style="flex: 2">
-        <label>Detalle <span class="label-optional">(opcional)</span></label>
-        <input v-model="form.detalle" class="input" :class="{ 'input-error': errors.detalle }" placeholder="ej. Netflix mensual" />
+        <div class="label-row">
+          <label>Detalle <span class="label-optional">(opcional)</span></label>
+          <span class="char-counter" :class="{ 'char-counter--limit': form.detalle.length >= 150 }">{{ form.detalle.length }}/150</span>
+        </div>
+        <input v-model="form.detalle" class="input" maxlength="150" :class="{ 'input-error': errors.detalle }" placeholder="ej. Netflix mensual" />
         <span v-if="errors.detalle" class="field-error">{{ errors.detalle }}</span>
       </div>
       <div class="field">
@@ -108,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { ChevronDown } from '@lucide/vue'
 import { useFinanceStore } from '@/stores/finance'
 import { useToast } from '@/composables/useToast'
@@ -141,11 +148,7 @@ const form = ref({
 
 const errors = ref<Partial<Record<'categoria' | 'detalle' | 'monto', string>>>({})
 
-const categorias = computed(() =>
-  form.value.tipo === 'FIJO' ? store.categoriasFijas : store.categoriasVariables
-)
-
-watch(() => form.value.tipo, (_, prev) => { if (prev !== undefined) form.value.categoria = '' })
+const categorias = computed(() => store.categoriasActivas)
 
 function cancelarCategoria() {
   creandoCategoria.value = false
@@ -157,7 +160,7 @@ async function crearCategoria() {
   if (!nombre) return
   creandoCategoriaLoading.value = true
   try {
-    await store.agregarCategoria({ nombre, tipo: form.value.tipo, activa: true })
+    await store.agregarCategoria({ nombre, activa: true })
     form.value.categoria = nombre
     cancelarCategoria()
     toast.success('Categoría creada')
@@ -204,6 +207,10 @@ function submit() {
 .field-error { font-size: 0.65rem; color: var(--red); margin-top: 0.2rem; }
 .input-error { border-color: var(--red) !important; }
 .label-optional { color: var(--text-muted); font-weight: 400; }
+
+.label-row { display: flex; justify-content: space-between; align-items: baseline; }
+.char-counter { font-size: 0.62rem; color: var(--text-muted); }
+.char-counter--limit { color: var(--red); }
 
 .categoria-row { display: flex; align-items: center; gap: 0.4rem; }
 .categoria-row .select-wrap { flex: 1; }

@@ -21,20 +21,20 @@
     </div>
 
     <template v-else>
-      <div v-for="tipo in (['FIJO', 'VARIABLE'] as const)" :key="tipo" class="seccion">
+      <div class="seccion">
         <div class="seccion-header">
-          <span class="seccion-titulo">{{ tipo === 'FIJO' ? 'Gastos fijos' : 'Gastos ocasionales' }}</span>
+          <span class="seccion-titulo">Categorías</span>
           <span class="seccion-resumen">
-            {{ itemsConLimite(tipo).length }} de {{ itemsPorTipo(tipo).length }} con límite
+            {{ itemsConLimite.length }} de {{ items.length }} con límite
           </span>
         </div>
 
-        <div v-if="itemsPorTipo(tipo).length === 0" class="empty">
+        <div v-if="items.length === 0" class="empty">
           Sin categorías —
           <RouterLink to="/categorias" class="link">créalas aquí</RouterLink>
         </div>
 
-        <div v-for="item in itemsPorTipo(tipo)" :key="item.categoria" class="budget-card">
+        <div v-for="item in items" :key="item.categoria" class="budget-card">
           <!-- Vista normal -->
           <template v-if="editingCat !== item.categoria">
             <div class="bc-top">
@@ -130,8 +130,7 @@ const { items, loading: composableLoading, cargar } = usePresupuestoMensual(mes,
 
 const hayPeligro = computed(() => items.value.some(i => i.estado === 'danger'))
 
-const itemsPorTipo    = (tipo: 'FIJO' | 'VARIABLE') => items.value.filter(i => i.tipo === tipo)
-const itemsConLimite  = (tipo: 'FIJO' | 'VARIABLE') => items.value.filter(i => i.tipo === tipo && i.limite)
+const itemsConLimite = computed(() => items.value.filter(i => i.limite))
 
 function onCambioMes(m: number, a: number) {
   mes.value = m

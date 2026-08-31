@@ -166,6 +166,7 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "DeudaId" uuid NULL;
         ALTER TABLE "Gastos" ADD COLUMN IF NOT EXISTS "Fecha" timestamp with time zone NULL;
         ALTER TABLE "Gastos" ADD COLUMN IF NOT EXISTS "DeudaId" uuid NULL;
+        ALTER TABLE "Categorias" DROP COLUMN IF EXISTS "Tipo";
 
         DO $mig$
         BEGIN

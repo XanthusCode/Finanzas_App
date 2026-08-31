@@ -4,7 +4,6 @@ import { useFinanceStore } from '@/stores/finance'
 
 export interface PresupuestoMensualItem {
   categoria: string
-  tipo: 'FIJO' | 'VARIABLE'
   limite: number | null
   gastado: number
   pct: number
@@ -29,7 +28,7 @@ export function usePresupuestoMensual(mes: Ref<number>, anio: Ref<number>) {
           : pct > 100 ? 'danger'
           : pct >= 80 ? 'warn'
           : 'ok'
-        return { categoria: c.nombre, tipo: c.tipo, limite, gastado, pct, estado }
+        return { categoria: c.nombre, limite, gastado, pct, estado }
       })
   )
 

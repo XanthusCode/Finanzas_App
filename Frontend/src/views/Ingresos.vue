@@ -24,8 +24,11 @@
         <form class="ingreso-form" @submit.prevent="onSubmit">
           <div class="form-row">
             <div class="field" style="flex: 2">
-              <label>Concepto</label>
-              <input v-model="form.concepto" class="input" :class="{ 'input-error': errors.concepto }" placeholder="ej. Salario básico" />
+              <div class="label-row">
+                <label>Concepto</label>
+                <span class="char-counter" :class="{ 'char-counter--limit': form.concepto.length >= 100 }">{{ form.concepto.length }}/100</span>
+              </div>
+              <input v-model="form.concepto" class="input" maxlength="100" :class="{ 'input-error': errors.concepto }" placeholder="ej. Salario básico" />
               <span v-if="errors.concepto" class="field-error">{{ errors.concepto }}</span>
             </div>
             <div class="field">
@@ -102,8 +105,11 @@
             <form class="ingreso-form" @submit.prevent="onSubmit">
               <div class="form-row">
                 <div class="field" style="flex: 2">
-                  <label>Concepto</label>
-                  <input v-model="form.concepto" class="input" :class="{ 'input-error': errors.concepto }" placeholder="ej. Salario básico" />
+                  <div class="label-row">
+                    <label>Concepto</label>
+                    <span class="char-counter" :class="{ 'char-counter--limit': form.concepto.length >= 100 }">{{ form.concepto.length }}/100</span>
+                  </div>
+                  <input v-model="form.concepto" class="input" maxlength="100" :class="{ 'input-error': errors.concepto }" placeholder="ej. Salario básico" />
                   <span v-if="errors.concepto" class="field-error">{{ errors.concepto }}</span>
                 </div>
                 <div class="field">
@@ -386,6 +392,10 @@ onMounted(() => { store.cargarDatos(); store.cargarCuentas() })
 .form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
 .field-error  { font-size: 0.65rem; color: var(--red); margin-top: 0.2rem; }
 .input-error  { border-color: var(--red) !important; }
+
+.label-row { display: flex; justify-content: space-between; align-items: baseline; }
+.char-counter { font-size: 0.62rem; color: var(--text-muted); }
+.char-counter--limit { color: var(--red); }
 
 .ingreso-row { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--border); }
 .ingreso-row:last-child { border-bottom: none; }

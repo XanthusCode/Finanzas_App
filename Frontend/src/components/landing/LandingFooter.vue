@@ -21,15 +21,15 @@
 
       <div class="lfoot-col">
         <span class="lfoot-heading">Contacto</span>
-        <a href="mailto:soporte@finanzas.app" class="lfoot-link">
-          <Mail :size="13" :stroke-width="2" /> soporte@finanzas.app
+        <a href="mailto:soporte@zaldo.app" class="lfoot-link">
+          <Mail :size="13" :stroke-width="2" /> soporte@zaldo.app
         </a>
         <span class="lfoot-note">Muy pronto en redes sociales</span>
       </div>
     </div>
 
     <div class="lfoot-bottom">
-      © {{ year }} Finanzas. Todos los derechos reservados.
+      © {{ year }} Zaldo. Todos los derechos reservados.
     </div>
   </footer>
 </template>

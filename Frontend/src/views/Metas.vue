@@ -17,8 +17,11 @@
         <div class="meta-form">
           <div class="form-row">
             <div class="field" style="flex: 2">
-              <label>Nombre de la meta</label>
-              <input v-model="form.nombre" class="input" :class="{ 'input-error': errors.nombre }" placeholder="ej. Vacaciones en Europa" />
+              <div class="label-row">
+                <label>Nombre de la meta</label>
+                <span class="char-counter" :class="{ 'char-counter--limit': form.nombre.length >= 150 }">{{ form.nombre.length }}/150</span>
+              </div>
+              <input v-model="form.nombre" class="input" maxlength="150" :class="{ 'input-error': errors.nombre }" placeholder="ej. Vacaciones en Europa" />
               <span v-if="errors.nombre" class="field-error">{{ errors.nombre }}</span>
             </div>
             <div class="field">
@@ -103,8 +106,11 @@
         <div class="modal fade-up">
           <p class="modal-title">Editar meta</p>
           <div class="field" style="margin-top: 1rem">
-            <label>Nombre</label>
-            <input v-model="editForm.nombre" class="input" />
+            <div class="label-row">
+              <label>Nombre</label>
+              <span class="char-counter" :class="{ 'char-counter--limit': editForm.nombre.length >= 150 }">{{ editForm.nombre.length }}/150</span>
+            </div>
+            <input v-model="editForm.nombre" class="input" maxlength="150" />
           </div>
           <div class="field" style="margin-top: 0.75rem">
             <label>Monto objetivo (COP)</label>
@@ -395,6 +401,10 @@ onMounted(async () => {
 .form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
 .field-error { font-size: 0.65rem; color: var(--red); margin-top: 0.2rem; }
 .input-error { border-color: var(--red) !important; }
+
+.label-row { display: flex; justify-content: space-between; align-items: baseline; }
+.char-counter { font-size: 0.62rem; color: var(--text-muted); }
+.char-counter--limit { color: var(--red); }
 
 .form-slide-enter-active { transition: opacity 0.22s ease, transform 0.22s ease; }
 .form-slide-leave-active { transition: opacity 0.18s ease, transform 0.18s ease; }
