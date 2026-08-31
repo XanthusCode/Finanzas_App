@@ -12,8 +12,7 @@ namespace Finanzas.Infrastructure.Repositories
         public async Task<IEnumerable<Categoria>> GetAllAsync(Guid userId) =>
             await _db.Categorias
                 .Where(c => c.Activa && c.UserId == userId)
-                .OrderBy(c => c.Tipo)
-                .ThenBy(c => c.Nombre)
+                .OrderBy(c => c.Nombre)
                 .ToListAsync();
 
         public async Task<Categoria?> GetByIdAsync(Guid id, Guid userId) =>

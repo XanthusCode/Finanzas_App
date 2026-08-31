@@ -60,8 +60,11 @@
         <p class="modal-title">{{ editando ? 'Editar cuenta' : 'Nueva cuenta' }}</p>
 
         <div class="field-group">
-          <label class="field-label">Nombre</label>
-          <input v-model="form.nombre" class="input" placeholder="ej. Bancolombia, Efectivo, Alcancía viaje" />
+          <div class="label-row">
+            <label class="field-label">Nombre</label>
+            <span class="char-counter" :class="{ 'char-counter--limit': form.nombre.length >= 100 }">{{ form.nombre.length }}/100</span>
+          </div>
+          <input v-model="form.nombre" class="input" maxlength="100" placeholder="ej. Bancolombia, Efectivo, Alcancía viaje" />
         </div>
 
         <div class="field-group">
@@ -350,6 +353,10 @@ onMounted(cargar)
 
 .field-group { display: flex; flex-direction: column; gap: 0.35rem; }
 .field-label { font-size: 0.72rem; color: var(--text-secondary); }
+
+.label-row { display: flex; justify-content: space-between; align-items: baseline; }
+.char-counter { font-size: 0.62rem; color: var(--text-muted); }
+.char-counter--limit { color: var(--red); }
 
 .tipo-toggle { display: flex; gap: 0.5rem; }
 .tipo-btn {

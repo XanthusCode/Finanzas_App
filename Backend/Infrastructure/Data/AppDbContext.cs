@@ -55,7 +55,6 @@ namespace Finanzas.Infrastructure.Data
             {
                 e.HasKey(c => c.Id);
                 e.Property(c => c.Nombre).IsRequired().HasMaxLength(100);
-                e.Property(c => c.Tipo).HasConversion<string>();
                 e.HasOne<User>().WithMany().HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.Cascade);
             });
 

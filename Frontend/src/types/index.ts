@@ -42,7 +42,6 @@ export interface Resumen {
 export interface Categoria {
   id?: string
   nombre: string
-  tipo: 'FIJO' | 'VARIABLE'
   activa: boolean
 }
 

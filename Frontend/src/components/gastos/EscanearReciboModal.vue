@@ -33,12 +33,12 @@ const emit = defineEmits<{
 const store = useFinanceStore()
 const gastoPreLlenado = ref<Gasto>()
 
-async function resolverCategoria(sugerida: string | null | undefined, tipo: 'FIJO' | 'VARIABLE'): Promise<string> {
+async function resolverCategoria(sugerida: string | null | undefined): Promise<string> {
   if (!sugerida) return ''
   const existente = store.categorias.find(c => c.nombre.toLowerCase() === sugerida.toLowerCase())
   if (existente) return existente.nombre
 
-  await store.agregarCategoria({ nombre: sugerida, tipo, activa: true })
+  await store.agregarCategoria({ nombre: sugerida, activa: true })
   return sugerida
 }
 
@@ -46,7 +46,7 @@ watch(() => props.datos, async (datos) => {
   if (!datos) { gastoPreLlenado.value = undefined; return }
 
   const tipo: 'FIJO' | 'VARIABLE' = 'VARIABLE'
-  const categoria = await resolverCategoria(datos.categoriaSugerida, tipo)
+  const categoria = await resolverCategoria(datos.categoriaSugerida)
 
   gastoPreLlenado.value = {
     categoria,

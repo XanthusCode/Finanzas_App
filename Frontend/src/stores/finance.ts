@@ -24,8 +24,7 @@ export const useFinanceStore = defineStore('finance', () => {
 
   const gastosFijos     = computed(() => gastos.value.filter(g => g.tipo === 'FIJO'))
   const gastosVariables = computed(() => gastos.value.filter(g => g.tipo === 'VARIABLE'))
-  const categoriasFijas     = computed(() => categorias.value.filter(c => c.tipo === 'FIJO'    && c.activa))
-  const categoriasVariables = computed(() => categorias.value.filter(c => c.tipo === 'VARIABLE' && c.activa))
+  const categoriasActivas = computed(() => categorias.value.filter(c => c.activa))
 
   async function cargarCuentas() {
     const { data } = await cuentasService.getAll()
@@ -262,7 +261,7 @@ export const useFinanceStore = defineStore('finance', () => {
     promptRecurrentes, descartarPromptRecurrentes,
     promptIngresosRecurrentes, descartarPromptIngresosRecurrentes, copiarIngresosRecurrentes,
     gastosFijos, gastosVariables,
-    categorias, categoriasFijas, categoriasVariables,
+    categorias, categoriasActivas,
     cargarCategorias, agregarCategoria, actualizarCategoria, eliminarCategoria,
     resumenAnual, cargarResumenAnual,
     tendencia, cargarTendencia,

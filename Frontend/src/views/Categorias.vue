@@ -12,26 +12,26 @@
     </div>
 
     <template v-else>
-      <!-- Fijas -->
-      <div class="card" style="margin-bottom: 0.75rem;">
+      <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <p class="card-title">Categorias de gastos fijos</p>
+          <p class="card-title">Categorías</p>
 
-          <button v-if="!(showForm && form.tipo === 'FIJO')" class="btn btn-sm" @click="abrirForm(undefined, 'FIJO')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <button v-if="!showForm" class="btn btn-sm" @click="abrirForm()"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nueva categoría
           </button>
         </div>
 
-        <div v-if="store.categoriasFijas.length === 0 && !(showForm && form.tipo === 'FIJO')" class="empty">
-          Sin categorías fijas
+        <div v-if="store.categoriasActivas.length === 0 && !showForm" class="empty">
+          Sin categorías
         </div>
 
-        <template v-for="cat in store.categoriasFijas" :key="cat.id">
+        <template v-for="cat in store.categoriasActivas" :key="cat.id">
           <div v-if="editando?.id === cat.id" class="inline-form-row">
             <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '4d', color: guessColor(form.nombre) }">
               <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
             </div>
-            <input v-model="form.nombre" class="input input-inline" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
+            <input v-model="form.nombre" class="input input-inline" maxlength="100" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
+            <span class="char-counter" :class="{ 'char-counter--limit': form.nombre.length >= 100 }">{{ form.nombre.length }}/100</span>
             <button class="btn btn-sm" @click="cancelar">Cancelar</button>
             <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
           </div>
@@ -53,59 +53,12 @@
           </div>
         </template>
 
-        <div v-if="showForm && form.tipo === 'FIJO' && !editando" class="inline-form-row">
+        <div v-if="showForm && !editando" class="inline-form-row">
           <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '4d', color: guessColor(form.nombre) }">
             <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
           </div>
-          <input v-model="form.nombre" class="input input-inline" placeholder="Nombre de la categoría" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
-          <button class="btn btn-sm" @click="cancelar">Cancelar</button>
-          <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
-        </div>
-      </div>
-
-      <!-- Ocasionales -->
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <p class="card-title">Categorias de gastos ocasionales</p>
-          <button v-if="!(showForm && form.tipo === 'VARIABLE')" class="btn btn-sm" @click="abrirForm(undefined, 'VARIABLE')">+ Nueva categoría</button>
-        </div>
-
-        <div v-if="store.categoriasVariables.length === 0 && !(showForm && form.tipo === 'VARIABLE')" class="empty">
-          Sin categorías ocasionales
-        </div>
-
-        <template v-for="cat in store.categoriasVariables" :key="cat.id">
-          <div v-if="editando?.id === cat.id" class="inline-form-row">
-            <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '4d', color: guessColor(form.nombre) }">
-              <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
-            </div>
-            <input v-model="form.nombre" class="input input-inline" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
-            <button class="btn btn-sm" @click="cancelar">Cancelar</button>
-            <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
-          </div>
-          <div v-else class="cat-row">
-            <div class="cat-info">
-              <div class="cat-icon-badge" :style="{ background: guessColor(cat.nombre) + '4d', color: guessColor(cat.nombre) }">
-                <component :is="guessIcono(cat.nombre)" :size="14" :stroke-width="2" />
-              </div>
-              <span class="cat-name">{{ cat.nombre }}</span>
-            </div>
-            <div class="cat-actions">
-              <button class="icon-btn" title="Editar" @click="abrirForm(cat)">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-              <button class="icon-btn danger" title="Eliminar" @click="onDelete(cat.id!)">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-          </div>
-        </template>
-
-        <div v-if="showForm && form.tipo === 'VARIABLE' && !editando" class="inline-form-row">
-          <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '4d', color: guessColor(form.nombre) }">
-            <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
-          </div>
-          <input v-model="form.nombre" class="input input-inline" placeholder="Nombre de la categoría" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
+          <input v-model="form.nombre" class="input input-inline" maxlength="100" placeholder="Nombre de la categoría" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
+          <span class="char-counter" :class="{ 'char-counter--limit': form.nombre.length >= 100 }">{{ form.nombre.length }}/100</span>
           <button class="btn btn-sm" @click="cancelar">Cancelar</button>
           <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
         </div>
@@ -139,12 +92,11 @@ const editando    = ref<Categoria | null>(null)
 const showConfirm = ref(false)
 const pendingId   = ref<string | null>(null)
 
-const form = reactive({ nombre: '', tipo: 'FIJO' as 'FIJO' | 'VARIABLE' })
+const form = reactive({ nombre: ''})
 
-function abrirForm(cat?: Categoria, tipo?: 'FIJO' | 'VARIABLE') {
+function abrirForm(cat?: Categoria) {
   editando.value = cat ?? null
   form.nombre    = cat?.nombre ?? ''
-  form.tipo      = cat?.tipo ?? tipo ?? 'FIJO'
   showForm.value = true
 }
 
@@ -157,7 +109,7 @@ function cancelar() {
 async function guardar() {
   if (!form.nombre.trim()) return
   saving.value = true
-  const payload = { nombre: form.nombre.trim(), tipo: form.tipo, activa: true }
+  const payload = { nombre: form.nombre.trim(), activa: true }
   try {
     if (editando.value?.id) {
       await store.actualizarCategoria(editando.value.id, payload)
@@ -244,6 +196,9 @@ onMounted(async () => {
   min-width: 120px;
 }
 .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
+
+.char-counter { font-size: 0.62rem; color: var(--text-muted); flex-shrink: 0; }
+.char-counter--limit { color: var(--red); }
 
 .icon-btn {
   background: none;

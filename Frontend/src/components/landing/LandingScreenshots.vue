@@ -21,7 +21,7 @@
           <span class="mock-dot" style="background:#c17165" />
           <span class="mock-dot" style="background:#c2a06b" />
           <span class="mock-dot" style="background:#5c9678" />
-          <span class="mock-titlebar-label">finanzas.app/{{ active }}</span>
+          <span class="mock-titlebar-label">zaldo.app/{{ active }}</span>
         </div>
 
         <!-- Dashboard -->
