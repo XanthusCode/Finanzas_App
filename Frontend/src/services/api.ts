@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta, MovimientoMeta, ResumenCategoria, Deuda, Abono, Cuenta, MovimientoCuenta, TipoCuenta, Suscripcion, HeatmapDia, Insights, ReciboExtraido } from '@/types'
+import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta, MovimientoMeta, MovimientoMetaPayload, ResumenCategoria, Deuda, Abono, Cuenta, LineaCuenta, TipoCuenta, Suscripcion, HeatmapDia, Insights, ReciboExtraido } from '@/types'
 
 const TOKEN_KEY = 'finanzas_token'
 
@@ -112,14 +112,14 @@ export const presupuestosService = {
 export const metasService = {
   getAll: () =>
     api.get<Meta[]>('/metas'),
-  create: (meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite'>) =>
+  create: (meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite' | 'cuentaId'>) =>
     api.post<Meta>('/metas', meta),
-  update: (id: string, meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite'>) =>
+  update: (id: string, meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite' | 'cuentaId'>) =>
     api.put<Meta>(`/metas/${id}`, meta),
   getHistorial: (id: string) =>
     api.get<MovimientoMeta[]>(`/metas/${id}/historial`),
-  crearMovimiento: (id: string, monto: number) =>
-    api.post<Meta>(`/metas/${id}/movimientos`, { monto }),
+  crearMovimiento: (id: string, payload: MovimientoMetaPayload) =>
+    api.post<Meta>(`/metas/${id}/movimientos`, payload),
   delete: (id: string) =>
     api.delete(`/metas/${id}`)
 }
@@ -149,7 +149,7 @@ export const cuentasService = {
   delete: (id: string) =>
     api.delete(`/cuentas/${id}`),
   getMovimientos: (id: string) =>
-    api.get<MovimientoCuenta[]>(`/cuentas/${id}/movimientos`),
+    api.get<LineaCuenta[]>(`/cuentas/${id}/movimientos`),
   crearMovimiento: (id: string, monto: number, descripcion?: string) =>
     api.post<Cuenta>(`/cuentas/${id}/movimientos`, { monto, descripcion })
 }

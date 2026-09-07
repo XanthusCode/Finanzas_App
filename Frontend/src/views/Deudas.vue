@@ -47,7 +47,10 @@
                 {{ fmtFecha(d.fechaLimite!) }}{{ estaVencida(d) ? ' · vencida' : '' }}
               </span>
             </div>
-            <span class="deuda-desc">{{ d.descripcion }}</span>
+            <span class="deuda-desc">
+              {{ d.descripcion }}
+              <span v-if="cuentaNombre(d.cuentaId)" class="deuda-cuenta">· {{ cuentaNombre(d.cuentaId) }}</span>
+            </span>
             <div class="deuda-progress">
               <div class="deuda-progress-bar">
                 <div class="deuda-progress-fill deuda-progress-fill--accent" :style="{ width: pctPagado(d) + '%' }" />
@@ -83,7 +86,10 @@
                 {{ fmtFecha(d.fechaLimite!) }}{{ estaVencida(d) ? ' · vencida' : '' }}
               </span>
             </div>
-            <span class="deuda-desc">{{ d.descripcion }}</span>
+            <span class="deuda-desc">
+              {{ d.descripcion }}
+              <span v-if="cuentaNombre(d.cuentaId)" class="deuda-cuenta">· {{ cuentaNombre(d.cuentaId) }}</span>
+            </span>
             <div class="deuda-progress">
               <div class="deuda-progress-bar">
                 <div class="deuda-progress-fill deuda-progress-fill--red" :style="{ width: pctPagado(d) + '%' }" />
@@ -135,6 +141,22 @@
           <input v-model="form.fechaLimite" type="date" class="input" />
         </div>
 
+        <div v-if="store.cuentas.length > 0" class="field-group">
+          <label class="field-label">
+            {{ form.tipo === 'ME_DEBEN' ? 'Cuenta de donde salió el préstamo' : 'Cuenta donde entró el préstamo' }}
+            <span class="label-optional">(opcional)</span>
+          </label>
+          <select v-model="form.cuentaId" class="input">
+            <option value="">Sin cuenta</option>
+            <option v-for="c in store.cuentas" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+          </select>
+          <span v-if="form.cuentaId" class="field-hint">
+            {{ form.tipo === 'ME_DEBEN'
+              ? 'Se registrará un retiro por este monto en esa cuenta.'
+              : 'Se registrará un depósito por este monto en esa cuenta.' }}
+          </span>
+        </div>
+
         <div class="modal-actions">
           <button class="btn" @click="cerrarForm">Cancelar</button>
           <button class="btn btn-primary" :disabled="!formValido || guardando" @click="guardar">
@@ -179,9 +201,16 @@ import type { Deuda, Abono } from '@/types'
 import { deudasService } from '@/services/api'
 import { fmtCOP as fmt } from '@/utils'
 import { useToast } from '@/composables/useToast'
+import { useFinanceStore } from '@/stores/finance'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
 
 const toast = useToast()
+const store = useFinanceStore()
+
+function cuentaNombre(id?: string) {
+  if (!id) return ''
+  return store.cuentas.find(c => c.id === id)?.nombre ?? ''
+}
 
 const deudas  = ref<Deuda[]>([])
 const loading = ref(false)
@@ -201,6 +230,7 @@ const form = reactive({
   descripcion: '',
   monto: 0,
   fechaLimite: '',
+  cuentaId: '',
 })
 
 const formValido = computed(() =>
@@ -251,6 +281,7 @@ async function guardarAbono() {
     const { data } = await deudasService.crearAbono(abonoDeudaId.value, abonoMonto.value)
     const idx = deudas.value.findIndex(d => d.id === abonoDeudaId.value)
     if (idx !== -1) deudas.value[idx] = data
+    await refrescarFinanzas()
     cerrarAbonoModal()
     toast.success( abonoDeudaTipo.value === 'ME_DEBEN' ? 'Abono registrado como ingreso' : 'Abono registrado' )
   } catch {
@@ -274,8 +305,13 @@ async function cargar() {
   }
 }
 
+// Las deudas con cuenta generan movimientos/gastos/ingresos: refrescar cuentas y mes.
+async function refrescarFinanzas() {
+  await Promise.all([store.cargarCuentas(), store.cargarDatos()])
+}
+
 function abrirForm() {
-  Object.assign(form, { tipo: 'ME_DEBEN', persona: '', descripcion: '', monto: 0, fechaLimite: '' })
+  Object.assign(form, { tipo: 'ME_DEBEN', persona: '', descripcion: '', monto: 0, fechaLimite: '', cuentaId: '' })
   formVisible.value = true
 }
 
@@ -290,9 +326,11 @@ async function guardar() {
       descripcion: form.descripcion.trim(),
       monto: form.monto,
       ...(form.fechaLimite ? { fechaLimite: form.fechaLimite } : {}),
+      ...(form.cuentaId ? { cuentaId: form.cuentaId } : {}),
     }
     const { data } = await deudasService.create(payload)
     deudas.value.unshift(data)
+    if (form.cuentaId) await store.cargarCuentas()
     cerrarForm()
     toast.success('Deuda registrada')
   } catch {
@@ -307,6 +345,7 @@ async function togglePagada(d: Deuda) {
     const { data } = await deudasService.togglePagada(d.id!)
     const idx = deudas.value.findIndex(x => x.id === d.id)
     if (idx !== -1) deudas.value[idx] = data
+    await refrescarFinanzas()
   } catch {
     toast.error('No se pudo actualizar')
   }
@@ -316,13 +355,17 @@ async function eliminar(d: Deuda) {
   try {
     await deudasService.delete(d.id!)
     deudas.value = deudas.value.filter(x => x.id !== d.id)
+    if (d.cuentaId) await refrescarFinanzas()
     toast.success('Deuda eliminada')
   } catch {
     toast.error('No se pudo eliminar')
   }
 }
 
-onMounted(cargar)
+onMounted(() => {
+  cargar()
+  if (store.cuentas.length === 0) store.cargarCuentas()
+})
 </script>
 
 <style scoped>
@@ -387,6 +430,7 @@ onMounted(cargar)
 .deuda-fecha  { font-size: 0.68rem; color: var(--text-muted); }
 .deuda-fecha.vencida { color: var(--red); }
 .deuda-desc   { font-size: 0.72rem; color: var(--text-muted); }
+.deuda-cuenta { color: var(--text-secondary); }
 .deuda-monto  { font-size: 0.9rem; font-weight: 700; flex-shrink: 0; }
 .deuda-actions { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
 
@@ -437,6 +481,8 @@ onMounted(cargar)
 
 .field-group { display: flex; flex-direction: column; gap: 0.35rem; }
 .field-label { font-size: 0.72rem; color: var(--text-secondary); }
+.label-optional { color: var(--text-muted); font-weight: 400; }
+.field-hint { font-size: 0.65rem; color: var(--text-muted); }
 
 .tipo-toggle { display: flex; gap: 0.5rem; }
 .tipo-btn {

@@ -1,3 +1,4 @@
+using Finanzas.Application.DTOs;
 using Finanzas.Domain.Entities;
 
 namespace Finanzas.Application.Interfaces
@@ -12,6 +13,8 @@ namespace Finanzas.Application.Interfaces
 
         Task<Dictionary<Guid, decimal>> GetSaldosAsync(Guid userId);
         Task<IEnumerable<MovimientoCuenta>> GetMovimientosAsync(Guid cuentaId);
+        Task<IEnumerable<LineaCuentaDto>> GetLedgerAsync(Guid cuentaId, Guid userId);
         Task<MovimientoCuenta> AddMovimientoAsync(MovimientoCuenta movimiento);
+        Task DeleteMovimientosByDeudaIdAsync(Guid deudaId);
     }
 }

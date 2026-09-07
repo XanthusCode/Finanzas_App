@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta, Cuenta } from '@/types'
+import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta, MovimientoMetaPayload, Cuenta } from '@/types'
 import { gastosService, ingresosService, resumenService, categoriasService, presupuestosService, metasService, cuentasService } from '@/services/api'
 
 export const useFinanceStore = defineStore('finance', () => {
@@ -72,6 +72,8 @@ export const useFinanceStore = defineStore('finance', () => {
       ingresos.value = rIngresos.data
       resumen.value  = rResumen.data
       resumenAnterior.value = rResumenAnterior.data
+      promptRecurrentes.value         = !gastos.value.some(g => g.esRecurrente)
+      promptIngresosRecurrentes.value = !ingresos.value.some(i => i.esRecurrente)
     } catch (e) {
       console.error('Error cargando datos:', e)
       gastos.value   = []
@@ -173,14 +175,7 @@ export const useFinanceStore = defineStore('finance', () => {
     const anioAnterior = anioActual.value
     mesActual.value       = mes
     anioActual.value      = anio
-    promptRecurrentes.value         = false
-    promptIngresosRecurrentes.value = false
-    cargarDatos().then(() => {
-      if (gastos.value.length > 0 && !gastos.value.some(g => g.esRecurrente))
-        promptRecurrentes.value = true
-      if (ingresos.value.length > 0 && !ingresos.value.some(i => i.esRecurrente))
-        promptIngresosRecurrentes.value = true
-    })
+    cargarDatos()
     if (anio !== anioAnterior) {
       cargarResumenAnual()
       cargarTendencia()
@@ -228,21 +223,29 @@ export const useFinanceStore = defineStore('finance', () => {
     metas.value = data
   }
 
-  async function crearMeta(meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite'>) {
+  async function crearMeta(meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite' | 'cuentaId'>) {
     const { data } = await metasService.create(meta)
     metas.value.push(data)
   }
 
-  async function editarMeta(id: string, meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite'>) {
+  async function editarMeta(id: string, meta: Pick<Meta, 'nombre' | 'montoObjetivo' | 'fechaLimite' | 'cuentaId'>) {
     const { data } = await metasService.update(id, meta)
     const idx = metas.value.findIndex(m => m.id === id)
     if (idx !== -1) metas.value[idx] = data
   }
 
-  async function registrarMovimientoMeta(id: string, monto: number) {
-    const { data } = await metasService.crearMovimiento(id, monto)
+  async function registrarMovimientoMeta(id: string, payload: MovimientoMetaPayload) {
+    const { data } = await metasService.crearMovimiento(id, payload)
     const idx = metas.value.findIndex(m => m.id === id)
     if (idx !== -1) metas.value[idx] = data
+    // El movimiento pudo crear un gasto o mover saldo entre cuentas: refrescar.
+    const tocaCuentas = !!payload.cuentaOrigenId || payload.tipoRetiro === 'GASTO' || payload.tipoRetiro === 'TRANSFERENCIA'
+    if (tocaCuentas) {
+      await Promise.all([
+        cargarCuentas(),
+        payload.tipoRetiro === 'GASTO' ? cargarDatos() : Promise.resolve(),
+      ])
+    }
   }
 
   async function eliminarMeta(id: string) {

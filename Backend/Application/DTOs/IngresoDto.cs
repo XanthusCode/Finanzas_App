@@ -11,6 +11,7 @@ namespace Finanzas.Application.DTOs
         public Guid? CuentaId { get; set; }
         public string? Frecuencia { get; set; }
         public int? DiaPago { get; set; }
+        public DateTime? ActualizadoEn { get; set; }
     }
 
     public class CrearIngresoDto

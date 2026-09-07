@@ -1,6 +1,6 @@
 ﻿namespace Finanzas.Domain.Entities
 {
-    public class Gasto
+    public class Gasto : IAuditable
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Categoria { get; set; } = string.Empty;
@@ -13,6 +13,7 @@
         public Guid UserId { get; set; }
         public bool EsRecurrente { get; set; }
         public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
+        public DateTime? ActualizadoEn { get; set; }
         public int? NumCuotas { get; set; }
         public int? CuotaActual { get; set; }
         public Guid? GastoOrigenId { get; set; }

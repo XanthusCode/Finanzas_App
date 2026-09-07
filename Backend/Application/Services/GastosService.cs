@@ -169,7 +169,8 @@ namespace Finanzas.Application.Services
                     Mes          = mes,
                     Anio         = anio,
                     EsRecurrente = true,
-                    UserId       = userId
+                    UserId       = userId,
+                    CuentaId     = r.CuentaId
                 };
                 var creado = await _repo.CreateAsync(nuevo);
                 creados.Add(_mapper.Map<GastoDto>(creado));

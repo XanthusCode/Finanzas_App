@@ -113,11 +113,25 @@
           <input v-model="movDescripcion" class="input" placeholder="ej. Ahorro del mes" />
         </div>
 
-        <div v-if="movHistorial.length > 0" class="mov-historial">
-          <span class="field-label">Movimientos anteriores</span>
-          <div v-for="m in movHistorial" :key="m.id" class="mov-historial-row">
-            <span>{{ fmtFecha(m.fecha) }}<span v-if="m.descripcion"> · {{ m.descripcion }}</span></span>
-            <span :class="m.monto >= 0 ? 'total-pos' : 'total-neg'">{{ m.monto >= 0 ? '+' : '' }}{{ fmt(m.monto) }}</span>
+        <div v-if="historialConSaldo.length > 0" class="mov-historial">
+          <div class="mov-historial-head">
+            <span class="field-label">Movimientos de la cuenta</span>
+            <span v-if="movCuenta" class="mov-saldo-actual" :class="movCuenta.saldo >= 0 ? 'total-pos' : 'total-neg'">
+              Saldo: {{ fmt(movCuenta.saldo) }}
+            </span>
+          </div>
+          <p class="mov-hint">Incluye ingresos y gastos que asignaste a esta cuenta. Saldo = suma de todo.</p>
+          <div class="mov-historial-list">
+            <div v-for="(m, i) in historialConSaldo" :key="i" class="mov-historial-row">
+              <span class="mov-row-main">
+                <span class="mov-tag" :class="`mov-tag--${m.tipo.toLowerCase()}`">{{ LINEA_LABEL[m.tipo] }}</span>
+                {{ fmtFecha(m.fecha) }}<span v-if="m.descripcion"> · {{ m.descripcion }}</span>
+              </span>
+              <span class="mov-row-nums">
+                <span :class="m.monto >= 0 ? 'total-pos' : 'total-neg'">{{ m.monto >= 0 ? '+' : '' }}{{ fmt(m.monto) }}</span>
+                <span class="mov-row-saldo">{{ fmt(m.saldoTras) }}</span>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -141,7 +155,7 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted } from 'vue'
-import type { Cuenta, MovimientoCuenta, TipoCuenta } from '@/types'
+import type { Cuenta, LineaCuenta, TipoCuenta } from '@/types'
 import { cuentasService } from '@/services/api'
 import { fmtCOP as fmt } from '@/utils'
 import { useToast } from '@/composables/useToast'
@@ -171,6 +185,12 @@ const TIPO_TAG: Record<TipoCuenta, string> = {
 }
 
 function tagClass(tipo: TipoCuenta) { return TIPO_TAG[tipo] }
+
+const LINEA_LABEL: Record<LineaCuenta['tipo'], string> = {
+  MOVIMIENTO: 'Manual',
+  INGRESO: 'Ingreso',
+  GASTO: 'Gasto',
+}
 
 const cuentas = ref<Cuenta[]>([])
 const loading = ref(false)
@@ -254,14 +274,28 @@ async function confirmDelete() {
 // Movimientos
 const movModalVisible = ref(false)
 const movCuentaId = ref<string | null>(null)
+const movCuenta = ref<Cuenta | null>(null)
 const movTipo = ref<'DEPOSITO' | 'RETIRO'>('DEPOSITO')
 const movMonto = ref(0)
 const movDescripcion = ref('')
 const movGuardando = ref(false)
-const movHistorial = ref<MovimientoCuenta[]>([])
+const movHistorial = ref<LineaCuenta[]>([])
+
+// Saldo corriente por línea: el historial viene del más nuevo al más viejo,
+// así que el saldo tras la línea i = saldo actual − suma de las líneas más nuevas.
+const historialConSaldo = computed(() => {
+  const saldo = movCuenta.value?.saldo ?? 0
+  let acum = 0
+  return movHistorial.value.map(m => {
+    const saldoTras = saldo - acum
+    acum += m.monto
+    return { ...m, saldoTras }
+  })
+})
 
 async function abrirMovimientoModal(c: Cuenta) {
   movCuentaId.value = c.id!
+  movCuenta.value = c
   movTipo.value = 'DEPOSITO'
   movMonto.value = 0
   movDescripcion.value = ''
@@ -274,6 +308,7 @@ async function abrirMovimientoModal(c: Cuenta) {
 function cerrarMovimientoModal() {
   movModalVisible.value = false
   movCuentaId.value = null
+  movCuenta.value = null
 }
 
 async function guardarMovimiento() {
@@ -342,7 +377,10 @@ onMounted(cargar)
 .modal-backdrop {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5);
   display: flex; align-items: flex-start; justify-content: center; z-index: 100; padding: 3rem 1rem;
+  
 }
+
+
 .modal {
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
   padding: 1.5rem; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 1rem;
@@ -366,12 +404,26 @@ onMounted(cargar)
 }
 .tipo-btn.active { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
 
-.mov-historial { display: flex; flex-direction: column; gap: 0.4rem; max-height: 140px; overflow-y: auto; }
+.mov-historial { display: flex; flex-direction: column; gap: 0.3rem; }
+.mov-historial-head { display: flex; justify-content: space-between; align-items: baseline; }
+.mov-saldo-actual { font-size: 0.8rem; font-weight: 700; }
+.mov-hint { font-size: 0.68rem; color: var(--text-muted); margin: -0.1rem 0 0.2rem; }
+.mov-historial-list { display: flex; flex-direction: column; max-height: 320px; overflow-y: auto; }
 .mov-historial-row {
-  display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-secondary);
-  padding: 0.3rem 0; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.78rem; color: var(--text-secondary);
+  padding: 0.5rem; border-bottom: 1px solid var(--border);
 }
 .mov-historial-row:last-child { border-bottom: none; }
+.mov-row-main { min-width: 0; }
+.mov-row-nums { display: flex; flex-direction: column; align-items: flex-end; white-space: nowrap; }
+.mov-row-saldo { font-size: 0.62rem; color: var(--text-muted); }
+.mov-tag {
+  display: inline-block; font-size: 0.6rem; font-weight: 600; padding: 0.05rem 0.3rem;
+  border-radius: 4px; margin-right: 0.35rem; vertical-align: middle;
+  background: var(--surface2); color: var(--text-muted);
+}
+.mov-tag--ingreso { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+.mov-tag--gasto   { background: color-mix(in srgb, var(--red) 12%, transparent); color: var(--red); }
 
 .loading-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .skeleton-row {

@@ -87,9 +87,22 @@
       <!-- Ahorro anual banner -->
       <div ref="bannerRef" class="anual-banner" style="opacity: 0">
           <div class="anual-left">
-            <div class="kpi-label" style="margin-bottom: 0.5rem">Saldo actual {{ store.anioActual }}</div>
-            <div class="anual-big">{{ fmtAnim(counters.ahorroAnual) }}</div>
-            <div class="anual-meta">de {{ fmt(store.resumenAnual?.totalIngresos) }} en ingresos este año</div>
+            <template v-if="store.cuentas.length > 0">
+              <div class="kpi-label" style="margin-bottom: 0.5rem">Total en cuentas</div>
+              <div class="anual-big" :class="{ 'anual-big--neg': totalCuentas < 0 }">{{ fmt(totalCuentas) }}</div>
+              <div class="anual-meta">
+                en {{ store.cuentas.length }} cuenta{{ store.cuentas.length !== 1 ? 's' : '' }} ·
+                <button type="button" class="anual-ahorro-btn" @click="mostrarDesglose = true">
+                  ahorro {{ store.anioActual }}: {{ fmt(store.resumenAnual?.ahorro) }} ({{ store.resumenAnual?.pctAhorro ?? 0 }}%) ⓘ
+                </button>
+              </div>
+            </template>
+            <template v-else>
+              <div class="kpi-label" style="margin-bottom: 0.5rem">Ahorro {{ store.anioActual }}</div>
+              <div class="anual-big">{{ fmtAnim(counters.ahorroAnual) }}</div>
+              <div class="anual-meta">de {{ fmt(store.resumenAnual?.totalIngresos) }} en ingresos este año</div>
+              <RouterLink to="/cuentas" class="anual-cta">Crea tus cuentas para ver tu dinero real →</RouterLink>
+            </template>
           </div>
         <div class="anual-right">
           <div class="anual-stats">
@@ -120,6 +133,44 @@
           <span :class="['health-badge', healthClass]">{{ healthLabel }}</span>
         </div>
       </div>
+
+      <!-- Desglose del ahorro anual -->
+      <Teleport to="body">
+        <div v-if="mostrarDesglose" class="dd-overlay" @click.self="mostrarDesglose = false">
+          <div class="dd-modal">
+            <p class="dd-title">Cómo se calcula el ahorro {{ store.anioActual }}</p>
+            <p class="dd-sub">Suma de (ingresos − gastos) de cada mes que tiene ingresos registrados. No incluye saldos de cuentas, saldo inicial ni préstamos.</p>
+            <div class="dd-table-wrap">
+              <table class="dd-table">
+                <thead>
+                  <tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Ahorro</th></tr>
+                </thead>
+                <tbody>
+                  <tr v-for="r in mesesConIngreso" :key="r.mes">
+                    <td>{{ MESES[r.mes - 1] }}</td>
+                    <td class="dd-in">{{ fmt(r.totalIngresos) }}</td>
+                    <td class="dd-out">−{{ fmt(r.totalGastos) }}</td>
+                    <td :class="r.ahorro >= 0 ? 'dd-in' : 'dd-out'">{{ fmt(r.ahorro) }}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td>Total</td>
+                    <td class="dd-in">{{ fmt(desgloseIngresos) }}</td>
+                    <td class="dd-out">−{{ fmt(desgloseGastos) }}</td>
+                    <td :class="desgloseAhorro >= 0 ? 'dd-in' : 'dd-out'">{{ fmt(desgloseAhorro) }}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <div v-if="mesesExcluidos.length > 0" class="dd-note">
+              <strong>No cuentan todavía</strong> (tienen gasto pero aún no hay ingreso ese mes):
+              {{ mesesExcluidos.map(r => `${MESES[r.mes - 1]} −${fmt(r.totalGastos)}`).join(' · ') }}
+            </div>
+            <button class="btn" style="align-self:flex-end" @click="mostrarDesglose = false">Cerrar</button>
+          </div>
+        </div>
+      </Teleport>
 
       <!-- Análisis con IA -->
       <div class="card insights-card" style="margin-bottom: 1rem">
@@ -309,6 +360,17 @@ const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov'
 
 const store = useFinanceStore()
 const resumen = computed(() => store.resumen)
+
+// Plata real total = suma de saldos de las cuentas (si el usuario tiene cuentas)
+const totalCuentas = computed(() => store.cuentas.reduce((s, c) => s + c.saldo, 0))
+
+// Desglose del ahorro anual (qué meses e importes lo forman)
+const mostrarDesglose  = ref(false)
+const mesesConIngreso  = computed(() => store.tendencia.filter(r => r.totalIngresos > 0))
+const mesesExcluidos   = computed(() => store.tendencia.filter(r => r.totalIngresos === 0 && r.totalGastos > 0))
+const desgloseIngresos = computed(() => mesesConIngreso.value.reduce((s, r) => s + r.totalIngresos, 0))
+const desgloseGastos   = computed(() => mesesConIngreso.value.reduce((s, r) => s + r.totalGastos, 0))
+const desgloseAhorro   = computed(() => desgloseIngresos.value - desgloseGastos.value)
 
 const mesDash  = computed(() => store.mesActual)
 const anioDash = computed(() => store.anioActual)
@@ -502,6 +564,7 @@ onMounted(async () => {
   store.cargarResumenAnual()
   store.cargarTendencia()
   store.cargarGastosPorCategoria()
+  store.cargarCuentas()   // siempre fresco: el saldo pudo cambiar en otra pantalla
   await store.cargarPresupuestos()
   await cargarPresupuesto()
   await cargarHeatmap()
@@ -636,8 +699,45 @@ async function descargarPDF() {
   margin-bottom: 1rem;
 }
 .anual-left { flex-shrink: 0; }
-.anual-big { font-size: 2rem; font-family: var(--ff-display); font-weight: 800; color: var(--green); line-height: 1; margin-bottom: 0.35rem; }
+.anual-big { font-size: 2rem; font-family: var(--ff-display); font-weight: 800; color: var(--text-primary); line-height: 1; margin-bottom: 0.35rem; }
 .anual-meta { font-size: 0.68rem; color: var(--text-muted); }
+.anual-big--neg { color: var(--red); }
+.anual-cta {
+  display: inline-block; margin-top: 0.7rem; font-size: 0.68rem; font-weight: 600;
+  color: var(--accent); text-decoration: none;
+}
+.anual-cta:hover { text-decoration: underline; }
+.anual-ahorro-btn {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font: inherit; color: var(--text-secondary); text-decoration: underline dotted;
+}
+.anual-ahorro-btn:hover { color: var(--text-primary); }
+
+/* Desglose ahorro */
+.dd-overlay {
+  position: fixed; inset: 0; background: rgba(8,12,16,0.72); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; z-index: 500; padding: 1rem;
+}
+.dd-modal {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 1.4rem; width: 460px; max-width: 100%; max-height: 85vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
+.dd-title { font-family: var(--ff-display); font-weight: 700; font-size: 1rem; }
+.dd-sub   { font-size: 0.68rem; color: var(--text-muted); line-height: 1.4; }
+.dd-table-wrap { overflow-x: auto; }
+.dd-table { width: 100%; border-collapse: collapse; font-size: 0.74rem; }
+.dd-table th, .dd-table td { padding: 0.4rem 0.5rem; text-align: right; white-space: nowrap; }
+.dd-table th:first-child, .dd-table td:first-child { text-align: left; }
+.dd-table thead th { color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+.dd-table tbody td { border-bottom: 1px solid var(--border); }
+.dd-table tfoot td { font-weight: 700; padding-top: 0.55rem; }
+.dd-in  { color: var(--green); }
+.dd-out { color: var(--red); }
+.dd-note {
+  font-size: 0.68rem; color: var(--text-secondary); line-height: 1.4;
+  background: var(--surface2); border-radius: 8px; padding: 0.6rem 0.75rem;
+}
 .anual-right { flex: 1; display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-end; }
 .anual-stats { display: flex; gap: 1.5rem; }
 .anual-stat { display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; }

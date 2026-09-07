@@ -15,6 +15,7 @@
         public int? CuotaActual { get; set; }
         public Guid? GastoOrigenId { get; set; }
         public Guid? CuentaId { get; set; }
+        public DateTime? ActualizadoEn { get; set; }
     }
 
     public class CrearGastoDto

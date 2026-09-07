@@ -83,12 +83,15 @@ namespace Finanzas.Infrastructure.Data
                 e.Property(m => m.MontoObjetivo).HasColumnType("decimal(12,2)");
                 e.Property(m => m.MontoActual).HasColumnType("decimal(12,2)");
                 e.HasOne<User>().WithMany().HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.Cascade);
+                e.Property(m => m.CuentaId).IsRequired(false);
+                e.HasOne<Cuenta>().WithMany().HasForeignKey(m => m.CuentaId).OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<MovimientoMeta>(e =>
             {
                 e.HasKey(m => m.Id);
                 e.Property(m => m.Monto).HasColumnType("decimal(12,2)");
+                e.Property(m => m.Descripcion).HasMaxLength(200);
                 e.HasOne<Meta>().WithMany().HasForeignKey(m => m.MetaId).OnDelete(DeleteBehavior.Cascade);
             });
 
@@ -100,6 +103,8 @@ namespace Finanzas.Infrastructure.Data
                 e.Property(d => d.Monto).HasColumnType("decimal(12,2)");
                 e.Property(d => d.Tipo).HasConversion<string>();
                 e.HasOne<User>().WithMany().HasForeignKey(d => d.UserId).OnDelete(DeleteBehavior.Cascade);
+                e.Property(d => d.CuentaId).IsRequired(false);
+                e.HasOne<Cuenta>().WithMany().HasForeignKey(d => d.CuentaId).OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<Abono>(e =>
@@ -122,8 +127,29 @@ namespace Finanzas.Infrastructure.Data
                 e.HasKey(m => m.Id);
                 e.Property(m => m.Monto).HasColumnType("decimal(12,2)");
                 e.Property(m => m.Descripcion).HasMaxLength(150);
+                e.Property(m => m.DeudaId).IsRequired(false);
                 e.HasOne<Cuenta>().WithMany().HasForeignKey(m => m.CuentaId).OnDelete(DeleteBehavior.Cascade);
             });
+        }
+
+        public override int SaveChanges()
+        {
+            SellarAuditoria();
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            SellarAuditoria();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        // Sella ActualizadoEn en cada entidad IAuditable modificada.
+        private void SellarAuditoria()
+        {
+            foreach (var entry in ChangeTracker.Entries<IAuditable>())
+                if (entry.State == EntityState.Modified)
+                    entry.Entity.ActualizadoEn = DateTime.UtcNow;
         }
     }
 }

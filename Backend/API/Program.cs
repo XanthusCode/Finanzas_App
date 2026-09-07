@@ -167,6 +167,15 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "Gastos" ADD COLUMN IF NOT EXISTS "Fecha" timestamp with time zone NULL;
         ALTER TABLE "Gastos" ADD COLUMN IF NOT EXISTS "DeudaId" uuid NULL;
         ALTER TABLE "Categorias" DROP COLUMN IF EXISTS "Tipo";
+        ALTER TABLE "Metas" ADD COLUMN IF NOT EXISTS "CuentaId" uuid NULL;
+        ALTER TABLE "MovimientosMeta" ADD COLUMN IF NOT EXISTS "Descripcion" character varying(200) NULL;
+        ALTER TABLE "Gastos"   ADD COLUMN IF NOT EXISTS "ActualizadoEn" timestamp with time zone NULL;
+        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "ActualizadoEn" timestamp with time zone NULL;
+        ALTER TABLE "Cuentas"  ADD COLUMN IF NOT EXISTS "ActualizadoEn" timestamp with time zone NULL;
+        ALTER TABLE "Metas"    ADD COLUMN IF NOT EXISTS "ActualizadoEn" timestamp with time zone NULL;
+        ALTER TABLE "Deudas"   ADD COLUMN IF NOT EXISTS "ActualizadoEn" timestamp with time zone NULL;
+        ALTER TABLE "Deudas"   ADD COLUMN IF NOT EXISTS "CuentaId" uuid NULL;
+        ALTER TABLE "MovimientosCuenta" ADD COLUMN IF NOT EXISTS "DeudaId" uuid NULL;
 
         DO $mig$
         BEGIN
@@ -175,6 +184,12 @@ using (var scope = app.Services.CreateScope())
             END IF;
             IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_Ingresos_Cuentas_CuentaId') THEN
                 ALTER TABLE "Ingresos" ADD CONSTRAINT "FK_Ingresos_Cuentas_CuentaId" FOREIGN KEY ("CuentaId") REFERENCES "Cuentas" ("Id") ON DELETE SET NULL;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_Metas_Cuentas_CuentaId') THEN
+                ALTER TABLE "Metas" ADD CONSTRAINT "FK_Metas_Cuentas_CuentaId" FOREIGN KEY ("CuentaId") REFERENCES "Cuentas" ("Id") ON DELETE SET NULL;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_Deudas_Cuentas_CuentaId') THEN
+                ALTER TABLE "Deudas" ADD CONSTRAINT "FK_Deudas_Cuentas_CuentaId" FOREIGN KEY ("CuentaId") REFERENCES "Cuentas" ("Id") ON DELETE SET NULL;
             END IF;
         END
         $mig$;
