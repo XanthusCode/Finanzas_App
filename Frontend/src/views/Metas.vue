@@ -30,9 +30,18 @@
               <span v-if="errors.montoObjetivo" class="field-error">{{ errors.montoObjetivo }}</span>
             </div>
           </div>
-          <div class="field field-fecha">
-            <label>Fecha límite (opcional)</label>
-            <input v-model="form.fechaLimite" type="date" class="input" />
+          <div class="form-row">
+            <div class="field field-fecha">
+              <label>Fecha límite (opcional)</label>
+              <input v-model="form.fechaLimite" type="date" class="input" />
+            </div>
+            <div v-if="store.cuentas.length > 0" class="field">
+              <label>Cuenta donde guardas este dinero (opcional)</label>
+              <select v-model="form.cuentaId" class="input">
+                <option value="">Sin cuenta</option>
+                <option v-for="c in store.cuentas" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+              </select>
+            </div>
           </div>
           <div class="form-actions">
             <button class="btn" @click="showForm = false">Cancelar</button>
@@ -68,7 +77,7 @@
             <CurrencyInput v-model="montoAbono" />
           </div>
 
-          <div class="field" style="margin-top: .75rem; margin-bottom: 2.2rem">
+          <div class="field" style="margin-top: .75rem">
             <label>Tipo de movimiento</label>
             <div class="tipo-toggle">
               <button
@@ -76,15 +85,64 @@
                 class="tipo-btn tipo-btn--abonar"
                 :class="{ active: tipoMovimiento === 'abonar' }"
                 @click="tipoMovimiento = 'abonar'"
-              >➕ Abonar</button>
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Abonar
+              </button>
               <button
                 type="button"
                 class="tipo-btn tipo-btn--retirar"
                 :class="{ active: tipoMovimiento === 'retirar' }"
                 @click="tipoMovimiento = 'retirar'"
-              >➖ Retirar</button>
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Retirar
+              </button>
             </div>
           </div>
+
+          <!-- Abono: de qué cuenta sale -->
+          <div v-if="tipoMovimiento === 'abonar' && store.cuentas.length > 0" class="field" style="margin-top: .75rem">
+            <label>¿De qué cuenta sale? (opcional)</label>
+            <select v-model="abonoCuentaOrigen" class="input">
+              <option value="">Ya está en la cuenta del ahorro</option>
+              <option v-for="c in store.cuentas" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+            </select>
+          </div>
+
+          <!-- Retiro: qué se hizo con la plata -->
+          <template v-if="tipoMovimiento === 'retirar'">
+            <div class="field" style="margin-top: .75rem">
+              <label>¿Qué hiciste con esta plata?</label>
+              <select v-model="retiroTipo" class="input">
+                <option value="GASTO">La gasté (registrar como gasto)</option>
+                <option value="TRANSFERENCIA">La pasé a otra cuenta</option>
+                <option value="SIMPLE">Solo ajustar el ahorro</option>
+              </select>
+            </div>
+
+            <div v-if="retiroTipo === 'GASTO'" class="field" style="margin-top: .6rem">
+              <label>Categoría del gasto</label>
+              <select v-model="retiroCategoria" class="input">
+                <option value="" disabled>Seleccionar...</option>
+                <option v-for="c in store.categoriasActivas" :key="c.id" :value="c.nombre">{{ c.nombre }}</option>
+              </select>
+            </div>
+            <div v-if="retiroTipo === 'GASTO'" class="field" style="margin-top: .6rem">
+              <label>Detalle (opcional)</label>
+              <input v-model="retiroDetalle" class="input" maxlength="150" placeholder="ej. Mercado, arreglo del carro" />
+            </div>
+
+            <div v-if="retiroTipo === 'TRANSFERENCIA'" class="field" style="margin-top: .6rem">
+              <label>Cuenta destino</label>
+              <select v-model="retiroCuentaDestino" class="input">
+                <option value="" disabled>Seleccionar...</option>
+                <option v-for="c in store.cuentas" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+              </select>
+            </div>
+          </template>
+
+          <div style="margin-bottom: 1.6rem" />
 
           <div v-if="montoAbono > 0" class="saldo-preview" :class="tipoMovimiento === 'retirar' ? 'saldo-preview--retirar' : 'saldo-preview--abonar'">
             <span>Nuevo saldo</span>
@@ -120,6 +178,13 @@
             <label>Fecha límite (opcional)</label>
             <input v-model="editForm.fechaLimite" type="date" class="input" />
           </div>
+          <div v-if="store.cuentas.length > 0" class="field" style="margin-top: 0.75rem">
+            <label>Cuenta donde guardas este dinero (opcional)</label>
+            <select v-model="editForm.cuentaId" class="input">
+              <option value="">Sin cuenta</option>
+              <option v-for="c in store.cuentas" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+            </select>
+          </div>
           <div class="modal-actions" style="margin-top: 1.25rem">
             <button class="btn" @click="editandoMeta = null">Cancelar</button>
             <button class="btn btn-primary" :disabled="saving" @click="confirmarEdicion">{{ saving ? '...' : 'Guardar' }}</button>
@@ -136,7 +201,12 @@
             <p v-if="historial.length === 0" class="modal-sub">Sin movimientos todavía</p>
             <div v-for="item in historial" :key="item.id ?? item.fecha" class="historial-item">
               <span>{{ formatFecha(item.fecha) }}</span>
-              <span>{{ item.monto >= 0 ? '➕ Abono' : '➖ Retiro' }}</span>
+              <span>
+                <span class="historial-tag" :class="item.monto >= 0 ? 'historial-tag--in' : 'historial-tag--out'">
+                  {{ item.monto >= 0 ? 'Abono' : 'Retiro' }}
+                </span>
+                <span v-if="item.descripcion" class="historial-desc">· {{ item.descripcion }}</span>
+              </span>
               <span>{{ fmt(Math.abs(item.monto)) }}</span>
           </div>
 
@@ -181,6 +251,10 @@
           <div v-if="meta.fechaLimite" class="meta-fecha">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             {{ formatFecha(meta.fechaLimite) }}
+          </div>
+          <div v-if="cuentaNombre(meta.cuentaId)" class="meta-fecha">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg>
+            {{ cuentaNombre(meta.cuentaId) }}
           </div>
           <template v-if="!meta.completada">
             <div
@@ -230,7 +304,7 @@ import { fmtCOP as fmt } from '@/utils'
 import { Teleport } from 'vue'
 import { useDeviceType } from '@/composables/useDeviceType'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
-import type { Meta, MovimientoMeta } from '@/types'
+import type { Meta, MovimientoMeta, TipoRetiroMeta } from '@/types'
 import { calcularProyeccionMeta } from '@/composables/useMetaProjection'
 
 
@@ -259,11 +333,23 @@ const montoAbono   = ref(0)
 const editandoMeta = ref<Meta | null>(null)
 const verHistorialMeta  = ref<Meta | null>(null)
 const tipoMovimiento = ref<'abonar' | 'retirar'>('abonar')
-const editForm     = reactive({ nombre: '', montoObjetivo: 0, fechaLimite: '' })
+const editForm     = reactive({ nombre: '', montoObjetivo: 0, fechaLimite: '', cuentaId: '' })
 const historial = ref<MovimientoMeta[]>([])
 
-const form = reactive({ nombre: '', montoObjetivo: 0, fechaLimite: '' })
+// Detalle del movimiento cuando toca cuentas
+const abonoCuentaOrigen   = ref('')
+const retiroTipo          = ref<TipoRetiroMeta>('GASTO')
+const retiroCategoria     = ref('')
+const retiroDetalle       = ref('')
+const retiroCuentaDestino = ref('')
+
+const form = reactive({ nombre: '', montoObjetivo: 0, fechaLimite: '', cuentaId: '' })
 const errors = ref<Partial<Record<'nombre' | 'montoObjetivo', string>>>({})
+
+function cuentaNombre(id?: string) {
+  if (!id) return ''
+  return store.cuentas.find(c => c.id === id)?.nombre ?? ''
+}
 
 function pctMeta(meta: Meta) {
   if (meta.montoObjetivo === 0) return 0
@@ -282,6 +368,11 @@ function iniciarAbono(meta: Meta) {
   abonarMeta.value = meta
   montoAbono.value = 0
   tipoMovimiento.value = 'abonar'
+  abonoCuentaOrigen.value = ''
+  retiroTipo.value = meta.cuentaId ? 'GASTO' : 'SIMPLE'
+  retiroCategoria.value = ''
+  retiroDetalle.value = ''
+  retiroCuentaDestino.value = ''
 }
 
 const nuevoSaldoPreview = computed(() => {
@@ -300,6 +391,7 @@ function iniciarEdicion(meta: Meta) {
   editForm.nombre           = meta.nombre
   editForm.montoObjetivo    = meta.montoObjetivo
   editForm.fechaLimite      = meta.fechaLimite ? meta.fechaLimite.substring(0, 10) : ''
+  editForm.cuentaId         = meta.cuentaId ?? ''
 }
 
 async function confirmarEdicion() {
@@ -309,7 +401,8 @@ async function confirmarEdicion() {
     await store.editarMeta(editandoMeta.value.id!, {
       nombre:        editForm.nombre.trim(),
       montoObjetivo: editForm.montoObjetivo,
-      fechaLimite:   editForm.fechaLimite || undefined
+      fechaLimite:   editForm.fechaLimite || undefined,
+      cuentaId:      editForm.cuentaId || undefined
     })
     toast.success('Meta actualizada')
     editandoMeta.value = null
@@ -330,13 +423,15 @@ async function crearMeta() {
     await store.crearMeta({
       nombre: form.nombre.trim(),
       montoObjetivo: form.montoObjetivo,
-      fechaLimite: form.fechaLimite || undefined
+      fechaLimite: form.fechaLimite || undefined,
+      cuentaId: form.cuentaId || undefined
     })
     toast.success('Meta creada')
     showForm.value = false
     form.nombre = ''
     form.montoObjetivo = 0
     form.fechaLimite = ''
+    form.cuentaId = ''
   } catch {
     toast.error('No se pudo crear la meta')
   } finally {
@@ -357,11 +452,32 @@ async function verHistorial(meta: Meta) {
 async function confirmarMovimiento() {
   if (!abonarMeta.value || montoAbono.value <= 0 || excedeSaldo.value) return
 
-  const montoFirmado = tipoMovimiento.value === 'retirar' ? -montoAbono.value : montoAbono.value
+  const esRetiro = tipoMovimiento.value === 'retirar'
+
+  if (esRetiro && retiroTipo.value === 'GASTO' && !retiroCategoria.value) {
+    toast.error('Elige la categoría del gasto')
+    return
+  }
+  if (esRetiro && retiroTipo.value === 'TRANSFERENCIA' && !retiroCuentaDestino.value) {
+    toast.error('Elige la cuenta destino')
+    return
+  }
+
+  const payload = {
+    monto: esRetiro ? -montoAbono.value : montoAbono.value,
+    ...(esRetiro
+      ? {
+          tipoRetiro: retiroTipo.value,
+          categoria: retiroTipo.value === 'GASTO' ? retiroCategoria.value : undefined,
+          detalle: retiroTipo.value === 'GASTO' ? retiroDetalle.value.trim() || undefined : undefined,
+          cuentaDestinoId: retiroTipo.value === 'TRANSFERENCIA' ? retiroCuentaDestino.value : undefined,
+        }
+      : { cuentaOrigenId: abonoCuentaOrigen.value || undefined }),
+  }
 
   saving.value = true
   try {
-    await store.registrarMovimientoMeta(abonarMeta.value.id!, montoFirmado)
+    await store.registrarMovimientoMeta(abonarMeta.value.id!, payload)
     toast.success('Movimiento registrado')
     abonarMeta.value = null
     montoAbono.value = 0
@@ -384,6 +500,8 @@ async function borrarMeta(id: string) {
 onMounted(async () => {
   loadingInit.value = true
   if (store.tendencia.length === 0) store.cargarTendencia()
+  if (store.cuentas.length === 0) store.cargarCuentas()
+  if (store.categorias.length === 0) store.cargarCategorias()
   try { await store.cargarMetas() }
   finally { loadingInit.value = false }
 })
@@ -514,6 +632,10 @@ onMounted(async () => {
 .tipo-toggle { display: flex; gap: 0.5rem; margin-top: 0.4rem; }
 .tipo-btn {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   padding: 0.5rem;
   border-radius: 8px;
   font-size: 0.78rem;
@@ -555,6 +677,13 @@ onMounted(async () => {
   border-bottom: 1px solid var(--border);
 }
 .historial-item:last-child { border-bottom: none; }
+.historial-desc { color: var(--text-muted); font-size: 0.7rem; }
+.historial-tag {
+  display: inline-block; font-size: 0.6rem; font-weight: 600;
+  padding: 0.05rem 0.35rem; border-radius: 4px;
+}
+.historial-tag--in  { background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); }
+.historial-tag--out { background: color-mix(in srgb, var(--red) 12%, transparent); color: var(--red); }
 
 @media (max-width: 500px) {
   .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }

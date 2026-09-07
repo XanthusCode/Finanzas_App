@@ -8,6 +8,7 @@ namespace Finanzas.Application.DTOs
         public bool Activa   { get; set; }
         public decimal Saldo { get; set; }
         public DateTime CreadoEn { get; set; }
+        public DateTime? ActualizadoEn { get; set; }
     }
 
     public class CrearCuentaDto
@@ -35,5 +36,15 @@ namespace Finanzas.Application.DTOs
     {
         public decimal Monto { get; set; }
         public string? Descripcion { get; set; }
+    }
+
+    // Línea del historial unificado de una cuenta: movimientos manuales +
+    // ingresos y gastos asignados a esa cuenta (todos afectan el saldo).
+    public class LineaCuentaDto
+    {
+        public string Tipo { get; set; } = string.Empty; // MOVIMIENTO | INGRESO | GASTO
+        public decimal Monto { get; set; }               // firmado: + suma al saldo, - resta
+        public string? Descripcion { get; set; }
+        public DateTime Fecha { get; set; }
     }
 }

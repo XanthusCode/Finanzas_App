@@ -8,8 +8,10 @@ namespace Finanzas.Application.DTOs
         public decimal Monto    { get; set; }
         public string Tipo      { get; set; } = string.Empty;
         public DateTime? FechaLimite { get; set; }
+        public Guid? CuentaId   { get; set; }
         public bool Pagada      { get; set; }
         public DateTime CreadoEn { get; set; }
+        public DateTime? ActualizadoEn { get; set; }
         public decimal MontoPagado   { get; set; }
         public decimal MontoRestante { get; set; }
     }
@@ -21,6 +23,7 @@ namespace Finanzas.Application.DTOs
         public decimal Monto      { get; set; }
         public string Tipo        { get; set; } = string.Empty;
         public DateTime? FechaLimite { get; set; }
+        public Guid? CuentaId     { get; set; }
     }
 
     public class AbonoDto

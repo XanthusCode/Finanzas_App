@@ -41,11 +41,12 @@ public class CuentasController(CuentaService service) : BaseController
         return ok ? NoContent() : NotFound();
     }
 
+    // Historial unificado: movimientos manuales + ingresos y gastos de la cuenta.
     [HttpGet("{id:guid}/movimientos")]
     public async Task<IActionResult> GetMovimientos(Guid id)
     {
-        var movimientos = await _service.GetMovimientosAsync(id, UserId);
-        return movimientos is null ? NotFound() : Ok(movimientos);
+        var lineas = await _service.GetLedgerAsync(id, UserId);
+        return lineas is null ? NotFound() : Ok(lineas);
     }
 
     [HttpPost("{id:guid}/movimientos")]

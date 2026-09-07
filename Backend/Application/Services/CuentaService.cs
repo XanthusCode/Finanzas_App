@@ -90,5 +90,15 @@ namespace Finanzas.Application.Services
             var movimientos = await _repo.GetMovimientosAsync(cuentaId);
             return _mapper.Map<IEnumerable<MovimientoCuentaDto>>(movimientos);
         }
+
+        // Historial unificado: movimientos manuales + ingresos y gastos asignados
+        // a la cuenta. Explica el saldo, que se calcula sumando las tres fuentes.
+        public async Task<IEnumerable<LineaCuentaDto>?> GetLedgerAsync(Guid cuentaId, Guid userId)
+        {
+            var cuenta = await _repo.GetByIdAsync(cuentaId, userId);
+            if (cuenta is null) return null;
+
+            return await _repo.GetLedgerAsync(cuentaId, userId);
+        }
     }
 }

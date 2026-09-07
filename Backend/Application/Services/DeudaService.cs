@@ -5,7 +5,7 @@ using Finanzas.Domain.Entities;
 
 namespace Finanzas.Application.Services
 {
-    public class DeudaService(IDeudaRepository repo, IIngresosRepository ingresosRepo, IGastosRepository gastosRepo, IMapper mapper)
+    public class DeudaService(IDeudaRepository repo, IIngresosRepository ingresosRepo, IGastosRepository gastosRepo, ICuentaRepository cuentaRepo, IMapper mapper)
     {
         private readonly IDeudaRepository _repo   = repo;
         private readonly IMapper          _mapper = mapper;
@@ -29,7 +29,28 @@ namespace Finanzas.Application.Services
         {
             var deuda = _mapper.Map<Deuda>(dto);
             deuda.UserId = userId;
+
+            // La cuenta solo se guarda si existe y es del usuario.
+            if (deuda.CuentaId is Guid cId && await cuentaRepo.GetByIdAsync(cId, userId) is null)
+                deuda.CuentaId = null;
+
             var creada = await _repo.CreateAsync(deuda);
+
+            // Al crear el préstamo la plata ya se movió:
+            //   ME_DEBEN  -> presté: sale de mi cuenta  (-)
+            //   LE_DEBO   -> me prestaron: entra a mi cuenta (+)
+            if (creada.CuentaId is Guid cuentaId)
+            {
+                var esCobro = creada.Tipo == TipoDeuda.ME_DEBEN;
+                await cuentaRepo.AddMovimientoAsync(new MovimientoCuenta
+                {
+                    CuentaId    = cuentaId,
+                    Monto       = esCobro ? -creada.Monto : creada.Monto,
+                    Descripcion = esCobro ? $"Préstamo a {creada.Persona}" : $"Préstamo de {creada.Persona}",
+                    DeudaId     = creada.Id
+                });
+            }
+
             return _mapper.Map<DeudaDto>(creada);
         }
 
@@ -57,6 +78,7 @@ namespace Finanzas.Application.Services
                         Mes = hoy.Month,
                         Anio = hoy.Year,
                         UserId = userId,
+                        CuentaId = deuda.CuentaId,
                         DeudaId = deuda.Id
                     });
                 }
@@ -71,6 +93,7 @@ namespace Finanzas.Application.Services
                         Mes = hoy.Month,
                         Anio = hoy.Year,
                         UserId = userId,
+                        CuentaId = deuda.CuentaId,
                         DeudaId = deuda.Id
                     });
                 }
@@ -91,6 +114,7 @@ namespace Finanzas.Application.Services
             if (deuda is null) return false;
             await ingresosRepo.DeleteByDeudaIdAsync(id);
             await gastosRepo.DeleteByDeudaIdAsync(id);
+            await cuentaRepo.DeleteMovimientosByDeudaIdAsync(id);
             await _repo.DeleteAsync(id);
             return true;
         }
@@ -111,7 +135,9 @@ namespace Finanzas.Application.Services
                     Monto = dto.Monto,
                     Mes = hoy.Month,
                     Anio = hoy.Year,
-                    UserId = userId
+                    UserId = userId,
+                    CuentaId = deuda.CuentaId,
+                    DeudaId = deuda.Id
                 });
             }
             else if (deuda.Tipo == TipoDeuda.LE_DEBO)
@@ -125,7 +151,9 @@ namespace Finanzas.Application.Services
                     Tipo = TipoGasto.VARIABLE,
                     Mes = hoy.Month,
                     Anio = hoy.Year,
-                    UserId = userId
+                    UserId = userId,
+                    CuentaId = deuda.CuentaId,
+                    DeudaId = deuda.Id
                 });
             }
 

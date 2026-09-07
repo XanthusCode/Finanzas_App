@@ -12,6 +12,7 @@ export interface Gasto {
   cuotaActual?: number
   gastoOrigenId?: string
   cuentaId?: string
+  actualizadoEn?: string
 }
 
 export type FrecuenciaIngreso = 'DIARIO' | 'SEMANAL' | 'QUINCENAL' | 'MENSUAL' | 'BIMESTRAL' | 'TRIMESTRAL' | 'ANUAL' | 'PERSONALIZADO'
@@ -26,6 +27,7 @@ export interface Ingreso {
   cuentaId?: string
   frecuencia?: FrecuenciaIngreso
   diaPago?: number
+  actualizadoEn?: string
 }
 
 export interface Resumen {
@@ -63,7 +65,20 @@ export interface Meta {
   montoActual: number
   fechaLimite?: string
   completada: boolean
+  cuentaId?: string
   creadoEn?: string
+  actualizadoEn?: string
+}
+
+export type TipoRetiroMeta = 'SIMPLE' | 'GASTO' | 'TRANSFERENCIA'
+
+export interface MovimientoMetaPayload {
+  monto: number
+  cuentaOrigenId?: string
+  tipoRetiro?: TipoRetiroMeta
+  categoria?: string
+  detalle?: string
+  cuentaDestinoId?: string
 }
 
 export interface ResumenCategoria {
@@ -95,8 +110,10 @@ export interface Deuda {
   monto: number
   tipo: 'ME_DEBEN' | 'LE_DEBO'
   fechaLimite?: string
+  cuentaId?: string
   pagada: boolean
   creadoEn?: string
+  actualizadoEn?: string
   montoPagado: number
   montoRestante: number
 }
@@ -116,6 +133,7 @@ export interface Cuenta {
   activa: boolean
   saldo: number
   creadoEn?: string
+  actualizadoEn?: string
 }
 
 export interface MovimientoCuenta {
@@ -125,9 +143,18 @@ export interface MovimientoCuenta {
   fecha: string
 }
 
+// Línea del historial unificado de una cuenta (movimiento manual + ingreso + gasto)
+export interface LineaCuenta {
+  tipo: 'MOVIMIENTO' | 'INGRESO' | 'GASTO'
+  monto: number // firmado
+  descripcion?: string
+  fecha: string
+}
+
 export interface MovimientoMeta {
   id?: string
   monto: number // firmado: positivo = abono, negativo = retiro
+  descripcion?: string
   fecha: string
 }
 

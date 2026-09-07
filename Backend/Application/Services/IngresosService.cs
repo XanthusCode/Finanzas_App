@@ -50,7 +50,10 @@ public class IngresosService(IIngresosRepository repo, IMapper mapper)
                 Mes          = mes,
                 Anio         = anio,
                 EsRecurrente = true,
-                UserId       = userId
+                UserId       = userId,
+                CuentaId     = r.CuentaId,
+                Frecuencia   = r.Frecuencia,
+                DiaPago      = r.DiaPago
             };
             var creado = await _repo.CreateAsync(nuevo);
             creados.Add(_mapper.Map<IngresoDto>(creado));
