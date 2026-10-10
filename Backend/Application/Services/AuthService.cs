@@ -57,6 +57,57 @@ namespace Finanzas.Application.Services
             return (true, string.Empty, BuildResponse(user));
         }
 
+        public async Task<RecordatoriosPrefDto?> GetRecordatoriosAsync(Guid userId)
+        {
+            var user = await _userRepo.GetByIdAsync(userId);
+            return user is null ? null : new RecordatoriosPrefDto(user.RecordatoriosActivos);
+        }
+
+        public async Task<RecordatoriosPrefDto?> SetRecordatoriosAsync(Guid userId, RecordatoriosPrefDto dto)
+        {
+            var user = await _userRepo.GetByIdAsync(userId);
+            if (user is null) return null;
+
+            user.RecordatoriosActivos = dto.Activos;
+            await _userRepo.UpdateAsync(user);
+            return new RecordatoriosPrefDto(user.RecordatoriosActivos);
+        }
+
+        public async Task<WhatsAppEstadoDto?> GetWhatsAppAsync(Guid userId)
+        {
+            var user = await _userRepo.GetByIdAsync(userId);
+            return user is null ? null : new WhatsAppEstadoDto(user.WhatsAppId is not null);
+        }
+
+        // Código de un solo uso que el usuario envía al bot ("vincular 123456") para
+        // asociar su chat de WhatsApp a esta cuenta. Vence en 15 minutos.
+        public async Task<WhatsAppCodigoDto?> GenerarCodigoWhatsAppAsync(Guid userId)
+        {
+            var user = await _userRepo.GetByIdAsync(userId);
+            if (user is null) return null;
+
+            string codigo;
+            do codigo = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+            while (await _userRepo.GetByWhatsAppCodigoAsync(codigo) is not null);
+
+            user.WhatsAppCodigo       = codigo;
+            user.WhatsAppCodigoExpira = DateTime.UtcNow.AddMinutes(15);
+            await _userRepo.UpdateAsync(user);
+            return new WhatsAppCodigoDto(codigo, user.WhatsAppCodigoExpira.Value);
+        }
+
+        public async Task<bool> DesvincularWhatsAppAsync(Guid userId)
+        {
+            var user = await _userRepo.GetByIdAsync(userId);
+            if (user is null) return false;
+
+            user.WhatsAppId           = null;
+            user.WhatsAppCodigo       = null;
+            user.WhatsAppCodigoExpira = null;
+            await _userRepo.UpdateAsync(user);
+            return true;
+        }
+
         public async Task<(bool ok, string error)> ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
         {
             var user = await _userRepo.GetByIdAsync(userId);

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Reflection.Emit;
 using Finanzas.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -65,6 +65,9 @@ namespace Finanzas.Infrastructure.Data
                 e.Property(u => u.Email).IsRequired().HasMaxLength(200);
                 e.Property(u => u.Nombre).IsRequired().HasMaxLength(100);
                 e.Property(u => u.PasswordHash).IsRequired();
+                e.Property(u => u.WhatsAppId).HasMaxLength(64);
+                e.Property(u => u.WhatsAppCodigo).HasMaxLength(6);
+                e.HasIndex(u => u.WhatsAppId).IsUnique().HasFilter("\"WhatsAppId\" IS NOT NULL");
             });
 
             modelBuilder.Entity<Presupuesto>(e =>
@@ -129,8 +132,7 @@ namespace Finanzas.Infrastructure.Data
                 e.Property(m => m.Descripcion).HasMaxLength(150);
                 e.Property(m => m.DeudaId).IsRequired(false);
                 e.HasOne<Cuenta>().WithMany().HasForeignKey(m => m.CuentaId).OnDelete(DeleteBehavior.Cascade);
-            });
-        }
+            });        }
 
         public override int SaveChanges()
         {

@@ -43,6 +43,48 @@ public class AuthController(AuthService authService) : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("recordatorios")]
+    public async Task<IActionResult> GetRecordatorios()
+    {
+        var data = await _authService.GetRecordatoriosAsync(CurrentUserId());
+        return data is null ? NotFound() : Ok(data);
+    }
+
+    [Authorize]
+    [HttpPut("recordatorios")]
+    public async Task<IActionResult> SetRecordatorios([FromBody] RecordatoriosPrefDto dto)
+    {
+        var data = await _authService.SetRecordatoriosAsync(CurrentUserId(), dto);
+        return data is null ? NotFound() : Ok(data);
+    }
+
+    [Authorize]
+    [HttpGet("whatsapp")]
+    public async Task<IActionResult> GetWhatsApp()
+    {
+        var data = await _authService.GetWhatsAppAsync(CurrentUserId());
+        return data is null ? NotFound() : Ok(data);
+    }
+
+    [Authorize]
+    [HttpPost("whatsapp/codigo")]
+    public async Task<IActionResult> GenerarCodigoWhatsApp()
+    {
+        var data = await _authService.GenerarCodigoWhatsAppAsync(CurrentUserId());
+        return data is null ? NotFound() : Ok(data);
+    }
+
+    [Authorize]
+    [HttpDelete("whatsapp")]
+    public async Task<IActionResult> DesvincularWhatsApp() =>
+        await _authService.DesvincularWhatsAppAsync(CurrentUserId()) ? NoContent() : NotFound();
+
+    private Guid CurrentUserId() => Guid.Parse(
+        User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? User.FindFirstValue("sub")
+        ?? Guid.Empty.ToString());
+
+    [Authorize]
     [HttpPut("perfil")]
     public async Task<IActionResult> UpdatePerfil([FromBody] UpdateNombreDto dto)
     {

@@ -84,5 +84,11 @@ namespace Finanzas.Infrastructure.Repositories
                 .OrderBy(g => g.GastoOrigenId)
                 .ThenBy(g => g.CuotaActual)
                 .ToListAsync();
+
+        // Último momento en que el usuario creó o editó un gasto (señal de que sigue usando la app).
+        public async Task<DateTime?> GetUltimaActividadAsync(Guid userId) =>
+            await _db.Gastos
+                .Where(g => g.UserId == userId)
+                .MaxAsync(g => (DateTime?)(g.ActualizadoEn ?? g.CreadoEn));
     }
 }

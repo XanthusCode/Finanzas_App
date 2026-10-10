@@ -45,6 +45,7 @@ builder.Services.AddScoped<DeudaService>();
 builder.Services.AddScoped<CuentaService>();
 builder.Services.AddScoped<ReporteService>();
 builder.Services.AddScoped<RecordatoriosService>();
+builder.Services.AddScoped<WhatsAppService>();
 builder.Services.AddHttpClient<EmailService>();
 builder.Services.AddScoped<InsightsService>();
 builder.Services.AddHttpClient<GroqService>();
@@ -176,6 +177,13 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "Deudas"   ADD COLUMN IF NOT EXISTS "ActualizadoEn" timestamp with time zone NULL;
         ALTER TABLE "Deudas"   ADD COLUMN IF NOT EXISTS "CuentaId" uuid NULL;
         ALTER TABLE "MovimientosCuenta" ADD COLUMN IF NOT EXISTS "DeudaId" uuid NULL;
+        ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "RecordatoriosActivos" boolean NOT NULL DEFAULT TRUE;
+        ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "UltimoRecordatorioActividadEn" timestamp with time zone NULL;
+        ALTER TABLE "Users" DROP COLUMN IF EXISTS "Telefono";
+        ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "WhatsAppId" character varying(64) NULL;
+        ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "WhatsAppCodigo" character varying(6) NULL;
+        ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "WhatsAppCodigoExpira" timestamp with time zone NULL;
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_Users_WhatsAppId" ON "Users" ("WhatsAppId") WHERE "WhatsAppId" IS NOT NULL;
 
         DO $mig$
         BEGIN

@@ -158,5 +158,15 @@ export const perfilService = {
   updateNombre: (nombre: string) =>
     api.put<{ token: string; email: string; nombre: string; expiresIn: number }>('/auth/perfil', { nombre }),
   changePassword: (currentPassword: string, newPassword: string) =>
-    api.put('/auth/password', { currentPassword, newPassword })
+    api.put('/auth/password', { currentPassword, newPassword }),
+  getRecordatorios: () =>
+    api.get<{ activos: boolean }>('/auth/recordatorios'),
+  setRecordatorios: (activos: boolean) =>
+    api.put<{ activos: boolean }>('/auth/recordatorios', { activos }),
+  getWhatsapp: () =>
+    api.get<{ vinculado: boolean }>('/auth/whatsapp'),
+  generarCodigoWhatsapp: () =>
+    api.post<{ codigo: string; expiraEn: string }>('/auth/whatsapp/codigo'),
+  desvincularWhatsapp: () =>
+    api.delete('/auth/whatsapp')
 }

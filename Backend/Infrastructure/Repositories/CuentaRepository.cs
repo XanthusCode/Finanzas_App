@@ -42,7 +42,8 @@ namespace Finanzas.Infrastructure.Repositories
         public async Task<Dictionary<Guid, decimal>> GetSaldosAsync(Guid userId)
         {
             // El saldo solo cuenta lo que YA ocurrió: las cuotas de meses futuros
-            // (Gastos con Mes/Anio posterior al actual) no afectan el saldo todavía.
+            // (Gastos con Mes/Anio posterior al actual) no afectan el saldo todavía,
+            // ni los gastos del mes actual que aún no tienen fecha de pago.
             var hoy   = DateTime.UtcNow;
             var anio  = hoy.Year;
             var mes   = hoy.Month;
@@ -61,10 +62,13 @@ namespace Finanzas.Infrastructure.Repositories
                 group i.Monto by i.CuentaId!.Value into g
                 select new { CuentaId = g.Key, Total = g.Sum() };
 
+            // En el mes actual, un gasto sin Fecha (copia recurrente o cuota) se considera
+            // pendiente de cobro: no descuenta hasta que se registre la fecha de pago.
             var gastosQuery =
                 from g in _db.Gastos
                 where g.UserId == userId && g.CuentaId != null
-                      && (g.Anio < anio || (g.Anio == anio && g.Mes <= mes))
+                      && (g.Anio < anio || (g.Anio == anio && g.Mes < mes)
+                          || (g.Anio == anio && g.Mes == mes && g.Fecha != null && g.Fecha <= hoy))
                 group g.Monto by g.CuentaId!.Value into grp
                 select new { CuentaId = grp.Key, Total = -grp.Sum() };
 
@@ -123,7 +127,8 @@ namespace Finanzas.Infrastructure.Repositories
             // mes y no todas se amontonen en la fecha de creación.
             var gastosRaw = await _db.Gastos
                 .Where(g => g.CuentaId == cuentaId && g.UserId == userId
-                            && (g.Anio < anio || (g.Anio == anio && g.Mes <= mes)))
+                            && (g.Anio < anio || (g.Anio == anio && g.Mes < mes)
+                                || (g.Anio == anio && g.Mes == mes && g.Fecha != null && g.Fecha <= hoy)))
                 .Select(g => new { g.Monto, g.Detalle, g.Categoria, g.Fecha, g.Anio, g.Mes, g.CreadoEn })
                 .ToListAsync();
 
