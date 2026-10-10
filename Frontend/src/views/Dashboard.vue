@@ -191,22 +191,27 @@
         <p v-else class="insights-empty">Analiza tus hábitos de gasto este mes con IA.</p>
       </div>
 
-      <!-- Regla 50/30/20 -->
-      <div v-if="regla5030.length > 0" class="card" style="margin-bottom: 1rem">
-        <p class="card-title">Regla 50/30/20</p>
-        <div class="regla-rows">
-          <div v-for="r in regla5030" :key="r.label" class="regla-row">
-            <div class="regla-top">
-              <span class="regla-label">{{ r.label }}</span>
-              <span class="regla-vals">{{ r.pct }}%<span class="regla-meta"> · meta {{ r.meta }}%</span></span>
-            </div>
-            <div class="regla-bar-wrap">
-              <div class="regla-bar" :style="{ width: Math.min(r.pct, 100) + '%', background: r.color }" />
-              <div class="regla-goal" :style="{ left: r.meta + '%' }" />
+     <div class="two-bottom-grid">
+        <!-- Regla 50/30/20 -->
+        <div v-if="regla5030.length > 0" class="card" style="margin-bottom: 1rem">
+          <p class="card-title">Regla 50/30/20</p>
+          <div class="regla-rows">
+            <div v-for="r in regla5030" :key="r.label" class="regla-row">
+              <div class="regla-top">
+                <span class="regla-label">{{ r.label }}</span>
+                <span class="regla-vals">{{ r.pct }}%<span class="regla-meta"> · meta {{ r.meta }}%</span></span>
+              </div>
+              <div class="regla-bar-wrap">
+                <div class="regla-bar" :style="{ width: Math.min(r.pct, 100) + '%', background: r.color }" />
+                <div class="regla-goal" :style="{ left: r.meta + '%' }" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+
+        <!-- Alertas de deudas -->
+        <DeudasAlerta style="margin-bottom: 1rem" />
+     </div>
 
       <!-- Alertas de presupuesto -->
       <div v-if="alertasPresupuesto.length > 0" class="presupuesto-alerts">
@@ -226,9 +231,6 @@
           <div class="alert-nums">{{ fmt(a.gastado) }} de {{ fmt(a.limite) }}</div>
         </div>
       </div>
-
-      <!-- Alertas de deudas -->
-      <DeudasAlerta style="margin-bottom: 1rem" />
 
       <!-- Tendencia del año -->
       <div class="card" style="margin-bottom: 1rem">
@@ -298,35 +300,38 @@
           </div>
         </div>
       </div>
-      <!-- Top categorías -->
-      <div v-if="topCategorias.length > 0" class="card" style="margin-top: 0.75rem">
-        <p class="card-title">Top categorías este mes</p>
-        <div class="top-cat-list">
-          <div v-for="(cat, i) in topCategorias" :key="cat.nombre" class="top-cat-row">
-            <div class="top-cat-left">
-              <span class="top-cat-rank">#{{ i + 1 }}</span>
-              <span class="top-cat-nombre">{{ cat.nombre }}</span>
-            </div>
-            <div class="top-cat-right">
-              <div class="top-cat-bar-wrap">
-                <div class="top-cat-bar" :style="{ width: (cat.total / maxCategoria * 100) + '%' }" />
+
+      <div class="two-bottom-grid">
+        <!-- Top categorías -->
+        <div v-if="topCategorias.length > 0" class="card" style="margin-top: 0.75rem">
+          <p class="card-title">Top categorías este mes</p>
+          <div class="top-cat-list">
+            <div v-for="(cat, i) in topCategorias" :key="cat.nombre" class="top-cat-row">
+              <div class="top-cat-left">
+                <span class="top-cat-rank">#{{ i + 1 }}</span>
+                <span class="top-cat-nombre">{{ cat.nombre }}</span>
               </div>
-              <span class="top-cat-monto">{{ fmt(cat.total) }}</span>
+              <div class="top-cat-right">
+                <div class="top-cat-bar-wrap">
+                  <div class="top-cat-bar" :style="{ width: (cat.total / maxCategoria * 100) + '%' }" />
+                </div>
+                <span class="top-cat-monto">{{ fmt(cat.total) }}</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Suscripciones olvidadas -->
-      <div v-if="suscripciones.length > 0" class="card" style="margin-top: 0.75rem">
-        <p class="card-title">¿Sigues usando esto?</p>
-        <div class="susc-list">
-          <div v-for="s in suscripciones" :key="s.categoria + s.detalle + s.monto" class="susc-row">
-            <div>
-              <div class="susc-nombre">{{ s.categoria }}<span v-if="s.detalle"> · {{ s.detalle }}</span></div>
-              <div class="susc-meses">Llevas {{ s.mesesActivo }} meses pagando esto</div>
+        <!-- Suscripciones olvidadas -->
+        <div v-if="suscripciones.length > 0" class="card" style="margin-top: 0.75rem">
+          <p class="card-title">¿Sigues usando esto?</p>
+          <div class="susc-list">
+            <div v-for="s in suscripciones" :key="s.categoria + s.detalle + s.monto" class="susc-row">
+              <div>
+                <div class="susc-nombre">{{ s.categoria }}<span v-if="s.detalle"> · {{ s.detalle }}</span></div>
+                <div class="susc-meses">Llevas {{ s.mesesActivo }} {{ s.mesesActivo === 1 ? 'mes' : 'meses' }} pagando esto</div>
+              </div>
+              <div class="susc-monto">{{ fmt(s.monto) }}</div>
             </div>
-            <div class="susc-monto">{{ fmt(s.monto) }}</div>
           </div>
         </div>
       </div>
@@ -793,6 +798,9 @@ async function descargarPDF() {
 
 /* 3-col bottom */
 .bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
+
+/* 2-col bottom */
+.two-bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 
 .card-title { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; justify-content: space-between; }
 

@@ -122,6 +122,7 @@ import { useToast } from '@/composables/useToast'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import type { Gasto } from '@/types'
 import { gastoSchema } from '@/schemas'
+import { hoyLocal } from '@/utils'
 
 const props = defineProps<{ gasto?: Gasto; loading?: boolean; tipoForzado?: 'FIJO' | 'VARIABLE' }>()
 const emit  = defineEmits<{ submit: [gasto: Omit<Gasto, 'id'>]; cancel: [] }>()
@@ -141,7 +142,7 @@ const form = ref({
   monto:        props.gasto?.monto        ?? 0,
   esRecurrente: props.gasto?.esRecurrente ?? false,
   cuentaId:     props.gasto?.cuentaId     ?? '',
-  fecha:        props.gasto?.fecha?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
+  fecha:        props.gasto?.fecha?.slice(0, 10) ?? hoyLocal(),
   esCuotas:     false,
   numCuotas:    2,
 })

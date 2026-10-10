@@ -15,6 +15,12 @@ namespace Finanzas.Infrastructure.Repositories
         public async Task<User?> GetByIdAsync(Guid id) =>
             await _db.Users.FindAsync(id);
 
+        public async Task<User?> GetByWhatsAppIdAsync(string whatsAppId) =>
+            await _db.Users.FirstOrDefaultAsync(u => u.WhatsAppId == whatsAppId);
+
+        public async Task<User?> GetByWhatsAppCodigoAsync(string codigo) =>
+            await _db.Users.FirstOrDefaultAsync(u => u.WhatsAppCodigo == codigo && u.WhatsAppCodigoExpira > DateTime.UtcNow);
+
         public async Task<bool> ExistsAsync(string email) =>
             await _db.Users.AnyAsync(u => u.Email == email.ToLower());
 

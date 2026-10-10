@@ -5,6 +5,13 @@ export const fmtCOP = (n: number): string => {
   return (n < 0 ? '-$' : '$') + abs.toLocaleString('es-CO')
 }
 
+// Fecha de hoy (YYYY-MM-DD) en la zona horaria local. No usar toISOString(): devuelve
+// la fecha UTC, que en Colombia ya es "mañana" después de las 7 p.m.
+export const hoyLocal = (): string => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 export async function exportExcel(rows: Record<string, unknown>[], filename: string, sheetName = 'Datos') {
   if (rows.length === 0) return
   const XLSX = await import('xlsx')
