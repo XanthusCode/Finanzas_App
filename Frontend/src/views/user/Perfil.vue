@@ -51,12 +51,24 @@
                 >{{ savingWhatsapp ? '...' : 'Vincular' }}</button>
               </div>
               <div v-if="codigoWhatsapp && !whatsappVinculado" class="wa-codigo">
+                <template v-if="WHATSAPP_JOIN">
+                  <p class="toggle-hint">
+                    <strong>1.</strong> Activa el bot enviando este mensaje al <strong>{{ WHATSAPP_BOT_DISPLAY }}</strong>
+                    (si dejas de usarlo por unos días, hay que enviarlo de nuevo):
+                  </p>
+                  <code class="wa-codigo-msg">{{ WHATSAPP_JOIN }}</code>
+                  <div class="edit-row">
+                    <a class="btn btn-sm" :href="waUrl(WHATSAPP_JOIN)" target="_blank" rel="noopener">Activar bot</a>
+                  </div>
+                </template>
                 <p class="toggle-hint">
-                  Envía este mensaje al <strong>{{ WHATSAPP_BOT_DISPLAY }}</strong> desde tu WhatsApp (vence en 15 minutos):
+                  <template v-if="WHATSAPP_JOIN"><strong>2.</strong> Cuando el bot te responda, envía</template>
+                  <template v-else>Envía este mensaje al <strong>{{ WHATSAPP_BOT_DISPLAY }}</strong></template>
+                  (el código vence en 15 minutos):
                 </p>
                 <code class="wa-codigo-msg">vincular {{ codigoWhatsapp }}</code>
                 <div class="edit-row">
-                  <a class="btn btn-primary btn-sm" :href="waLink" target="_blank" rel="noopener">Abrir WhatsApp</a>
+                  <a class="btn btn-primary btn-sm" :href="waUrl(`vincular ${codigoWhatsapp}`)" target="_blank" rel="noopener">Vincular en WhatsApp</a>
                   <button class="btn btn-sm" @click="cargarWhatsapp">Ya lo envié</button>
                 </div>
               </div>
@@ -235,8 +247,9 @@ const WHATSAPP_BOT_DISPLAY = '+1 415 523 8886'
 const whatsappVinculado = ref<boolean | undefined>(undefined)
 const codigoWhatsapp    = ref<string | null>(null)
 const savingWhatsapp    = ref(false)
-const waLink = computed(() =>
-  `https://wa.me/${WHATSAPP_BOT}?text=${encodeURIComponent(`vincular ${codigoWhatsapp.value}`)}`)
+// Frase "join xxx-yyy" del sandbox de Twilio (cada número debe enviarla antes de usar el bot).
+const WHATSAPP_JOIN = (import.meta.env.VITE_WHATSAPP_JOIN as string | undefined)?.trim() || 'join stems-hunter'
+const waUrl = (texto: string) => `https://wa.me/${WHATSAPP_BOT}?text=${encodeURIComponent(texto)}`
 
 async function cargarWhatsapp() {
   try {
