@@ -1,84 +1,121 @@
 <template>
-  <div class="gasto-row">
+  <div class="gasto-row" :class="{ 'mov-resaltado': resaltado }" :data-mov-id="gasto.id">
     <div class="row-left">
-      <div class="cat-icon-badge" :style="{ background: guessColor(gasto.categoria) + '4d', color: guessColor(gasto.categoria) }">
-        <component :is="guessIcono(gasto.categoria)" :size="14" :stroke-width="2" />
+      <div class="cat-icon-badge" :style="{ background: guessColor(gasto.categoria) + '26', color: guessColor(gasto.categoria) }">
+        <component :is="guessIcono(gasto.categoria)" :size="16" :stroke-width="2" />
       </div>
-      <div>
+      <div class="row-text">
         <div class="row-name">
-          {{ gasto.categoria }}
-          <svg v-if="gasto.esRecurrente" class="recurrente-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" title="Recurrente"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          <span class="row-name-text">{{ gasto.categoria }}</span>
+          <Repeat v-if="gasto.esRecurrente" class="recurrente-icon" :size="11" :stroke-width="2.2" aria-label="Recurrente" />
           <span v-if="gasto.numCuotas" class="cuota-badge">{{ gasto.cuotaActual }}/{{ gasto.numCuotas }}</span>
         </div>
-        <div class="row-det">{{ gasto.detalle }}</div>
+        <div v-if="gasto.detalle" class="row-det">{{ gasto.detalle }}</div>
       </div>
     </div>
     <div class="row-right">
       <span class="row-monto">{{ fmt(gasto.monto) }}</span>
-      <button class="icon-btn" title="Editar" @click="emit('edit', gasto)">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </button>
-      <button class="icon-btn danger" title="Eliminar" @click="emit('delete', gasto.id!)">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+      <div class="row-actions">
+        <button class="icon-btn" title="Editar" aria-label="Editar gasto" @click="emit('edit', gasto)">
+          <Pencil :size="14" :stroke-width="1.9" />
+        </button>
+        <button class="icon-btn danger" title="Eliminar" aria-label="Eliminar gasto" @click="emit('delete', gasto.id!)">
+          <Trash2 :size="14" :stroke-width="1.9" />
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Pencil, Trash2, Repeat } from '@lucide/vue'
 import type { Gasto } from '@/types'
 import { fmtCOP as fmt } from '@/utils'
 import { guessIcono, guessColor } from '@/composables/useCategoriaOptions'
 
-defineProps<{ gasto: Gasto }>()
+defineProps<{ gasto: Gasto; resaltado?: boolean }>()
 const emit = defineEmits<{ delete: [id: string], edit: [gasto: Gasto], create: [gasto: Gasto] }>()
 </script>
 
 <style scoped>
+/* Sin separadores: la fila se marca con el hover. Se extiende hasta el borde de la tarjeta. */
 .gasto-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.65rem 0;
-  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+  margin: 0 -0.6rem;
+  padding: 0.8rem 0.6rem;
+  border-radius: 10px;
+  transition: background 0.12s ease;
 }
-.gasto-row:last-child { border-bottom: none; }
-.row-left  { display: flex; align-items: center; gap: 0.75rem; }
-.row-name  { font-size: 0.78rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.35rem; }
-.row-det   { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.1rem; }
-.row-right { display: flex; align-items: center; gap: 0.5rem; }
-.row-monto { font-size: 0.78rem; color: var(--text-primary); margin-right: 0.25rem; }
+.gasto-row:hover,
+.gasto-row:focus-within { background: var(--surface2); }
+
+.row-left  { display: flex; align-items: center; gap: 0.85rem; min-width: 0; }
+.row-text  { min-width: 0; }
+.row-name  { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 500; color: var(--text-primary); }
+.row-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-det   {
+  font-size: 0.7rem; color: var(--text-subtle); margin-top: 0.2rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.row-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+.row-monto {
+  font-family: var(--ff-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: right;
+}
 
 .cat-icon-badge {
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.recurrente-icon { color: var(--accent); flex-shrink: 0; }
+.recurrente-icon { color: var(--accent-strong); flex-shrink: 0; }
 .cuota-badge {
-  font-size: 0.58rem; font-weight: 600; letter-spacing: 0.04em;
-  background: color-mix(in srgb, var(--accent2) 15%, transparent); color: var(--accent2);
-  border: 1px solid color-mix(in srgb, var(--accent2) 30%, transparent);
-  border-radius: 4px; padding: 1px 5px;
+  font-size: 0.6rem; font-weight: 500; letter-spacing: 0.04em;
+  background: color-mix(in srgb, var(--c-ai) 14%, transparent); color: var(--c-ai);
+  border-radius: 999px; padding: 1px 7px;
+}
+
+/* Acciones: ocultas hasta hover/foco en la fila (en táctil siempre visibles) */
+.row-actions {
+  display: flex;
+  gap: 0.15rem;
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.gasto-row:hover .row-actions,
+.gasto-row:focus-within .row-actions { opacity: 1; transform: none; }
+@media (hover: none) {
+  .row-actions { opacity: 1; transform: none; }
 }
 
 .icon-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   background: none;
   border: none;
-  color: var(--text-muted);
+  border-radius: 8px;
+  color: var(--text-secondary);
   cursor: pointer;
-  padding: 4px 5px;
-  border-radius: 4px;
   transition: color 0.15s, background 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
-.icon-btn:hover       { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
-.icon-btn.danger:hover { color: var(--red);  background: color-mix(in srgb, var(--red) 8%, transparent); }
+.icon-btn:hover        { color: var(--text-primary); background: var(--surface); }
+.icon-btn.danger:hover { color: var(--c-neg); background: color-mix(in srgb, var(--c-neg) 12%, transparent); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 </style>

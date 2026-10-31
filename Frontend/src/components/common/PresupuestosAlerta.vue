@@ -56,8 +56,9 @@ onMounted(async () => {
 .alerta-widget {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   padding: 1rem;
+  box-shadow: var(--shadow-card);
 }
 
 .alerta-titulo {
@@ -86,7 +87,7 @@ onMounted(async () => {
   padding: 0.3rem 0.5rem;
   border-radius: 5px;
 }
-.alerta-row.warn   { background: color-mix(in srgb, var(--amber) 8%, transparent); color: var(--amber); }
+.alerta-row.warn   { background: color-mix(in srgb, var(--c-warn) 10%, transparent); color: var(--c-warn); }
 .alerta-row.danger { background: color-mix(in srgb, var(--red) 8%, transparent); color: var(--red); }
 
 .alerta-cat { flex: 1; }

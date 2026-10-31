@@ -16,6 +16,25 @@ public class CategoriasController(CategoriasService service) : BaseController
         return Ok(categorias);
     }
 
+    // Cantidad de categorías activas del usuario
+    [HttpGet("total")]
+    public async Task<IActionResult> GetTotal() =>
+        Ok(await _service.ContarAsync(UserId));
+
+    // Cantidad de categorías con al menos un gasto registrado
+    [HttpGet("con-gastos")]
+    public async Task<IActionResult> GetTotalConGastos() =>
+        Ok(await _service.ContarConGastosAsync(UserId));
+
+    // Todos los gastos registrados en la categoría (montos en COP)
+    [HttpGet("{id:guid}/gastos")]
+    public async Task<IActionResult> GetGastos(Guid id)
+    {
+        var detalle = await _service.GetGastosAsync(id, UserId);
+        if (detalle is null) return NotFound();
+        return Ok(detalle);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CrearCategoriaDto dto)
     {

@@ -1,76 +1,93 @@
 <template>
-  <section class="shots">
-    <div class="shots-inner">
-      <div class="section-label" style="justify-content:center">En acción</div>
-      <h2 class="shots-title">Así se ve tu dinero, de un vistazo</h2>
+  <section class="l-section shots">
+    <div class="l-glow sg1" aria-hidden="true" />
+    <div class="l-container">
+      <div class="l-section-head reveal">
+        <span class="l-eyebrow">En acción</span>
+        <h2 class="l-h2">Así se ve tu dinero, <span class="l-grad">de un vistazo</span></h2>
+      </div>
 
-      <div class="shots-tabs">
+      <div class="tabs reveal" role="tablist" aria-label="Vistas de la app">
         <button
           v-for="tab in tabs"
           :key="tab.id"
-          class="shots-tab"
-          :class="{ 'shots-tab--active': tab.id === active }"
+          role="tab"
+          class="tab"
+          :class="{ 'is-active': tab.id === active }"
+          :aria-selected="tab.id === active"
           @click="active = tab.id"
         >
-          {{ tab.label }}
+          <component :is="tab.icon" :size="15" :stroke-width="2" /> {{ tab.label }}
         </button>
       </div>
 
-      <div class="shots-window">
-        <div class="mock-titlebar">
-          <span class="mock-dot" style="background:#c17165" />
-          <span class="mock-dot" style="background:#c2a06b" />
-          <span class="mock-dot" style="background:#5c9678" />
-          <span class="mock-titlebar-label">zaldo.app/{{ active }}</span>
+      <div class="window reveal" aria-hidden="true">
+        <div class="win-bar">
+          <span class="dot" /><span class="dot" /><span class="dot" />
+          <span class="win-url">zaldo.app/{{ active }}</span>
         </div>
 
-        <!-- Dashboard -->
-        <div v-if="active === 'dashboard'" class="mock-body">
-          <div class="mock-kpis">
-            <div class="mock-kpi" style="--ca: var(--green)"><span class="mock-kpi-lbl">Ingresos</span><span class="mock-kpi-val" style="color:var(--green)">$ 4.200.000</span></div>
-            <div class="mock-kpi" style="--ca: var(--red)"><span class="mock-kpi-lbl">Gastos</span><span class="mock-kpi-val" style="color:var(--red)">$ 2.850.000</span></div>
-            <div class="mock-kpi" style="--ca: var(--accent)"><span class="mock-kpi-lbl">Ahorro</span><span class="mock-kpi-val" style="color:var(--accent)">32%</span></div>
-          </div>
-          <div class="mock-donut-row">
-            <div class="mock-donut" />
-            <div class="mock-bars-v">
-              <div v-for="(h, i) in [40,65,50,85,60,95]" :key="i" class="mock-bar" :style="{ height: h + '%', background: h > 70 ? 'var(--green)' : 'var(--amber)' }" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Gastos -->
-        <div v-else-if="active === 'gastos'" class="mock-body">
-          <div class="mock-kpis">
-            <div class="mock-kpi" style="--ca: var(--red)"><span class="mock-kpi-lbl">Fijos</span><span class="mock-kpi-val" style="color:var(--red)">$ 1.295.000</span></div>
-            <div class="mock-kpi" style="--ca: var(--amber)"><span class="mock-kpi-lbl">Ocasionales</span><span class="mock-kpi-val" style="color:var(--amber)">$ 690.000</span></div>
-            <div class="mock-kpi" style="--ca: var(--accent)"><span class="mock-kpi-lbl">Total</span><span class="mock-kpi-val" style="color:var(--accent)">$ 1.985.000</span></div>
-          </div>
-          <div class="mock-list">
-            <div v-for="row in mockGastos" :key="row.cat" class="mock-list-row">
-              <span class="tag" :class="row.tipo === 'Fijo' ? 'tag-red' : 'tag-amber'">{{ row.tipo }}</span>
-              <span class="mock-list-cat">{{ row.cat }}</span>
-              <span class="mock-list-val">{{ row.monto }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Historial -->
-        <div v-else class="mock-body">
-          <div class="mock-kpis">
-            <div class="mock-kpi" style="--ca: var(--green)"><span class="mock-kpi-lbl">Ahorro total</span><span class="mock-kpi-val" style="color:var(--green)">$ 8.100.000</span></div>
-            <div class="mock-kpi" style="--ca: var(--green)"><span class="mock-kpi-lbl">% Ahorro prom.</span><span class="mock-kpi-val" style="color:var(--green)">27%</span></div>
-          </div>
-          <div class="mock-stat-grid">
-            <div v-for="m in mockMeses" :key="m.mes" class="mock-stat-col">
-              <div class="mock-stat-bars">
-                <div class="mock-stat-bar" :style="{ height: m.ingresos + '%', background: 'rgba(99,179,255,0.7)' }" />
-                <div class="mock-stat-bar" :style="{ height: m.gastos + '%', background: 'rgba(248,113,113,0.7)' }" />
+        <Transition name="swap" mode="out-in">
+          <!-- Dashboard -->
+          <div v-if="active === 'dashboard'" key="d" class="win-body">
+            <div class="kpis">
+              <div v-for="k in KPIS_DASH" :key="k.l" class="kpi" :style="{ '--kc': k.c }">
+                <div class="kpi-top"><span>{{ k.l }}</span><i /></div>
+                <strong :class="k.cls">{{ k.v }}</strong>
               </div>
-              <span class="mock-stat-lbl">{{ m.mes }}</span>
+            </div>
+            <div class="dash-row">
+              <div class="panel donut-panel">
+                <div class="donut" />
+                <ul class="legend">
+                  <li><i style="background:#60a5fa" /> Fijos <b>31%</b></li>
+                  <li><i style="background:#fb923c" /> Ocasionales <b>16%</b></li>
+                  <li><i style="background:#34d399" /> Te queda <b>53%</b></li>
+                </ul>
+              </div>
+              <div class="panel bars-panel">
+                <div v-for="(m, i) in BARRAS" :key="i" class="col">
+                  <span class="b b-in" :style="{ height: m[0] + '%' }" />
+                  <span class="b b-out" :style="{ height: m[1] + '%' }" />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+
+          <!-- Gastos -->
+          <div v-else-if="active === 'gastos'" key="g" class="win-body">
+            <div class="kpis kpis--3">
+              <div v-for="k in KPIS_GASTOS" :key="k.l" class="kpi" :style="{ '--kc': k.c }">
+                <div class="kpi-top"><span>{{ k.l }}</span><i /></div>
+                <strong>{{ k.v }}</strong>
+              </div>
+            </div>
+            <div class="panel list">
+              <div v-for="row in GASTOS" :key="row.cat" class="list-row">
+                <span class="list-ico" :style="{ '--rc': row.color }"><component :is="row.icon" :size="15" :stroke-width="2" /></span>
+                <span class="list-main"><b>{{ row.cat }}</b><small>{{ row.det }}</small></span>
+                <span class="list-tag" :class="row.tipo === 'Fijo' ? 'is-fijo' : ''">{{ row.tipo }}</span>
+                <strong>{{ row.monto }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metas -->
+          <div v-else key="m" class="win-body">
+            <div class="metas">
+              <div v-for="m in METAS" :key="m.nombre" class="panel meta">
+                <div class="meta-top">
+                  <span class="list-ico" style="--rc:#34d399"><PiggyBank :size="15" :stroke-width="2" /></span>
+                  <b>{{ m.nombre }}</b>
+                  <span class="meta-pct">{{ m.pct }}%</span>
+                </div>
+                <strong class="meta-amt">{{ m.actual }} <small>de {{ m.objetivo }}</small></strong>
+                <div class="meta-track"><span :style="{ width: m.pct + '%' }" /></div>
+                <span class="meta-ritmo"><Gauge :size="12" :stroke-width="2" /> A este ritmo, en ~{{ m.meses }} meses</span>
+              </div>
+            </div>
+          </div>
+        </Transition>
       </div>
     </div>
   </section>
@@ -78,118 +95,130 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { LayoutDashboard, Receipt, PiggyBank, Gauge, House, ShoppingCart, Wifi, Car } from 'lucide-vue-next'
 
 const tabs = [
-  { id: 'dashboard', label: 'Dashboard' },
-  { id: 'gastos',    label: 'Gastos' },
-  { id: 'historial', label: 'Historial' },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'gastos',    label: 'Gastos',    icon: Receipt },
+  { id: 'metas',     label: 'Metas',     icon: PiggyBank },
 ] as const
-
 const active = ref<typeof tabs[number]['id']>('dashboard')
 
-const mockGastos = [
-  { tipo: 'Fijo',      cat: 'Arriendo',       monto: '$ 1.200.000' },
-  { tipo: 'Ocasional', cat: 'Mercado',        monto: '$ 480.000' },
-  { tipo: 'Fijo',      cat: 'Internet',       monto: '$ 95.000' },
-  { tipo: 'Ocasional', cat: 'Transporte',     monto: '$ 210.000' },
+// Datos ilustrativos
+const KPIS_DASH = [
+  { l: 'Ingresos', v: '$4.200.000', c: '#60a5fa', cls: '' },
+  { l: 'Gastos',   v: '$1.985.000', c: '#f87171', cls: '' },
+  { l: 'Ahorro',   v: '53%',        c: '#34d399', cls: 'pos' },
 ]
-
-const mockMeses = [
-  { mes: 'Mar', ingresos: 70, gastos: 55 },
-  { mes: 'Abr', ingresos: 80, gastos: 70 },
-  { mes: 'May', ingresos: 60, gastos: 45 },
-  { mes: 'Jun', ingresos: 95, gastos: 85 },
-  { mes: 'Jul', ingresos: 75, gastos: 65 },
+const KPIS_GASTOS = [
+  { l: 'Fijos',       v: '$1.295.000', c: '#60a5fa' },
+  { l: 'Ocasionales', v: '$690.000',   c: '#fb923c' },
+  { l: 'Total',       v: '$1.985.000', c: '#94a3b8' },
 ]
+const GASTOS = [
+  { tipo: 'Fijo',      cat: 'Arriendo',   det: 'Apartamento',     monto: '$1.200.000', icon: House,        color: '#34d399' },
+  { tipo: 'Ocasional', cat: 'Mercado',    det: 'D1 y plaza',      monto: '$480.000',   icon: ShoppingCart, color: '#fb923c' },
+  { tipo: 'Fijo',      cat: 'Internet',   det: 'Fibra 300 MB',    monto: '$95.000',    icon: Wifi,         color: '#60a5fa' },
+  { tipo: 'Ocasional', cat: 'Transporte', det: 'Taxis y MIO',     monto: '$210.000',   icon: Car,          color: '#a78bfa' },
+]
+const METAS = [
+  { nombre: 'Viaje a Cartagena', actual: '$1.280.000', objetivo: '$2.000.000', pct: 64, meses: 3 },
+  { nombre: 'Fondo de emergencia', actual: '$3.100.000', objetivo: '$10.000.000', pct: 31, meses: 11 },
+]
+const BARRAS: [number, number][] = [[62, 48], [70, 55], [58, 40], [80, 62], [74, 50], [90, 58]]
 </script>
 
 <style scoped>
-.shots { padding: 5rem 2rem; }
-.shots-inner { max-width: 900px; margin: 0 auto; text-align: center; }
-.shots-title { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.01em; color: var(--text-primary); margin: 0.5rem 0 2rem; }
+.shots { overflow: hidden; }
+.sg1 { width: 700px; height: 500px; bottom: -120px; left: 50%; transform: translateX(-50%); background: rgba(16, 185, 129, 0.14); }
 
-.shots-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-bottom: 1.75rem; }
-.shots-tab {
-  font-family: var(--ff-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  padding: 0.5rem 1.1rem;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s;
+.tabs {
+  display: flex; width: max-content; margin: 0 auto 1.75rem; gap: 2px;
+  padding: 4px; border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04); border: 1px solid var(--l-line);
 }
-.shots-tab:hover { border-color: var(--border-hover); color: var(--text-primary); }
-.shots-tab--active { border-color: var(--accent); color: var(--accent); background: rgba(99,179,255,0.08); }
-
-.shots-window {
-  text-align: left;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5);
+.tab {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  height: 38px; padding: 0 1rem;
+  background: none; border: none; border-radius: 10px;
+  font-size: 0.84rem; font-weight: 500; color: var(--l-sub); cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
 }
-.mock-titlebar { display: flex; align-items: center; gap: 0.4rem; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
-.mock-dot { width: 9px; height: 9px; border-radius: 50%; }
-.mock-titlebar-label { margin-left: 0.75rem; font-size: 0.68rem; color: var(--text-muted); }
+.tab:hover:not(.is-active) { color: var(--l-text); }
+.tab.is-active { color: var(--l-text); background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 0 1px var(--l-line-2); }
+.tab:focus-visible { outline: 2px solid var(--l-blue); outline-offset: 1px; }
 
-.mock-body { padding: 1.75rem; min-height: 220px; }
-.mock-kpis { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
-.mock-kpi {
+.window {
   position: relative;
-  flex: 1;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.65rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  overflow: hidden;
+  max-width: 920px; margin: 0 auto;
+  border-radius: 20px; overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(23, 26, 31, 0.92), rgba(15, 17, 20, 0.96));
+  box-shadow: 0 40px 100px -40px rgba(16, 185, 129, 0.3), 0 30px 60px -30px rgba(0, 0, 0, 0.9);
 }
-.mock-kpi::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--ca, var(--border));
+.win-bar { display: flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.dot { width: 10px; height: 10px; border-radius: 99px; background: rgba(255, 255, 255, 0.14); }
+.win-url { margin: 0 auto; padding: 3px 14px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); font-size: 0.68rem; color: var(--l-muted); }
+.win-body { display: flex; flex-direction: column; gap: 12px; padding: 16px; min-height: 330px; }
+
+.panel { padding: 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.06); }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.kpi { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.06); }
+.kpi-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-sub); }
+.kpi-top i { width: 20px; height: 20px; border-radius: 6px; background: color-mix(in srgb, var(--kc) 22%, transparent); }
+.kpi strong { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; }
+.kpi strong.pos { color: var(--l-green); }
+
+.dash-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 12px; flex: 1; }
+.donut-panel { display: flex; align-items: center; gap: 18px; }
+.donut {
+  width: 104px; height: 104px; flex-shrink: 0; border-radius: 50%;
+  background: conic-gradient(#60a5fa 0 31%, #fb923c 31% 47%, #34d399 47% 100%);
+  -webkit-mask: radial-gradient(circle, transparent 54%, #000 55%);
+  mask: radial-gradient(circle, transparent 54%, #000 55%);
 }
-.mock-kpi-lbl { font-size: 0.58rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
-.mock-kpi-val { font-size: 0.85rem; font-weight: 700; }
+.legend { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 0.74rem; color: var(--l-sub); }
+.legend li { display: flex; align-items: center; gap: 7px; }
+.legend i { width: 8px; height: 8px; border-radius: 99px; }
+.legend b { margin-left: auto; padding-left: 10px; color: var(--l-text); font-weight: 700; }
+.bars-panel { display: flex; align-items: flex-end; gap: 5%; padding-bottom: 0; }
+.col { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 3px; height: 100%; }
+.b { width: 40%; max-width: 16px; border-radius: 4px 4px 0 0; }
+.b-in  { background: linear-gradient(to top, rgba(59, 130, 246, 0.45), #3b82f6); }
+.b-out { background: linear-gradient(to top, rgba(244, 63, 94, 0.4), #f43f5e); }
 
-.mock-donut-row { display: flex; align-items: flex-end; gap: 1.5rem; }
-.mock-donut {
-  width: 90px; height: 90px; border-radius: 50%; flex-shrink: 0;
-  background: conic-gradient(var(--red) 0% 35%, var(--amber) 35% 60%, var(--green) 60% 100%);
-  mask: radial-gradient(circle, transparent 55%, black 56%);
-  -webkit-mask: radial-gradient(circle, transparent 55%, black 56%);
-}
-.mock-bars-v { flex: 1; display: flex; align-items: flex-end; gap: 0.5rem; height: 90px; }
-.mock-bar { flex: 1; border-radius: 4px 4px 0 0; opacity: 0.85; }
+.list { display: flex; flex-direction: column; gap: 2px; padding: 6px; }
+.list-row { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 10px; }
+.list-row:hover { background: rgba(255, 255, 255, 0.04); }
+.list-ico { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0; color: var(--rc); background: color-mix(in srgb, var(--rc) 15%, transparent); }
+.list-main { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.list-main b { font-size: 0.82rem; font-weight: 600; }
+.list-main small { font-size: 0.68rem; color: var(--l-sub); }
+.list-tag { padding: 2px 8px; border-radius: 99px; font-size: 0.62rem; color: #fb923c; background: rgba(251, 146, 60, 0.13); }
+.list-tag.is-fijo { color: var(--l-blue); background: rgba(96, 165, 250, 0.13); }
+.list-row strong { font-size: 0.84rem; font-weight: 700; min-width: 92px; text-align: right; }
 
-.mock-list { display: flex; flex-direction: column; gap: 0.6rem; }
-.mock-list-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
-.mock-list-row:last-child { border-bottom: none; }
-.mock-list-cat { flex: 1; font-size: 0.8rem; color: var(--text-primary); }
-.mock-list-val { font-size: 0.8rem; color: var(--text-primary); font-weight: 600; }
+.metas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.meta { display: flex; flex-direction: column; gap: 10px; }
+.meta-top { display: flex; align-items: center; gap: 10px; }
+.meta-top b { flex: 1; font-size: 0.86rem; font-weight: 700; }
+.meta-pct { padding: 2px 8px; border-radius: 99px; font-size: 0.66rem; font-weight: 700; color: var(--l-green); background: rgba(52, 211, 153, 0.13); }
+.meta-amt { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.03em; }
+.meta-amt small { font-size: 0.74rem; font-weight: 400; color: var(--l-sub); letter-spacing: 0; }
+.meta-track { height: 10px; border-radius: 99px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+.meta-track span { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #2dd4bf, #34d399); box-shadow: 0 0 12px rgba(52, 211, 153, 0.5); }
+.meta-ritmo { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--l-sub); }
+.meta-ritmo svg { color: var(--l-blue); }
 
-.mock-stat-grid { display: flex; align-items: flex-end; justify-content: space-around; height: 140px; gap: 1rem; }
-.mock-stat-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0.5rem; height: 100%; flex: 1; }
-.mock-stat-bars { flex: 1; display: flex; align-items: flex-end; gap: 3px; width: 100%; max-width: 34px; }
-.mock-stat-bar { flex: 1; border-radius: 3px 3px 0 0; opacity: 0.9; }
-.mock-stat-lbl { font-size: 0.65rem; color: var(--text-muted); }
+.swap-enter-active, .swap-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.swap-enter-from { opacity: 0; transform: translateY(6px); }
+.swap-leave-to   { opacity: 0; }
 
-@media (max-width: 600px) {
-  .shots { padding: 3rem 1.25rem; }
-  .shots-title { font-size: 1.5rem; }
-  .mock-body { padding: 1.1rem; }
-  .mock-kpis { flex-wrap: wrap; gap: 0.5rem; }
-  .mock-kpi { min-width: calc(50% - 0.25rem); }
-  .mock-donut-row { flex-direction: column; align-items: center; gap: 1rem; }
-  .mock-bars-v { width: 100%; }
-  .mock-stat-grid { gap: 0.4rem; height: 120px; }
+@media (max-width: 720px) {
+  .kpis, .kpis--3 { grid-template-columns: 1fr 1fr; }
+  .dash-row, .metas { grid-template-columns: 1fr; }
+  .bars-panel { min-height: 140px; }
+  .list-tag { display: none; }
+  .tab { padding: 0 0.75rem; }
 }
 </style>

@@ -63,7 +63,11 @@ namespace Finanzas.Application.Services
             var existente = await _repo.GetByIdAsync(id, userId);
             if (existente is null) return null;
 
+            // El formulario de edición no manda NumCuotas: sin esto, editar una cuota la
+            // sacaba del plan (NumCuotas = null) y Cuotas dejaba de contarla.
+            var numCuotas = existente.NumCuotas;
             _mapper.Map(dto, existente);
+            existente.NumCuotas = numCuotas;
             var actualizado = await _repo.UpdateAsync(existente);
             return _mapper.Map<GastoDto>(actualizado);
         }

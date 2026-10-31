@@ -12,5 +12,7 @@ namespace Finanzas.Application.Interfaces
         Task<Ingreso> UpdateAsync(Ingreso ingreso);
         Task DeleteAsync(Guid id);
         Task DeleteByDeudaIdAsync(Guid deudaId);
+        /// <summary>Ingresos hasta el mes actual cuyo concepto contiene <paramref name="texto"/> o cuyo monto es <paramref name="monto"/>.</summary>
+        Task<IEnumerable<Ingreso>> BuscarAsync(string? texto, decimal? monto, Guid userId, int limite);
     }
 }

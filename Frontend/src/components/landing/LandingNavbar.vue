@@ -1,14 +1,16 @@
 <template>
   <header class="lnav" :class="{ 'lnav--scrolled': scrolled }">
     <div class="lnav-inner">
-      <AppLogo class="lnav-logo" />
+      <RouterLink to="/" class="lnav-brand" aria-label="Zaldo, inicio" @click="goToSection('hero')">
+        <AppLogo />
+      </RouterLink>
 
-      <nav class="lnav-links">
+      <nav class="lnav-links" aria-label="Secciones">
         <button
           v-for="item in items"
           :key="item.id"
           class="lnav-link"
-          :class="{ 'lnav-link--active': activeSection === item.id }"
+          :class="{ 'is-active': activeSection === item.id }"
           @click="goToSection(item.id)"
         >
           {{ item.label }}
@@ -16,60 +18,59 @@
       </nav>
 
       <div class="lnav-actions">
-        <RouterLink to="/login" class="btn" style="text-decoration:none">
-          Iniciar sesión
-        </RouterLink>
-        <RouterLink to="/register" class="btn btn-primary" style="text-decoration:none">
-          Regístrate
+        <RouterLink to="/login" class="l-btn l-btn--sm lnav-login">Iniciar sesión</RouterLink>
+        <RouterLink to="/register" class="l-btn l-btn--sm l-btn--white">
+          Crear cuenta <ArrowRight :size="14" :stroke-width="2.4" class="l-arrow" />
         </RouterLink>
       </div>
 
-      <button class="hamburger" @click="drawerOpen = true">
+      <button class="hamburger" aria-label="Abrir menú" @click="drawerOpen = true">
         <Menu :size="20" :stroke-width="2" />
       </button>
     </div>
   </header>
 
-  <Transition name="fade">
-    <div v-if="drawerOpen" class="ldrawer-overlay" @click="drawerOpen = false" />
-  </Transition>
-  <aside class="ldrawer" :class="{ 'ldrawer--open': drawerOpen }">
-    <div class="ldrawer-header">
-      <AppLogo class="lnav-logo" />
-      <button class="icon-btn" @click="drawerOpen = false">
-        <X :size="18" :stroke-width="2" />
-      </button>
-    </div>
+  <!-- Menú móvil -->
+  <Teleport to="body">
+    <Transition name="ldrawer-fade">
+      <div v-if="drawerOpen" class="ldrawer-overlay" @click="drawerOpen = false" />
+    </Transition>
+    <aside class="ldrawer" :class="{ 'ldrawer--open': drawerOpen }" :aria-hidden="!drawerOpen">
+      <div class="ldrawer-header">
+        <AppLogo class="ldrawer-logo" />
+        <button class="ldrawer-close" aria-label="Cerrar menú" @click="drawerOpen = false">
+          <X :size="18" :stroke-width="2" />
+        </button>
+      </div>
 
-    <nav class="ldrawer-nav">
-       <button
-        v-for="item in items"
-        :key="item.id"
-        class="ldrawer-link"
-        :class="{ 'ldrawer-link--active': activeSection === item.id }"
-        @click="goToSection(item.id)"
-      >
-        <component :is="item.icon" :size="16" :stroke-width="2" />
-        {{ item.label }}
-      </button>
-    </nav>
+      <nav class="ldrawer-nav">
+        <button
+          v-for="item in items"
+          :key="item.id"
+          class="ldrawer-link"
+          :class="{ 'is-active': activeSection === item.id }"
+          @click="goToSection(item.id)"
+        >
+          <component :is="item.icon" :size="17" :stroke-width="1.9" />
+          {{ item.label }}
+        </button>
+      </nav>
 
-    <div class="ldrawer-auth">
-      <RouterLink to="/login" class="btn ldrawer-btn-full" @click="drawerOpen = false">
-        <LogIn :size="14" :stroke-width="2" />
-        Iniciar sesión
-      </RouterLink>
-      <RouterLink to="/register" class="btn btn-primary ldrawer-btn-full" @click="drawerOpen = false">
-        <UserPlus :size="14" :stroke-width="2" />
-        Regístrate
-      </RouterLink>
-    </div>
-  </aside>
+      <div class="ldrawer-auth">
+        <RouterLink to="/register" class="ldrawer-btn ldrawer-btn--white" @click="drawerOpen = false">
+          <UserPlus :size="15" :stroke-width="2" /> Crear cuenta gratis
+        </RouterLink>
+        <RouterLink to="/login" class="ldrawer-btn" @click="drawerOpen = false">
+          <LogIn :size="15" :stroke-width="2" /> Iniciar sesión
+        </RouterLink>
+      </div>
+    </aside>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { Menu, X, LayoutGrid, ListChecks, HelpCircle, Mail, LogIn, UserPlus, Home } from 'lucide-vue-next'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { Menu, X, LayoutGrid, ListChecks, HelpCircle, Mail, LogIn, UserPlus, Home, ArrowRight } from 'lucide-vue-next'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { scrollToSection } from '@/composables/useLanding'
 import AppLogo from '@/components/common/AppLogo.vue'
@@ -90,220 +91,121 @@ const items = [
 ]
 
 const goToSection = async (id: string) => {
-  // Cerrar el menú
   drawerOpen.value = false
-
-  // Ir a páginas
-  if (id === 'login' || id === 'register') {
-    await router.push(`/${id}`)
-    return
-  }
-
-  // Si no estamos en la landing, ir a ella
-  if (route.path !== '/') {
-    await router.push('/')
-  }
-
-  // Activar los estilos a la sección seleccionada
+  if (route.path !== '/') await router.push('/')
   activeSection.value = id
-  // Ir a la sección
   scrollToSection(id)
 }
 
 const handleScroll = () => {
-  const scrollPosition = window.scrollY + 120
-
+  scrolled.value = window.scrollY > 12
+  const scrollPosition = window.scrollY + 140
   for (const id of sectionIds) {
     const section = document.getElementById(id)
-
-    if (
-      section &&
-      scrollPosition >= section.offsetTop &&
-      scrollPosition < section.offsetTop + section.offsetHeight
-    ) {
+    if (section && scrollPosition >= section.offsetTop && scrollPosition < section.offsetTop + section.offsetHeight) {
       activeSection.value = id
     }
   }
 }
 
-onMounted(() => window.addEventListener('scroll', handleScroll))
+onMounted(() => { window.addEventListener('scroll', handleScroll, { passive: true }); handleScroll() })
 onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 </script>
 
 <style scoped>
 .lnav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  transition: background 0.2s, border-color 0.2s;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  padding: 14px 1.25rem 0;
+  pointer-events: none;
 }
-.lnav--scrolled {
-  background: var(--surface);
-  border-bottom-color: var(--border);
-}
-
 .lnav-inner {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 1.1rem 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 1.5rem;
+  max-width: 1160px; height: 60px; margin: 0 auto;
+  padding: 0 0.6rem 0 1.1rem;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, backdrop-filter 0.25s ease;
 }
+.lnav--scrolled .lnav-inner {
+  background: rgba(13, 17, 24, 0.66);
+  border-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.8);
+}
+.lnav-brand { font-size: 1.1rem; color: var(--l-text); text-decoration: none; }
 
-.lnav-logo {
-  font-family: var(--ff-display);
-  font-weight: 800;
-  font-size: 1.15rem;
-  letter-spacing: 0.06em;
-  color: var(--text-primary);
-}
-
-.lnav-links {
-  display: flex;
-  gap: 1.75rem;
-}
+.lnav-links { display: flex; align-items: center; gap: 0.15rem; margin: 0 auto; }
 .lnav-link {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text-secondary);
-  font-family: var(--ff-mono);
-  font-size: 0.78rem;
-  cursor: pointer;
-  padding: 0 0 2px;
-  transition: color 0.15s;
+  height: 36px; padding: 0 0.85rem;
+  background: none; border: none; border-radius: 10px;
+  font-size: 0.84rem; font-weight: 500; color: var(--l-sub);
+  cursor: pointer; transition: color 0.15s ease, background 0.15s ease;
 }
-.lnav-link:hover { color: var(--text-primary); }
+.lnav-link:hover { color: var(--l-text); background: rgba(255, 255, 255, 0.05); }
+.lnav-link.is-active { color: var(--l-text); }
+.lnav-link:focus-visible { outline: 2px solid var(--l-blue); outline-offset: 1px; }
 
-.lnav-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
+.lnav-actions { display: flex; align-items: center; gap: 0.4rem; }
+.lnav-login { color: var(--l-sub); background: none; }
+.lnav-login:hover { color: var(--l-text); background: rgba(255, 255, 255, 0.05); }
 
 .hamburger {
-  display: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-secondary);
-  padding: 4px;
-  border-radius: 6px;
-  transition: color 0.15s, background 0.15s;
-  align-items: center;
-  justify-content: center;
+  display: none; margin-left: auto;
+  width: 42px; height: 42px; place-items: center;
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
+  color: var(--l-text); cursor: pointer;
 }
-.hamburger:hover { color: var(--text-primary); background: var(--surface2); }
 
-.icon-btn {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.15s, background 0.15s;
-  text-decoration: none;
-  flex-shrink: 0;
-}
-.icon-btn:hover { color: var(--text-primary); background: var(--surface2); }
-
-/* Drawer móvil */
-.ldrawer-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(2px);
-  z-index: 199;
-}
-.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-
+/* ── Drawer (teleportado: usa colores fijos) ── */
+.ldrawer-overlay { position: fixed; inset: 0; z-index: 90; background: rgba(3, 5, 8, 0.6); backdrop-filter: blur(4px); }
 .ldrawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100dvh;
-  width: 280px;
-  max-width: 85vw;
-  background: var(--surface);
-  border-left: 1px solid var(--border);
-  z-index: 200;
-  transform: translateX(100%);
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  padding: 1.25rem 1rem;
-  box-shadow: -8px 0 32px rgba(0,0,0,0.35);
+  position: fixed; top: 10px; right: 10px; bottom: 10px; z-index: 100;
+  width: min(320px, calc(100vw - 20px));
+  display: flex; flex-direction: column; gap: 1.25rem;
+  padding: 1.1rem;
+  background: rgba(13, 17, 24, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #f1f5f9;
+  transform: translateX(calc(100% + 20px));
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
-.ldrawer--open { transform: translateX(0); }
-
-.ldrawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-  padding: 0 0.25rem;
+.ldrawer--open { transform: none; }
+.ldrawer-header { display: flex; justify-content: space-between; align-items: center; }
+.ldrawer-logo { font-family: var(--ff-display); font-weight: 800; letter-spacing: 0.06em; font-size: 1.05rem; }
+.ldrawer-logo :deep(.app-logo-mark) { color: #60a5fa; }
+.ldrawer-close {
+  display: grid; place-items: center; width: 36px; height: 36px;
+  background: rgba(255, 255, 255, 0.05); border: none; border-radius: 10px; color: #f1f5f9; cursor: pointer;
 }
-
-.ldrawer-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  flex: 1;
-}
+.ldrawer-nav { display: flex; flex-direction: column; gap: 2px; }
 .ldrawer-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: none;
-  border: none;
-  border-left: 2px solid transparent;
-  text-align: left;
-  padding: 0.7rem 0.6rem;
-  padding-left: calc(0.6rem - 2px);
-  border-radius: 6px;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+  display: flex; align-items: center; gap: 0.75rem;
+  height: 46px; padding: 0 0.85rem;
+  background: none; border: none; border-radius: 12px;
+  font: inherit; font-size: 0.9rem; font-weight: 500; color: #94a3b8; text-align: left;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.ldrawer-link svg { flex-shrink: 0; opacity: 0.8; }
-.ldrawer-link:hover { background: var(--surface2); color: var(--text-primary); }
-
-.ldrawer-auth {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  padding-top: 1rem;
-  margin-top: 0.75rem;
-  border-top: 1px solid var(--border);
+.ldrawer-link:hover, .ldrawer-link.is-active { color: #f1f5f9; background: rgba(255, 255, 255, 0.06); }
+.ldrawer-auth { margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+.ldrawer-btn {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  height: 48px; border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.04);
+  font-size: 0.9rem; font-weight: 600; color: #f1f5f9; text-decoration: none;
 }
-.ldrawer-btn-full { width: 100%; justify-content: center; text-decoration: none; }
+.ldrawer-btn--white { background: #f8fafc; border-color: transparent; color: #0b0f17; }
+.ldrawer-fade-enter-active, .ldrawer-fade-leave-active { transition: opacity 0.2s ease; }
+.ldrawer-fade-enter-from, .ldrawer-fade-leave-to { opacity: 0; }
 
-.lnav-link--active {
-  color: var(--accent);
-  font-weight: 600;
-  border-bottom-color: var(--accent);
-}
-
-.ldrawer-link--active {
-  color: var(--accent);
-  background: rgba(99, 179, 255, 0.08);
-  border-left-color: var(--accent);
-  font-weight: 600;
-}
-
-@media (max-width: 800px) {
+@media (max-width: 900px) {
   .lnav-links, .lnav-actions { display: none; }
-  .hamburger { display: flex; }
-  .lnav-inner { padding: 1rem 1.25rem; }
+  .hamburger { display: grid; }
+  .lnav { padding: 10px 0.75rem 0; }
+  .lnav-inner { height: 56px; padding: 0 0.5rem 0 1rem; }
 }
 </style>

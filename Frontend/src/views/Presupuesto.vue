@@ -1,19 +1,31 @@
 <template>
   <div class="fade-up">
     <div class="page-header">
-      <div>
-        <div class="section-label">Planificación</div>
-        <h1 class="page-title">Presupuesto</h1>
+      <div class="header-left">
+        <div>
+          <div class="section-label">Planificación</div>
+          <h1 class="page-title">Presupuesto</h1>
+        </div>
       </div>
       <MonthSelector class="month-selector" :mes="mes" :anio="anio" @change="onCambioMes" />
     </div>
 
-    <div v-if="hayPeligro" class="banner-danger">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
-      Tienes categorías que superaron su presupuesto este mes
+    <div v-if="hayPeligro" class="banner-warn">
+      <div class="banner-icon-box">
+        <TriangleAlert :size="16" :stroke-width="2" />
+      </div>
+      <div class="banner-text">
+        <p class="banner-title">
+          {{ sobrepasadas.length === 1
+            ? 'Tienes 1 categoría que superó su presupuesto este mes'
+            : `Tienes ${sobrepasadas.length} categorías que superaron su presupuesto este mes` }}
+        </p>
+        <p class="banner-sub">Revisa tus gastos y ajusta tus límites para mantener el control.</p>
+      </div>
+      <button class="banner-btn" @click="verSobrepasadas">
+        {{ filtro === 'sobrepasadas' ? 'Ver todas' : 'Ver detalles' }}
+        <ArrowRight :size="14" :stroke-width="2" />
+      </button>
     </div>
 
     <div v-if="loadingInit || composableLoading" class="loading-list">
@@ -23,10 +35,73 @@
     <template v-else>
       <div class="seccion">
         <div class="seccion-header">
-          <span class="seccion-titulo">Categorías</span>
-          <span class="seccion-resumen">
-            {{ itemsConLimite.length }} de {{ items.length }} con límite
-          </span>
+          <div class="seccion-left">
+            <h2 class="seccion-titulo">Categorías</h2>
+            <span class="seccion-resumen">{{ itemsConLimite.length }} de {{ items.length }} con límite</span>
+          </div>
+
+          <div v-if="items.length > 0" class="toolbar">
+            <div class="search-wrap">
+              <Search :size="14" :stroke-width="2" class="search-icon" />
+              <input v-model="busqueda" class="input search-input" placeholder="Buscar categoría..." />
+              <button v-if="busqueda" class="search-clear" title="Limpiar" @click="busqueda = ''">
+                <X :size="12" :stroke-width="2.2" />
+              </button>
+            </div>
+
+            <!-- Filtro -->
+            <div class="dropdown">
+              <button
+                class="tool-btn tool-btn--icon"
+                :class="{ 'tool-btn--active': filtro !== 'todas' }"
+                title="Filtrar"
+                @click="toggleMenu('filtro')"
+                @blur="cerrarMenu"
+              >
+                <ListFilter :size="15" :stroke-width="2" />
+                <span v-if="filtro !== 'todas'" class="tool-dot" />
+              </button>
+              <Transition name="menu">
+                <div v-if="menuAbierto === 'filtro'" class="menu">
+                  <button
+                    v-for="op in FILTROS"
+                    :key="op.value"
+                    class="menu-item"
+                    :class="{ 'menu-item--active': filtro === op.value }"
+                    @mousedown.prevent
+                    @click="filtro = op.value; menuAbierto = ''"
+                  >
+                    {{ op.label }}
+                    <Check v-if="filtro === op.value" :size="13" :stroke-width="2.2" />
+                  </button>
+                </div>
+              </Transition>
+            </div>
+
+            <!-- Orden -->
+            <div class="dropdown">
+              <button class="tool-btn" @click="toggleMenu('orden')" @blur="cerrarMenu">
+                <ArrowDownWideNarrow :size="15" :stroke-width="2" />
+                <span class="tool-label">Ordenar: {{ ordenLabel }}</span>
+                <ChevronDown :size="14" :stroke-width="2" class="tool-chevron" :class="{ 'tool-chevron--open': menuAbierto === 'orden' }" />
+              </button>
+              <Transition name="menu">
+                <div v-if="menuAbierto === 'orden'" class="menu">
+                  <button
+                    v-for="op in ORDENES"
+                    :key="op.value"
+                    class="menu-item"
+                    :class="{ 'menu-item--active': orden === op.value }"
+                    @mousedown.prevent
+                    @click="orden = op.value; menuAbierto = ''"
+                  >
+                    {{ op.label }}
+                    <Check v-if="orden === op.value" :size="13" :stroke-width="2.2" />
+                  </button>
+                </div>
+              </Transition>
+            </div>
+          </div>
         </div>
 
         <div v-if="items.length === 0" class="empty">
@@ -34,72 +109,22 @@
           <RouterLink to="/categorias" class="link">créalas aquí</RouterLink>
         </div>
 
-        <div v-for="item in items" :key="item.categoria" class="budget-card">
-          <!-- Vista normal -->
-          <template v-if="editingCat !== item.categoria">
-            <div class="bc-top">
-              <span class="bc-cat">{{ item.categoria }}</span>
-              <div class="bc-acciones">
-                <span v-if="item.limite" class="bc-badge" :class="`badge-${item.estado}`">
-                  {{ item.pct.toFixed(0) }}%
-                </span>
-                <button class="icon-btn" :title="item.limite ? 'Editar límite' : 'Asignar límite'" @click="startEdit(item.categoria, item.limite)">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                </button>
-                <button v-if="item.limite" class="icon-btn danger" title="Quitar límite" @click="eliminar(item.categoria)">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- Con límite -->
-            <template v-if="item.limite">
-              <div class="bc-bar-wrap">
-                <div
-                  class="bc-bar"
-                  :class="`bar-${item.estado}`"
-                  :style="{ width: Math.min(item.pct, 100) + '%' }"
-                />
-              </div>
-              <div class="bc-nums">
-                <span class="bc-gastado">{{ fmt(item.gastado) }} gastado</span>
-                <span class="bc-resto" :class="item.estado === 'danger' ? 'resto-over' : 'resto-ok'">
-                  {{ item.estado === 'danger'
-                      ? `${fmt(item.gastado - item.limite)} excedido`
-                      : `${fmt(item.limite - item.gastado)} disponible` }}
-                </span>
-                <span class="bc-limite">de {{ fmt(item.limite) }}</span>
-              </div>
-            </template>
-
-            <!-- Sin límite -->
-            <div v-else class="bc-sin-limite">
-              <span class="bc-gastado-solo">{{ fmt(item.gastado) }} gastado</span>
-              <button class="btn-asignar" @click="startEdit(item.categoria, null)">
-                + Asignar límite
-              </button>
-            </div>
-          </template>
-
-          <!-- Modo edición -->
-          <template v-else>
-            <div class="bc-edit">
-              <span class="bc-cat">{{ item.categoria }}</span>
-              <div class="bc-edit-form">
-                <span class="edit-label">Límite mensual</span>
-                <div class="edit-row">
-                  <CurrencyInput v-model="editLimite" class="input input-edit" />
-                  <div class="edit-actions">
-                    <button class="btn" @click="editingCat = ''">Cancelar</button>
-                    <button class="btn btn-primary" :disabled="saving || editLimite <= 0" @click="guardar(item.categoria)">
-                      {{ saving ? '...' : 'Guardar' }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </template>
+        <div v-else-if="presupuestosFiltrados.length === 0" class="empty">
+          Ninguna categoría coincide con la búsqueda o el filtro.
+          <button class="link-btn" @click="limpiarFiltros">Limpiar filtros</button>
         </div>
+
+        <BudgetCategoryCard
+          v-else
+          v-model:edit-limite="editLimite"
+          :items="presupuestosFiltrados"
+          :editing-cat="editingCat"
+          :saving="saving"
+          @edit="startEdit"
+          @guardar="guardar"
+          @cancelar="editingCat = ''"
+          @delete="eliminar"
+        />
       </div>
     </template>
   </div>
@@ -110,10 +135,26 @@ import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useFinanceStore } from '@/stores/finance'
 import { useToast } from '@/composables/useToast'
-import { fmtCOP as fmt } from '@/utils'
+import { TriangleAlert, ArrowRight, Search, X, ListFilter, ArrowDownWideNarrow, ChevronDown, Check } from 'lucide-vue-next'
 import { usePresupuestoMensual } from '@/composables/usePresupuestoMensual'
-import CurrencyInput from '@/components/common/CurrencyInput.vue'
+import BudgetCategoryCard from '@/components/presupuesto/BudgetCategoryCard.vue'
 import MonthSelector from '@/components/common/MonthSelector.vue'
+
+type Filtro = 'todas' | 'con-limite' | 'sin-limite' | 'sobrepasadas'
+type Orden  = 'nombre' | 'uso' | 'gastado'
+
+const FILTROS: { value: Filtro; label: string }[] = [
+  { value: 'todas',        label: 'Todas' },
+  { value: 'con-limite',   label: 'Con límite' },
+  { value: 'sin-limite',   label: 'Sin límite' },
+  { value: 'sobrepasadas', label: 'Sobrepasadas' },
+]
+
+const ORDENES: { value: Orden; label: string }[] = [
+  { value: 'nombre',  label: 'Nombre' },
+  { value: 'uso',     label: '% usado' },
+  { value: 'gastado', label: 'Gastado' },
+]
 
 const store = useFinanceStore()
 const toast = useToast()
@@ -122,15 +163,55 @@ const loadingInit = ref(false)
 const saving      = ref(false)
 const editingCat  = ref('')
 const editLimite  = ref(0)
-
+const busqueda    = ref('')
+const filtro      = ref<Filtro>('todas')
+const orden       = ref<Orden>('nombre')
+const menuAbierto = ref<'' | 'filtro' | 'orden'>('')
 const mes  = ref(new Date().getMonth() + 1)
 const anio = ref(new Date().getFullYear())
-
 const { items, loading: composableLoading, cargar } = usePresupuestoMensual(mes, anio)
 
-const hayPeligro = computed(() => items.value.some(i => i.estado === 'danger'))
-
+const sobrepasadas   = computed(() => items.value.filter(i => i.estado === 'danger'))
+const hayPeligro     = computed(() => sobrepasadas.value.length > 0)
 const itemsConLimite = computed(() => items.value.filter(i => i.limite))
+const ordenLabel     = computed(() => ORDENES.find(o => o.value === orden.value)!.label)
+
+const presupuestosFiltrados = computed(() => {
+  const q = busqueda.value.trim().toLowerCase()
+  const lista = items.value.filter(i => {
+    if (q && !i.categoria.toLowerCase().includes(q)) return false
+    switch (filtro.value) {
+      case 'con-limite':   return !!i.limite
+      case 'sin-limite':   return !i.limite
+      case 'sobrepasadas': return i.estado === 'danger'
+      default:             return true
+    }
+  })
+
+  return [...lista].sort((a, b) => {
+    if (orden.value === 'uso')     return b.pct - a.pct
+    if (orden.value === 'gastado') return b.gastado - a.gastado
+    return a.categoria.localeCompare(b.categoria, 'es')
+  })
+})
+
+function toggleMenu(menu: 'filtro' | 'orden') {
+  menuAbierto.value = menuAbierto.value === menu ? '' : menu
+}
+
+function cerrarMenu() {
+  menuAbierto.value = ''
+}
+
+function verSobrepasadas() {
+  filtro.value = filtro.value === 'sobrepasadas' ? 'todas' : 'sobrepasadas'
+  busqueda.value = ''
+}
+
+function limpiarFiltros() {
+  busqueda.value = ''
+  filtro.value = 'todas'
+}
 
 function onCambioMes(m: number, a: number) {
   mes.value = m
@@ -181,129 +262,144 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-.page-title  { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.25rem; }
-.empty       { font-size: 0.72rem; color: var(--text-muted); padding: 0.5rem 0; }
-.link        { color: var(--accent); text-decoration: none; }
+.header-left { display: flex; align-items: flex-end; gap: 1.25rem; flex-wrap: wrap; }
+.empty       { font-size: 0.78rem; color: var(--text-muted); padding: 1.5rem 0; text-align: center; }
+.link        { color: var(--accent-strong); text-decoration: none; }
 .link:hover  { text-decoration: underline; }
+.link-btn    { background: none; border: none; padding: 0; margin-left: 0.25rem; color: var(--accent-strong); font: inherit; cursor: pointer; }
+.link-btn:hover { text-decoration: underline; }
 
-.banner-danger {
-  display: flex; align-items: center; gap: 0.5rem;
-  background: color-mix(in srgb, var(--red) 8%, transparent); border: 1px solid color-mix(in srgb, var(--red) 20%, transparent);
-  border-radius: 8px; padding: 0.6rem 0.9rem;
-  font-size: 0.78rem; color: var(--red); margin-bottom: 1rem;
+/* ── Banner de alerta: tinte transparente, sin borde ── */
+.banner-warn {
+  --w: var(--c-warn);
+  display: flex; align-items: center; gap: 0.9rem;
+  padding: 0.85rem 0.9rem 0.85rem 1rem;
+  margin-bottom: 1.75rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--w) 10%, transparent);
 }
+.banner-icon-box {
+  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--w);
+  background: color-mix(in srgb, var(--w) 16%, transparent);
+}
+.banner-text  { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.banner-title { margin: 0; font-size: 0.84rem; font-weight: 500; color: var(--w); }
+.banner-sub   { margin: 0; font-size: 0.72rem; color: var(--text-secondary); }
+.banner-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem; flex-shrink: 0;
+  padding: 0.45rem 0.7rem; border-radius: 8px;
+  font: inherit; font-size: 0.76rem; font-weight: 500; white-space: nowrap;
+  color: var(--w); cursor: pointer;
+  background: none; border: none;
+  transition: background 0.15s;
+}
+.banner-btn:hover  { background: color-mix(in srgb, var(--w) 12%, transparent); }
+.banner-btn svg    { transition: transform 0.15s; }
+.banner-btn:hover svg { transform: translateX(3px); }
+.banner-btn:focus-visible { outline: 2px solid var(--w); outline-offset: 2px; }
 
-/* Sección */
+/* ── Encabezado de sección ── */
 .seccion { margin-bottom: 1.25rem; }
 .seccion-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 0.6rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  margin-bottom: 1rem; flex-wrap: wrap;
 }
-.seccion-titulo  { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
-.seccion-resumen { font-size: 0.62rem; color: var(--text-muted); }
-
-/* Card por categoría */
-.budget-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-  margin-bottom: 0.5rem;
-  transition: border-color 0.15s;
+.seccion-left    { display: flex; align-items: center; gap: 0.6rem; }
+.seccion-titulo  { margin: 0; font-family: var(--ff-body); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-primary); }
+.seccion-resumen {
+  font-size: 0.68rem; font-weight: 500; color: var(--text-secondary);
+  padding: 0.2rem 0.6rem; border-radius: 999px;
+  background: var(--surface2); border: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
 }
-.budget-card:hover { border-color: color-mix(in srgb, var(--accent) 25%, transparent); }
 
-/* Top row: nombre + acciones */
-.bc-top {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 0.5rem;
+/* ── Toolbar ── */
+.toolbar { display: flex; align-items: center; gap: 0.5rem; }
+
+.search-wrap { position: relative; width: 280px; }
+.search-icon {
+  position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); pointer-events: none;
 }
-.bc-cat { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); }
-
-.bc-acciones { display: flex; align-items: center; gap: 0.3rem; }
-
-/* Badge de porcentaje */
-.bc-badge {
-  font-size: 0.6rem; font-weight: 700; padding: 0.15rem 0.5rem;
-  border-radius: 999px; letter-spacing: 0.03em;
-}
-.badge-ok     { background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); }
-.badge-warn   { background: color-mix(in srgb, var(--amber) 12%, transparent); color: var(--amber); }
-.badge-danger { background: color-mix(in srgb, var(--red) 12%, transparent); color: var(--red); }
-.badge-sin-limite { display: none; }
-
-/* Barra */
-.bc-bar-wrap {
-  height: 6px; background: var(--surface2); border-radius: 3px;
-  overflow: hidden; margin-bottom: 0.45rem;
-}
-.bc-bar { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
-.bar-ok     { background: var(--green); }
-.bar-warn   { background: var(--amber); }
-.bar-danger { background: var(--red); }
-
-/* Números debajo de la barra */
-.bc-nums {
-  display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
-}
-.bc-gastado { font-size: 0.72rem; font-weight: 600; color: var(--text-primary); }
-.bc-reste   { font-size: 0.65rem; }
-.bc-limite  { font-size: 0.65rem; color: var(--text-muted); margin-left: auto; }
-.bc-resto   { font-size: 0.65rem; font-weight: 600; }
-.resto-ok   { color: var(--green); }
-.resto-over { color: var(--red); }
-
-/* Sin límite */
-.bc-sin-limite {
-  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
-}
-.bc-gastado-solo { font-size: 0.72rem; color: var(--text-muted); }
-.btn-asignar {
-  font-size: 0.65rem; font-weight: 600; color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 8%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
-  border-radius: 5px; padding: 0.25rem 0.65rem; cursor: pointer;
-  transition: background 0.15s; white-space: nowrap;
-}
-.btn-asignar:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); }
-
-/* Modo edición */
-.bc-edit { display: flex; flex-direction: column; gap: 0.65rem; }
-.bc-edit-form { display: flex; flex-direction: column; gap: 0.35rem; }
-.edit-label { font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
-.edit-row { display: flex; align-items: center; gap: 0.5rem; }
-.input-edit { height: 34px; font-size: 0.82rem; flex: 1; width: 100%; max-width: none; }
-.edit-actions { display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem; }
-
-/* Icon btns */
-.icon-btn {
-  background: none; border: none; color: var(--text-muted); cursor: pointer;
-  padding: 4px 5px; border-radius: 4px; transition: color 0.15s, background 0.15s;
+.search-input { width: 100%; height: 38px; padding-left: 2.2rem; padding-right: 2rem; border-radius: 10px; background: var(--surface); border-color: var(--border-hover); }
+.search-clear {
+  position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+  width: 20px; height: 20px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
+  background: var(--surface2); border: none; color: var(--text-muted); cursor: pointer;
 }
-.icon-btn:hover        { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
-.icon-btn.danger:hover { color: var(--red);    background: color-mix(in srgb, var(--red) 8%, transparent); }
+.search-clear:hover { color: var(--text-primary); }
 
-/* Loading */
-.loading-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.tool-btn {
+  position: relative;
+  height: 38px; padding: 0 0.8rem; border-radius: 10px;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border-hover);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.tool-btn:hover { color: var(--text-primary); border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+.tool-btn--icon { width: 38px; padding: 0; justify-content: center; }
+.tool-btn--active { color: var(--accent-strong); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.tool-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tool-dot {
+  position: absolute; top: 6px; right: 6px;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--accent-strong);
+}
+.tool-chevron { transition: transform 0.15s; color: var(--text-muted); }
+.tool-chevron--open { transform: rotate(180deg); }
+
+/* ── Menús desplegables ── */
+.dropdown { position: relative; }
+.menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 30;
+  min-width: 170px; padding: 0.3rem;
+  background: var(--surface); border: 1px solid var(--border-hover); border-radius: 12px;
+  box-shadow: var(--shadow-pop);
+  transform-origin: top right;
+}
+.menu-item {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  padding: 0.5rem 0.65rem; border-radius: 7px;
+  font-size: 0.78rem; text-align: left; color: var(--text-primary);
+  background: none; border: none; cursor: pointer;
+  transition: background 0.12s;
+}
+.menu-item:hover { background: var(--surface2); }
+.menu-item--active { color: var(--accent-strong); font-weight: 500; }
+
+.menu-enter-active { transition: opacity 0.14s, transform 0.14s cubic-bezier(0.2, 0, 0, 1); }
+.menu-leave-active { transition: opacity 0.1s, transform 0.1s ease-in; }
+.menu-enter-from,
+.menu-leave-to { opacity: 0; transform: scale(0.95) translateY(-4px); }
+
+/* ── Loading ── */
+.loading-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .skeleton-row {
-  height: 80px; border-radius: 10px;
+  height: 70px; border-radius: 12px;
   background: linear-gradient(90deg, var(--surface) 0%, var(--surface2) 50%, var(--surface) 100%);
   background-size: 200% 100%; animation: shimmer 1.4s infinite;
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
-@media (max-width: 500px) {
-  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
-  .page-title { font-size: 2rem;  }
-  .section-label { font-size: 0.75rem; }
+@media (max-width: 900px) {
+  .toolbar { width: 100%; }
+  .search-wrap { flex: 1; width: auto; }
+}
 
+@media (max-width: 640px) {
+  .banner-warn { flex-wrap: wrap; }
+  .banner-btn  { margin-left: calc(34px + 0.9rem); }
+  .tool-label  { display: none; }
+  .tool-btn:not(.tool-btn--icon) { width: 38px; padding: 0; justify-content: center; }
+  .tool-chevron { display: none; }
+}
+
+@media (max-width: 500px) {
+  .header-left { width: 100%; }
   .month-selector { width: 100%; justify-content: space-between; }
   .month-selector :deep(.label) { flex: 1; }
-
-  .edit-row {  flex-direction: column; align-items: stretch; gap: 0.5rem; }
-  .input-edit { height: 34px; font-size: 0.82rem; flex: 1; width: 100%; max-width: none; }
-  .edit-actions { margin-left: 2px; }
-  .edit-actions .btn { flex: 1; justify-content: center; }
 }
 </style>

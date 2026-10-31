@@ -40,9 +40,10 @@ function confirm() {
 .modal {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-modal);
   padding: 1.5rem;
   width: 320px;
+  box-shadow: var(--shadow-pop);
 }
 .modal-title {
   font-family: var(--ff-display);

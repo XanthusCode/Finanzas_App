@@ -1,5 +1,5 @@
 <template>
-  <div class="fade-up">
+  <div class="dash fade-up">
     <!-- Header -->
     <div class="page-header">
       <div>
@@ -15,71 +15,70 @@
       </div>
     </div>
 
-    <div v-if="store.loading" class="loading">
-      <div class="loading-grid">
-        <div v-for="i in 4" :key="i" class="skeleton-kpi" />
+    <!-- Skeleton: misma forma que el dashboard real para que la carga se sienta inmediata -->
+    <div v-if="store.loading" class="dash-skeleton" aria-busy="true" aria-label="Cargando resumen">
+      <div class="kpi-grid">
+        <div v-for="i in 4" :key="i" class="skeleton sk-kpi">
+          <div class="sk-row"><span class="skeleton-line" style="width: 45%" /><span class="sk-icon" /></div>
+          <span class="skeleton-line sk-big" style="width: 68%" />
+          <span class="skeleton-line sk-bar" />
+          <span class="skeleton-line" style="width: 38%" />
+        </div>
+      </div>
+      <div class="skeleton sk-banner">
+        <div class="sk-col"><span class="skeleton-line" style="width: 120px" /><span class="skeleton-line sk-huge" style="width: 200px" /></div>
+        <div class="sk-col sk-grow"><span class="skeleton-line" style="width: 40%" /><span class="skeleton-line sk-bar" /></div>
+        <div class="sk-col"><span class="skeleton-line" style="width: 150px" /><span class="skeleton-line" style="width: 110px" /></div>
+      </div>
+      <div class="skeleton sk-card">
+        <div class="sk-row"><span class="skeleton-line" style="width: 180px" /><span class="skeleton-line sk-btn" /></div>
+        <span class="skeleton-line" style="width: 90%" />
+        <span class="skeleton-line" style="width: 70%" />
+      </div>
+      <div class="two-bottom-grid">
+        <div v-for="i in 2" :key="i" class="skeleton sk-card">
+          <span class="skeleton-line" style="width: 40%" />
+          <span v-for="j in 3" :key="j" class="skeleton-line sk-bar" />
+        </div>
+      </div>
+      <div class="skeleton sk-chart">
+        <span class="skeleton-line" style="width: 160px" />
+        <div class="sk-bars">
+          <span v-for="(h, i) in SK_BARRAS" :key="i" class="sk-bar-v" :style="{ height: h + '%' }" />
+        </div>
       </div>
     </div>
+
+    <!-- Sin movimientos en el mes: bienvenida (usuario nuevo) o accesos rápidos -->
+    <EmptyStart v-else-if="store.resumen && mesVacio" :variante="esUsuarioNuevo ? 'nuevo' : 'mes'" />
 
     <template v-else-if="store.resumen">
       <!-- KPIs -->
       <div ref="kpiRef" class="kpi-grid" style="opacity: 0">
-        <div class="kpi-card" style="--ca: var(--accent)">
+        <div v-for="k in kpiCards" :key="k.key" class="kpi-card" :style="{ '--ca': k.color }">
           <div class="kpi-top">
-            <span class="kpi-label">Ingresos</span>
-            <svg class="kpi-icon" style="color:var(--accent)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            <span class="kpi-label">{{ k.label }}</span>
+            <span class="kpi-icon"><component :is="k.icon" :size="15" :stroke-width="2" /></span>
           </div>
           <div class="kpi-value-row">
-            <span class="kpi-value">{{ fmtAnim(counters.ingresos) }}</span>
-            <span v-if="variacion?.ingresos" class="kpi-var" :class="variacion.ingresos.esBueno ? 'kpi-var--good' : 'kpi-var--bad'">{{ variacion.ingresos.v >= 0 ? '▲' : '▼' }}{{ Math.abs(variacion.ingresos.v) }}%</span>
-          </div>
-        </div>
-        <div class="kpi-card" style="--ca: var(--red)">
-          <div class="kpi-top">
-            <span class="kpi-label">Gastos fijos</span>
-            <svg class="kpi-icon" style="color:var(--red)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
-          <div class="kpi-value-row">
-            <span class="kpi-value">{{ fmtAnim(counters.fijos) }}</span>
-            <span v-if="variacion?.fijos" class="kpi-var" :class="variacion.fijos.esBueno ? 'kpi-var--good' : 'kpi-var--bad'">{{ variacion.fijos.v >= 0 ? '▲' : '▼' }}{{ Math.abs(variacion.fijos.v) }}%</span>
+            <span class="kpi-value">{{ fmtAnim(k.value) }}</span>
+            <span
+              v-if="k.variacion"
+              class="kpi-var"
+              :class="k.variacion.esBueno ? 'kpi-var--good' : 'kpi-var--bad'"
+              title="Frente al mes anterior"
+            >
+              <ArrowUpRight v-if="k.variacion.v >= 0" :size="12" :stroke-width="2.5" />
+              <ArrowDownRight v-else :size="12" :stroke-width="2.5" />
+              {{ Math.abs(k.variacion.v) }}%
+            </span>
           </div>
           <div class="kpi-bar-wrap">
-            <div class="kpi-bar" :style="{ width: pcts.fijos + '%', background: 'var(--red)' }" />
+            <div class="kpi-bar" :style="{ width: (k.pct ?? 100) + '%' }" />
           </div>
           <div class="kpi-pct">
-            <span class="kpi-pct-badge kpi-pct-badge--red">{{ Math.round(pcts.fijos) }}%</span> del ingreso
-          </div>
-        </div>
-        <div class="kpi-card" style="--ca: var(--amber)">
-          <div class="kpi-top">
-            <span class="kpi-label">Gastos ocasionales</span>
-            <svg class="kpi-icon" style="color:var(--amber)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>
-          </div>
-          <div class="kpi-value-row">
-            <span class="kpi-value">{{ fmtAnim(counters.variables) }}</span>
-            <span v-if="variacion?.variables" class="kpi-var" :class="variacion.variables.esBueno ? 'kpi-var--good' : 'kpi-var--bad'">{{ variacion.variables.v >= 0 ? '▲' : '▼' }}{{ Math.abs(variacion.variables.v) }}%</span>
-          </div>
-          <div class="kpi-bar-wrap">
-            <div class="kpi-bar" :style="{ width: pcts.variables + '%', background: 'var(--amber)' }" />
-          </div>
-          <div class="kpi-pct">
-            <span class="kpi-pct-badge kpi-pct-badge--amber">{{ Math.round(pcts.variables) }}%</span> del ingreso
-          </div>
-        </div>
-        <div class="kpi-card kpi-ahorro" style="--ca: var(--green)">
-          <div class="kpi-top">
-            <span class="kpi-label">Dinero restante del mes</span>
-            <svg class="kpi-icon" style="color:var(--green)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
-          </div>
-          <div class="kpi-value-row">
-            <span class="kpi-value">{{ fmtAnim(counters.ahorro) }}</span>
-            <span v-if="variacion?.ahorro" class="kpi-var" :class="variacion.ahorro.esBueno ? 'kpi-var--good' : 'kpi-var--bad'">{{ variacion.ahorro.v >= 0 ? '▲' : '▼' }}{{ Math.abs(variacion.ahorro.v) }}%</span>
-          </div>
-          <div class="kpi-bar-wrap">
-            <div class="kpi-bar" :style="{ width: pcts.ahorro + '%', background: 'var(--green)' }" />
-          </div>
-          <div class="kpi-pct">
-            <span class="kpi-pct-badge kpi-pct-badge--green">{{ Math.round(pcts.ahorro) }}%</span> del ingreso
+            <template v-if="k.pct != null"><strong>{{ Math.round(k.pct) }}%</strong> del ingreso</template>
+            <template v-else>Base del mes</template>
           </div>
         </div>
       </div>
@@ -104,33 +103,37 @@
               <RouterLink to="/cuentas" class="anual-cta">Crea tus cuentas para ver tu dinero real →</RouterLink>
             </template>
           </div>
-        <div class="anual-right">
-          <div class="anual-stats">
-            <div class="anual-stat">
-              <span class="anual-stat-label">Ingresos</span>
-              <strong>{{ fmt(store.resumenAnual?.totalIngresos) }}</strong>
-            </div>
-            <div class="anual-stat">
-              <span class="anual-stat-label">Gastos</span>
-              <strong>{{ fmt(store.resumenAnual?.totalGastos) }}</strong>
-            </div>
-            <div class="anual-stat">
-              <span class="anual-stat-label">Tasa</span>
-              <strong style="color: var(--green)">{{ store.resumenAnual?.pctAhorro ?? 0 }}%</strong>
-            </div>
+        <div class="anual-center">
+          <div class="anual-progress-head">
+            <span class="kpi-label">Tasa de ahorro {{ store.anioActual }}</span>
+            <span :class="['health-badge', healthClass]" title="Según el ahorro de este mes">{{ healthLabel }}</span>
           </div>
-          <div class="anual-progress-wrap">
-            <div class="anual-progress-track">
-              <div class="anual-progress-fill" :style="{ width: progressWidth + '%' }" />
-              <div class="anual-progress-goal" />
-            </div>
-            <div class="anual-progress-labels">
-              <span>0%</span>
-              <span>Meta 20%</span>
-              <span>100%</span>
-            </div>
+          <div class="anual-progress-track">
+            <div class="anual-progress-fill" :style="{ width: progressWidth + '%' }" />
+            <div class="anual-progress-goal" title="Meta 20%" />
           </div>
-          <span :class="['health-badge', healthClass]">{{ healthLabel }}</span>
+          <div class="anual-progress-labels">
+            <span>0%</span>
+            <span class="anual-goal-label">Meta 20%</span>
+            <span>100%</span>
+          </div>
+        </div>
+
+        <div class="anual-stats">
+          <div class="anual-stat">
+            <span class="anual-stat-label">Ingresos</span>
+            <strong>{{ fmt(store.resumenAnual?.totalIngresos) }}</strong>
+          </div>
+          <span class="anual-stat-sep" aria-hidden="true" />
+          <div class="anual-stat">
+            <span class="anual-stat-label">Gastos</span>
+            <strong>{{ fmt(store.resumenAnual?.totalGastos) }}</strong>
+          </div>
+          <span class="anual-stat-sep" aria-hidden="true" />
+          <div class="anual-stat">
+            <span class="anual-stat-label">Tasa</span>
+            <strong class="anual-stat-pos">{{ store.resumenAnual?.pctAhorro ?? 0 }}%</strong>
+          </div>
         </div>
       </div>
 
@@ -175,8 +178,15 @@
       <!-- Análisis con IA -->
       <div class="card insights-card" style="margin-bottom: 1rem">
         <div class="insights-header">
-          <p class="card-title" style="margin-bottom: 0">Análisis con IA</p>
-          <button class="btn btn-sm" :disabled="cargandoInsights" @click="generarInsights">
+          <div class="insights-title">
+            <span class="ai-icon"><Sparkles :size="15" :stroke-width="2" /></span>
+            <div>
+              <p class="card-title ai-title">Análisis con IA</p>
+              <p class="insights-hint">Patrones y recomendaciones de tu mes</p>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-ai" :disabled="cargandoInsights" @click="generarInsights">
+            <Sparkles :size="13" :stroke-width="2.2" :class="{ 'ai-spin': cargandoInsights }" />
             {{ cargandoInsights ? 'Analizando…' : (insights ? 'Actualizar análisis' : 'Analizar mi mes') }}
           </button>
         </div>
@@ -197,13 +207,19 @@
           <p class="card-title">Regla 50/30/20</p>
           <div class="regla-rows">
             <div v-for="r in regla5030" :key="r.label" class="regla-row">
-              <div class="regla-top">
-                <span class="regla-label">{{ r.label }}</span>
-                <span class="regla-vals">{{ r.pct }}%<span class="regla-meta"> · meta {{ r.meta }}%</span></span>
+              <div class="regla-main">
+                <span class="regla-label">
+                  <span class="regla-dot" :style="{ background: r.color }" />
+                  {{ r.label }}
+                </span>
+                <div class="regla-bar-wrap">
+                  <div class="regla-bar" :style="{ width: Math.min(r.pct, 100) + '%', background: r.color }" />
+                  <div class="regla-goal" :style="{ left: r.meta + '%' }" />
+                </div>
               </div>
-              <div class="regla-bar-wrap">
-                <div class="regla-bar" :style="{ width: Math.min(r.pct, 100) + '%', background: r.color }" />
-                <div class="regla-goal" :style="{ left: r.meta + '%' }" />
+              <div class="regla-vals">
+                <strong>{{ r.pct }}%</strong>
+                <span>meta {{ r.meta }}%</span>
               </div>
             </div>
           </div>
@@ -214,34 +230,33 @@
      </div>
 
       <!-- Alertas de presupuesto -->
-      <div v-if="alertasPresupuesto.length > 0" class="presupuesto-alerts">
-        <div
-          v-for="a in alertasPresupuesto"
-          :key="a.categoria"
-          class="presupuesto-alert"
-          :class="a.pct >= 100 ? 'alert-danger' : 'alert-warn'"
-        >
-          <div class="alert-top">
-            <span class="alert-cat">{{ a.categoria }}</span>
-            <span class="alert-pct-badge" :class="a.pct >= 100 ? 'alert-pct-badge--red' : 'alert-pct-badge--amber'">{{ a.pct }}%</span>
-          </div>
-          <div class="alert-bar-wrap">
-            <div class="alert-bar" :style="{ width: Math.min(a.pct, 100) + '%' }" />
-          </div>
-          <div class="alert-nums">{{ fmt(a.gastado) }} de {{ fmt(a.limite) }}</div>
+      <div v-if="alertasPresupuesto.length > 0" class="alerts-scroller" :class="{ 'can-left': alertsScroll.left, 'can-right': alertsScroll.right }">
+        <button v-show="alertsScroll.left" class="scroll-arrow scroll-arrow--left" aria-label="Ver anteriores" @click="scrollAlerts(-1)">
+          <ChevronLeft :size="16" :stroke-width="2" />
+        </button>
+        <div ref="alertsRef" class="presupuesto-alerts" @scroll="updateAlertsScroll">
+          <RouterLink
+            v-for="a in alertasPresupuesto"
+            :key="a.categoria"
+            to="/presupuesto"
+            class="presupuesto-alert"
+            :class="`alert-${alertaEstado(a.pct)}`"
+          >
+            <div class="alert-top">
+              <span class="alert-cat">{{ a.categoria }}</span>
+              <span class="alert-pct-badge">{{ a.pct }}%</span>
+            </div>
+            <div class="alert-bar-wrap">
+              <div class="alert-bar" :style="{ width: Math.min(a.pct, 100) + '%' }" />
+            </div>
+            <div class="alert-nums">
+              <strong>{{ fmtCorto(a.gastado) }}</strong> / {{ fmtCorto(a.limite) }}
+            </div>
+          </RouterLink>
         </div>
-      </div>
-
-      <!-- Tendencia del año -->
-      <div class="card" style="margin-bottom: 1rem">
-        <p class="card-title">Tendencia {{ store.anioActual }}</p>
-        <BarChart :labels="tendenciaLabels" :datasets="tendenciaDatasets" />
-      </div>
-
-      <!-- Heatmap de gastos -->
-      <div v-if="heatmapData.length > 0" class="card" style="margin-bottom: 1rem">
-        <p class="card-title">Mapa de gastos {{ store.anioActual }}</p>
-        <GastoHeatmap :data="heatmapData" :anio="store.anioActual" />
+        <button v-show="alertsScroll.right" class="scroll-arrow scroll-arrow--right" aria-label="Ver más" @click="scrollAlerts(1)">
+          <ChevronRight :size="16" :stroke-width="2" />
+        </button>
       </div>
 
       <!-- Gasto por categoría anual -->
@@ -348,14 +363,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, reactive, watch, onMounted } from 'vue'
+import { computed, ref, reactive, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { animate, stagger } from 'motion'
+import {
+  TrendingUp, Lock, Shuffle, PiggyBank, ArrowUpRight, ArrowDownRight,
+  Sparkles, ChevronLeft, ChevronRight,
+} from 'lucide-vue-next'
 import { useFinanceStore } from '@/stores/finance'
 import MonthSelector from '@/components/common/MonthSelector.vue'
 import DeudasAlerta from '@/components/common/DeudasAlerta.vue'
 import DonutChart from '@/components/charts/DonutChart.vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import GastoHeatmap from '@/components/charts/GastoHeatmap.vue'
+import EmptyStart from '@/components/common/EmptyStart.vue'
 import { usePresupuestoMensual } from '@/composables/usePresupuestoMensual'
 import { COLOR_PALETTE } from '@/composables/useCategoriaOptions'
 import { resumenService, gastosService } from '@/services/api'
@@ -365,6 +385,19 @@ const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov'
 
 const store = useFinanceStore()
 const resumen = computed(() => store.resumen)
+
+// Estado vacío: el mes no tiene ni ingresos ni gastos. Si además el año está en cero
+// y no hay cuentas, se asume usuario nuevo y se muestra la bienvenida.
+const mesVacio = computed(() =>
+  (store.resumen?.totalIngresos ?? 0) === 0 && (store.resumen?.totalGastos ?? 0) === 0
+)
+const esUsuarioNuevo = computed(() =>
+  (store.resumenAnual?.totalIngresos ?? 0) === 0 &&
+  (store.resumenAnual?.totalGastos ?? 0) === 0 &&
+  store.cuentas.length === 0
+)
+// Alturas fijas de las barras del skeleton del gráfico (12 meses)
+const SK_BARRAS = [45, 62, 38, 70, 55, 80, 48, 66, 58, 74, 42, 60]
 
 // Plata real total = suma de saldos de las cuentas (si el usuario tiene cuentas)
 const totalCuentas = computed(() => store.cuentas.reduce((s, c) => s + c.saldo, 0))
@@ -391,10 +424,11 @@ const counters     = reactive({ ingresos: 0, fijos: 0, variables: 0, ahorro: 0, 
 const pcts         = reactive({ fijos: 0, variables: 0, ahorro: 0 })
 const progressWidth = ref(0)
 
+// Mismos tonos que --c-need / --c-want / --c-pos (el donut necesita hex)
 const distribucion = computed(() => [
-  { label: 'Gastos fijos',     val: resumen.value?.totalFijos    ?? 0, color: '#c17165' },
-  { label: 'Gastos ocasionales', val: resumen.value?.totalVariables ?? 0, color: '#c2a06b' },
-  { label: 'Dinero restante',    val: resumen.value?.ahorro        ?? 0, color: '#5c9678' },
+  { label: 'Gastos fijos',     val: resumen.value?.totalFijos    ?? 0, color: '#60a5fa' },
+  { label: 'Gastos ocasionales', val: resumen.value?.totalVariables ?? 0, color: '#fb923c' },
+  { label: 'Dinero restante',    val: resumen.value?.ahorro        ?? 0, color: '#10b981' },
 ])
 
 const variacion = computed(() => {
@@ -421,11 +455,18 @@ const regla5030 = computed(() => {
   if (!r || r.totalIngresos <= 0) return []
   const pct = (n: number) => Math.round(n / r.totalIngresos * 100)
   return [
-    { label: 'Necesidades', pct: pct(r.totalFijos),     meta: 50, color: 'var(--red)' },
-    { label: 'Gustos',      pct: pct(r.totalVariables), meta: 30, color: 'var(--amber)' },
-    { label: 'Ahorro',      pct: Math.max(0, pct(r.ahorro)), meta: 20, color: 'var(--green)' },
+    { label: 'Necesidades', pct: pct(r.totalFijos),     meta: 50, color: 'var(--c-need)' },
+    { label: 'Gustos',      pct: pct(r.totalVariables), meta: 30, color: 'var(--c-want)' },
+    { label: 'Ahorro',      pct: Math.max(0, pct(r.ahorro)), meta: 20, color: 'var(--c-pos)' },
   ]
 })
+
+const kpiCards = computed(() => [
+  { key: 'ingresos',  label: 'Ingresos',                icon: TrendingUp, color: 'var(--accent-strong)', value: counters.ingresos,  variacion: variacion.value?.ingresos,  pct: null },
+  { key: 'fijos',     label: 'Gastos fijos',            icon: Lock,       color: 'var(--c-need)',        value: counters.fijos,     variacion: variacion.value?.fijos,     pct: pcts.fijos },
+  { key: 'variables', label: 'Gastos ocasionales',      icon: Shuffle,    color: 'var(--c-want)',        value: counters.variables, variacion: variacion.value?.variables, pct: pcts.variables },
+  { key: 'ahorro',    label: 'Dinero restante del mes', icon: PiggyBank,  color: 'var(--c-pos)',         value: counters.ahorro,    variacion: variacion.value?.ahorro,    pct: pcts.ahorro },
+])
 
 const healthLabel = computed(() => {
   const p = resumen.value?.pctAhorro ?? 0
@@ -520,10 +561,26 @@ const fmt     = (n?: number) => n != null ? '$' + Math.round(n).toLocaleString('
 const fmtAnim = (n: number)  => '$' + Math.round(n).toLocaleString('es-CO')
 const pct     = (a?: number, b?: number) => (a && b) ? Math.round(a / b * 100) : 0
 
+// $200k / $1,2M para las tarjetas compactas
+function fmtCorto(n: number) {
+  const abs = Math.abs(n)
+  const sign = n < 0 ? '-' : ''
+  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toLocaleString('es-CO', { maximumFractionDigits: 1 })}M`
+  if (abs >= 1_000)     return `${sign}$${Math.round(abs / 1_000).toLocaleString('es-CO')}k`
+  return `${sign}$${Math.round(abs)}`
+}
+
+// Al 100% justo el presupuesto está completo (neutro); solo pasarse es alerta
+function alertaEstado(p: number) {
+  if (p > 100) return 'over'
+  if (p === 100) return 'full'
+  return 'warn'
+}
+
 const tendenciaLabels   = computed(() => MESES)
 const tendenciaDatasets = computed(() => [
-  { label: 'Ingresos', data: store.tendencia.map(r => r.totalIngresos), color: 'rgba(91,122,149,0.75)' },
-  { label: 'Gastos',   data: store.tendencia.map(r => r.totalGastos),   color: 'rgba(193,113,101,0.75)' },
+  { label: 'Ingresos', data: store.tendencia.map(r => r.totalIngresos), color: '#3b82f6' },
+  { label: 'Gastos',   data: store.tendencia.map(r => r.totalGastos),   color: '#f43f5e' },
 ])
 
 const topCategorias = computed(() => {
@@ -545,6 +602,26 @@ const alertasPresupuesto = computed(() =>
     .map(i => ({ categoria: i.categoria, gastado: i.gastado, limite: i.limite ?? 0, pct: i.pct }))
     .sort((a, b) => b.pct - a.pct)
 )
+
+// Scroll horizontal de alertas: flechas solo cuando hay contenido oculto a ese lado
+const alertsRef = ref<HTMLElement>()
+const alertsScroll = reactive({ left: false, right: false })
+
+function updateAlertsScroll() {
+  const el = alertsRef.value
+  if (!el) { alertsScroll.left = alertsScroll.right = false; return }
+  alertsScroll.left  = el.scrollLeft > 4
+  alertsScroll.right = el.scrollLeft + el.clientWidth < el.scrollWidth - 4
+}
+
+function scrollAlerts(dir: 1 | -1) {
+  const el = alertsRef.value
+  if (el) el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: 'smooth' })
+}
+
+watch(alertasPresupuesto, () => nextTick(updateAlertsScroll), { flush: 'post' })
+onMounted(() => window.addEventListener('resize', updateAlertsScroll))
+onBeforeUnmount(() => window.removeEventListener('resize', updateAlertsScroll))
 
 const CAT_COLORS = COLOR_PALETTE
 
@@ -642,71 +719,96 @@ async function descargarPDF() {
 </script>
 
 <style scoped>
-.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
-.page-title { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.25rem; }
-.btn-sm { padding: 0.3rem 0.7rem; font-size: 0.72rem; display: inline-flex; align-items: center; }
 
-/* Skeletons */
-.loading-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
-.skeleton-kpi {
-  height: 90px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: linear-gradient(90deg, var(--surface) 0%, var(--surface2) 50%, var(--surface) 100%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
+/* Skeletons (la clase base .skeleton vive en main.css) */
+.dash-skeleton { display: flex; flex-direction: column; gap: 1rem; }
+.dash-skeleton .kpi-grid { margin-bottom: 0; }
+.sk-kpi    { display: flex; flex-direction: column; gap: 0.8rem; padding: 1.15rem 1.25rem; min-height: 150px; }
+.sk-row    { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.sk-icon   { width: 30px; height: 30px; border-radius: 9px; background: var(--surface2); }
+.sk-big    { height: 22px; }
+.sk-huge   { height: 30px; }
+.sk-bar    { height: 6px; width: 100%; }
+.sk-btn    { width: 120px; height: 32px; border-radius: 8px; }
+.sk-banner { display: flex; align-items: center; gap: 2.25rem; padding: 1.35rem 1.6rem; }
+.sk-col    { display: flex; flex-direction: column; gap: 0.7rem; }
+.sk-grow   { flex: 1; }
+.sk-card   { display: flex; flex-direction: column; gap: 0.85rem; padding: 1.25rem; }
+.sk-chart  { display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem; }
+.sk-bars   { display: flex; align-items: flex-end; gap: 4%; height: 160px; padding: 0 1%; }
+.sk-bar-v  { flex: 1; border-radius: 5px 5px 0 0; background: var(--surface2); }
+
+/* La paleta --c-* vive en main.css */
+.dash { font-variant-numeric: tabular-nums; }
+
+/* Números: Iosevka es monoespaciada -> columnas alineadas; 700 para montos */
+.kpi-value, .anual-big, .anual-stat strong, .regla-vals strong, .alert-nums,
+.legend-amt, .expense-amt, .top-cat-monto, .susc-monto {
+  font-family: var(--ff-mono);
 }
-@keyframes shimmer { to { background-position: -200% 0; } }
 
 /* KPI Grid */
-.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem; margin-bottom: 1rem; }
 .kpi-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--ca, var(--border));
-  border-radius: 10px;
-  padding: 1rem 1.1rem;
+  border-radius: var(--radius-card);
+  padding: 1.15rem 1.25rem 1.1rem;
   overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s ease;
 }
-.kpi-ahorro {
-  background: linear-gradient(135deg, var(--surface) 40%, color-mix(in srgb, var(--green) 5%, transparent) 100%);
-  border-color: color-mix(in srgb, var(--green) 15%, transparent);
-  border-left-color: var(--green);
+.kpi-card:hover { border-color: var(--border-hover); }
+.kpi-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
+.kpi-label { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
+.kpi-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  color: var(--ca);
+  background: color-mix(in srgb, var(--ca) 13%, transparent);
 }
-.kpi-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.kpi-label { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
-.kpi-icon { opacity: 0.7; flex-shrink: 0; }
-.kpi-value-row { display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.5rem; }
-.kpi-value { font-size: 1.25rem; font-family: var(--ff-display); font-weight: 700; color: var(--text-primary); }
-.kpi-var { font-size: 0.62rem; font-weight: 700; }
-.kpi-var--good { color: var(--green); }
-.kpi-var--bad  { color: var(--red); }
-.kpi-bar-wrap { height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; margin-bottom: 0.35rem; }
-.kpi-bar { height: 100%; border-radius: 2px; max-width: 100%; }
-.kpi-pct { font-size: 0.62rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; }
-.kpi-pct-badge { font-size: 0.62rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px; }
-.kpi-pct-badge--red   { background: color-mix(in srgb, var(--red) 12%, transparent);   color: var(--red); }
-.kpi-pct-badge--amber { background: color-mix(in srgb, var(--amber) 14%, transparent); color: var(--amber); }
-.kpi-pct-badge--green { background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); }
-
-/* Ahorro anual banner */
-.anual-banner {
-  display: flex;
-  justify-content: space-between;
+.kpi-value-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.kpi-value { font-size: 1.45rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; line-height: 1.1; }
+.kpi-var {
+  display: inline-flex;
   align-items: center;
-  gap: 2rem;
-  background: var(--surface);
-  border: 1px solid color-mix(in srgb, var(--green) 15%, transparent);
-  border-left: 3px solid var(--green);
-  border-radius: 12px;
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1rem;
+  gap: 2px;
+  font-size: 0.66rem;
+  font-weight: 500;
+  padding: 0.15rem 0.45rem 0.15rem 0.3rem;
+  border-radius: 999px;
 }
-.anual-left { flex-shrink: 0; }
-.anual-big { font-size: 2rem; font-family: var(--ff-display); font-weight: 800; color: var(--text-primary); line-height: 1; margin-bottom: 0.35rem; }
+.kpi-var--good { color: var(--c-pos); background: color-mix(in srgb, var(--c-pos) 13%, transparent); }
+.kpi-var--bad  { color: var(--c-neg); background: color-mix(in srgb, var(--c-neg) 13%, transparent); }
+.kpi-bar-wrap { height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; margin-top: auto; margin-bottom: 0.55rem; }
+.kpi-bar { height: 100%; border-radius: 99px; max-width: 100%; background: var(--ca); }
+.kpi-pct { font-size: 0.68rem; font-weight: 400; color: var(--text-muted); }
+.kpi-pct strong { font-weight: 500; color: var(--text-secondary); }
+
+/* Ahorro anual banner: saldo | progreso | métricas */
+.anual-banner {
+  display: grid;
+  grid-template-columns: auto minmax(200px, 1fr) auto;
+  align-items: center;
+  gap: 2.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 1.35rem 1.6rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-card);
+}
+.anual-left { min-width: 0; }
+.anual-big { font-size: 2rem; font-weight: 700; color: var(--text-primary); line-height: 1; letter-spacing: -0.03em; margin-bottom: 0.45rem; }
 .anual-meta { font-size: 0.68rem; color: var(--text-muted); }
-.anual-big--neg { color: var(--red); }
+.anual-big--neg { color: var(--c-neg); }
 .anual-cta {
   display: inline-block; margin-top: 0.7rem; font-size: 0.68rem; font-weight: 600;
   color: var(--accent); text-decoration: none;
@@ -724,9 +826,10 @@ async function descargarPDF() {
   display: flex; align-items: center; justify-content: center; z-index: 500; padding: 1rem;
 }
 .dd-modal {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-modal);
   padding: 1.4rem; width: 460px; max-width: 100%; max-height: 85vh; overflow-y: auto;
   display: flex; flex-direction: column; gap: 0.75rem;
+  box-shadow: var(--shadow-pop);
 }
 .dd-title { font-family: var(--ff-display); font-weight: 700; font-size: 1rem; }
 .dd-sub   { font-size: 0.68rem; color: var(--text-muted); line-height: 1.4; }
@@ -737,79 +840,122 @@ async function descargarPDF() {
 .dd-table thead th { color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
 .dd-table tbody td { border-bottom: 1px solid var(--border); }
 .dd-table tfoot td { font-weight: 700; padding-top: 0.55rem; }
-.dd-in  { color: var(--green); }
-.dd-out { color: var(--red); }
+.dd-in  { color: var(--c-pos); }
+.dd-out { color: var(--c-neg); }
 .dd-note {
   font-size: 0.68rem; color: var(--text-secondary); line-height: 1.4;
   background: var(--surface2); border-radius: 8px; padding: 0.6rem 0.75rem;
 }
-.anual-right { flex: 1; display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-end; }
-.anual-stats { display: flex; gap: 1.5rem; }
-.anual-stat { display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; }
-.anual-stat-label { font-size: 0.6rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
-.anual-stat strong { font-size: 0.82rem; color: var(--text-primary); }
-.anual-progress-wrap { width: 100%; }
-.anual-progress-track { position: relative; height: 4px; background: var(--surface2); border-radius: 3px; overflow: visible; margin-bottom: 0.3rem; }
-.anual-progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), color-mix(in srgb, var(--green) 50%, transparent)); border-radius: 3px; transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.anual-center { display: flex; flex-direction: column; gap: 0.6rem; min-width: 0; }
+.anual-progress-head { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; }
+.anual-progress-track { position: relative; height: 8px; background: var(--surface2); border-radius: 99px; }
+.anual-progress-fill {
+  height: 100%;
+  max-width: 100%;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c-pos) 70%, transparent), var(--c-pos));
+  border-radius: 99px;
+  transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
 .anual-progress-goal {
   position: absolute;
-  top: -4px; bottom: -4px; left: 20%;
-  width: 1px;
-  background: color-mix(in srgb, var(--amber) 50%, transparent);
+  top: -3px; bottom: -3px; left: 20%;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--text-secondary);
 }
-.anual-progress-goal::after { content: '20%'; position: absolute; top: -14px; left: 3px; font-size: 0.55rem; color: var(--amber); white-space: nowrap; }
-.anual-progress-labels { display: flex; justify-content: space-between; font-size: 0.58rem; color: var(--text-muted); }
+.anual-progress-labels { position: relative; display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--text-muted); }
+.anual-goal-label { position: absolute; left: 20%; transform: translateX(-50%); color: var(--text-secondary); }
 
-.health-badge { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.2rem 0.65rem; border-radius: 2px; border: 1px solid; }
-.health-green { border-color: color-mix(in srgb, var(--green) 35%, transparent); color: var(--green); background: color-mix(in srgb, var(--green) 5%, transparent); }
-.health-amber { border-color: color-mix(in srgb, var(--amber) 35%, transparent); color: var(--amber); background: color-mix(in srgb, var(--amber) 5%, transparent); }
-.health-red   { border-color: color-mix(in srgb, var(--red) 35%, transparent);   color: var(--red);   background: color-mix(in srgb, var(--red) 5%, transparent); }
+.anual-stats { display: flex; align-items: center; gap: 1.25rem; }
+.anual-stat { display: flex; flex-direction: column; gap: 0.3rem; }
+.anual-stat-label { font-size: 0.62rem; font-weight: 500; color: var(--text-subtle); letter-spacing: 0.1em; text-transform: uppercase; }
+.anual-stat strong { font-size: 0.92rem; font-weight: 700; color: var(--text-primary); }
+.anual-stat .anual-stat-pos { color: var(--c-pos); }
+.anual-stat-sep { width: 1px; height: 30px; background: var(--border-hover); }
+
+.health-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+}
+.health-green { color: var(--c-pos);  background: color-mix(in srgb, var(--c-pos) 12%, transparent); }
+.health-amber { color: var(--c-want); background: color-mix(in srgb, var(--c-want) 12%, transparent); }
+.health-red   { color: var(--c-neg);  background: color-mix(in srgb, var(--c-neg) 12%, transparent); }
 
 /* Insights con IA */
-.insights-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
-.insights-lineas { display: flex; flex-direction:row; justify-content: space-between; gap: 0.5rem; }
+.insights-card {
+  border-color: color-mix(in srgb, var(--c-ai) 22%, var(--border));
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--c-ai) 7%, transparent), transparent 55%),
+    var(--surface);
+}
+.insights-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.insights-title { display: flex; align-items: center; gap: 0.75rem; }
+.ai-icon {
+  display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  color: var(--c-ai);
+  background: color-mix(in srgb, var(--c-ai) 14%, transparent);
+}
+.card-title.ai-title { margin-bottom: 0; color: var(--c-ai); font-weight: 500; }
+.insights-hint { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem; }
+.btn-ai {
+  border: none;
+  color: #fff;
+  background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+  box-shadow: 0 4px 14px -4px color-mix(in srgb, #8b5cf6 55%, transparent), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.btn-ai:hover { color: #fff; background: linear-gradient(135deg, #9b70f8, #5592f7); }
+.ai-spin { animation: aiSpin 1.2s linear infinite; }
+@keyframes aiSpin { to { transform: rotate(360deg); } }
+.insights-lineas { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.6rem; }
 .insights-linea {
-  max-width: 450px;
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: flex-start;
   gap: 0.6rem;
   font-size: 0.78rem;
   color: var(--text-primary);
-  line-height: 1.5;
-  padding: 0.65rem 0.85rem;
+  line-height: 1.55;
+  padding: 0.75rem 0.9rem;
   background: var(--surface2);
-  border-left: 3px solid var(--accent);
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
 }
-.insights-icon { flex-shrink: 0; margin-top: 0.15rem; color: var(--accent); }
-.insights-empty { font-size: 0.75rem; color: var(--text-muted); }
+.insights-icon { flex-shrink: 0; margin-top: 0.15rem; color: var(--c-ai); }
+.insights-empty { font-size: 0.78rem; color: var(--text-secondary); }
 
 /* Regla 50/30/20 */
-.regla-rows { display: flex; flex-direction: column; gap: 0.85rem; }
-.regla-row { display: flex; flex-direction: column; gap: 0.35rem; }
-.regla-top { display: flex; justify-content: space-between; align-items: baseline; }
-.regla-label { font-size: 0.72rem; color: var(--text-primary); font-weight: 500; }
-.regla-vals { font-size: 0.7rem; color: var(--text-primary); font-weight: 600; }
-.regla-meta { font-size: 0.62rem; color: var(--text-muted); font-weight: 400; }
-.regla-bar-wrap { position: relative; height: 5px; background: var(--surface2); border-radius: 3px; overflow: visible; }
-.regla-bar { height: 100%; border-radius: 3px; max-width: 100%; transition: width 0.5s ease; }
-.regla-goal { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text-muted); border-radius: 1px; }
+.regla-rows { display: flex; flex-direction: column; gap: 1.1rem; }
+.regla-row { display: flex; align-items: center; gap: 1.25rem; }
+.regla-main { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+.regla-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.76rem; color: var(--text-primary); font-weight: 500; }
+.regla-dot { width: 8px; height: 8px; border-radius: 99px; flex-shrink: 0; }
+.regla-vals { display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; min-width: 64px; }
+.regla-vals strong { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+.regla-vals span { font-size: 0.62rem; color: var(--text-muted); }
+.regla-bar-wrap { position: relative; height: 6px; background: var(--surface2); border-radius: 99px; }
+.regla-bar { height: 100%; border-radius: 99px; max-width: 100%; transition: width 0.5s ease; }
+.regla-goal { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text-secondary); border-radius: 2px; transform: translateX(-1px); }
 
 /* 3-col bottom */
-.bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.85rem; }
 
 /* 2-col bottom */
 .two-bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 
-.card-title { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; justify-content: space-between; }
+.card-title { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; justify-content: space-between; }
 
 /* Donut section */
 .donut-section { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
 .donut-legend { width: 100%; display: flex; flex-direction: column; gap: 0.6rem; }
 .legend-row { display: flex; justify-content: space-between; align-items: center; }
 .legend-left { display: flex; align-items: center; gap: 0.5rem; }
-.legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.legend-dot { width: 8px; height: 8px; border-radius: 99px; flex-shrink: 0; }
 .legend-name { font-size: 0.7rem; color: var(--text-secondary); }
 .legend-right { display: flex; align-items: center; gap: 0.5rem; }
 .legend-amt { font-size: 0.7rem; color: var(--text-primary); }
@@ -833,8 +979,8 @@ async function descargarPDF() {
 .top-cat-rank  { font-size: 0.62rem; color: var(--text-muted); width: 18px; flex-shrink: 0; }
 .top-cat-nombre { font-size: 0.75rem; color: var(--text-primary); }
 .top-cat-right { display: flex; align-items: center; gap: 0.75rem; flex: 1; }
-.top-cat-bar-wrap { flex: 1; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
-.top-cat-bar  { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
+.top-cat-bar-wrap { flex: 1; height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+.top-cat-bar  { height: 100%; background: var(--accent-strong); border-radius: 99px; transition: width 0.4s ease; }
 .top-cat-monto { font-size: 0.72rem; color: var(--text-secondary); min-width: 80px; text-align: right; flex-shrink: 0; }
 
 /* Suscripciones olvidadas */
@@ -843,48 +989,82 @@ async function descargarPDF() {
 .susc-row:last-child { border-bottom: none; }
 .susc-nombre { font-size: 0.75rem; color: var(--text-primary); }
 .susc-meses { font-size: 0.62rem; color: var(--text-muted); margin-top: 0.1rem; }
-.susc-monto { font-size: 0.75rem; color: var(--amber); font-weight: 600; flex-shrink: 0; margin-left: 0.5rem; }
+.susc-monto { font-size: 0.75rem; color: var(--c-want); font-weight: 600; flex-shrink: 0; margin-left: 0.5rem; }
 
-/* Alertas de presupuesto */
+/* Alertas de presupuesto: fila con scroll horizontal + degradado en bordes */
+.alerts-scroller { position: relative; margin-bottom: 1rem; }
 .presupuesto-alerts {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: 2px 2px 4px;
 }
+.presupuesto-alerts::-webkit-scrollbar { display: none; }
+.alerts-scroller.can-right .presupuesto-alerts { mask-image: linear-gradient(to right, #000 85%, transparent); }
+.alerts-scroller.can-left .presupuesto-alerts  { mask-image: linear-gradient(to right, transparent, #000 15%); }
+.alerts-scroller.can-left.can-right .presupuesto-alerts { mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent); }
+
 .presupuesto-alert {
+  --st: var(--c-warn);
+  flex: 0 0 220px;
+  scroll-snap-align: start;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-card);
+  padding: 0.95rem 1.05rem;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.6rem;
+  text-decoration: none;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
-.presupuesto-alert.alert-warn   { border-left: 3px solid var(--amber); }
-.presupuesto-alert.alert-danger { border-left: 3px solid var(--red); }
-.alert-top  { display: flex; justify-content: space-between; align-items: center; }
-.alert-cat  { font-size: 0.72rem; color: var(--text-primary); font-weight: 500; }
-.alert-pct-badge { font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 4px; }
-.alert-pct-badge--amber { background: color-mix(in srgb, var(--amber) 14%, transparent); color: var(--amber); }
-.alert-pct-badge--red   { background: color-mix(in srgb, var(--red) 14%, transparent);   color: var(--red); }
-.alert-bar-wrap { height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
-.alert-warn   .alert-bar { height: 100%; background: var(--amber); border-radius: 2px; }
-.alert-danger .alert-bar { height: 100%; background: var(--red);   border-radius: 2px; }
-.alert-nums { font-size: 0.62rem; color: var(--text-muted); }
+.presupuesto-alert:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+.alert-warn { --st: var(--c-warn); }
+.alert-full { --st: var(--text-secondary); }
+.alert-over { --st: var(--c-neg); }
+.alert-top  { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.alert-cat  { font-size: 0.8rem; color: var(--text-primary); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.alert-pct-badge {
+  flex-shrink: 0;
+  font-size: 0.64rem; font-weight: 500;
+  padding: 0.15rem 0.5rem; border-radius: 999px;
+  color: var(--st);
+  background: color-mix(in srgb, var(--st) 13%, transparent);
+}
+.alert-bar-wrap { height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+.alert-bar { height: 100%; background: var(--st); border-radius: 99px; }
+.alert-nums { font-size: 0.7rem; color: var(--text-muted); }
+.alert-nums strong { color: var(--text-primary); font-weight: 700; }
+
+.scroll-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid; place-items: center;
+  width: 30px; height: 30px;
+  border-radius: 999px;
+  border: 1px solid var(--border-hover);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transform: translateY(-50%);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.scroll-arrow:hover { color: var(--text-primary); border-color: var(--accent); }
+.scroll-arrow--left  { left: -10px; }
+.scroll-arrow--right { right: -10px; }
 
 @media (max-width: 768px) {
-  .page-header { flex-direction: column; gap: 1rem; align-items: flex-start; margin-bottom: 1.25rem; }
-  .page-title { font-size: 1.4rem; }
 
-  .loading-grid { grid-template-columns: repeat(2, 1fr); }
+  .sk-banner { flex-direction: column; align-items: stretch; gap: 1rem; }
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
 
-  .anual-banner { flex-direction: column; align-items: flex-start; gap: 1rem; }
-  .anual-right { align-items: flex-start; width: 100%; }
-  .anual-stats { gap: 1rem; }
-  .anual-stat { align-items: flex-start; }
-  .anual-progress-wrap { width: 100%; }
+  .anual-banner { grid-template-columns: 1fr; gap: 1.25rem; padding: 1.15rem 1.2rem; }
+  .anual-stats { gap: 1rem; justify-content: space-between; }
 
   .bottom-grid { grid-template-columns: 1fr; }
 
@@ -896,12 +1076,8 @@ async function descargarPDF() {
   .kpi-grid { grid-template-columns: 1fr; }
   .anual-big { font-size: 1.5rem; }
 
-  .anual-progress-wrap { 
-    margin-top: 1rem;
-  }
-
-  /* Insights con IA */
-.insights-lineas { flex-direction: column; }
+  .insights-header { flex-direction: column; align-items: stretch; }
+  .anual-stat-sep { display: none; }
 }
 
 </style>

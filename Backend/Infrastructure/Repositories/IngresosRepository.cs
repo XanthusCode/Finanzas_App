@@ -61,5 +61,23 @@ namespace Finanzas.Infrastructure.Repositories
                 await _db.SaveChangesAsync();
             }
         }
+
+        // Búsqueda global: texto en el concepto o monto exacto, hasta el mes actual.
+        public async Task<IEnumerable<Ingreso>> BuscarAsync(string? texto, decimal? monto, Guid userId, int limite)
+        {
+            var hoy    = DateTime.UtcNow;
+            var patron = texto is null ? null : $"%{GastosRepository.EscaparLike(texto)}%";
+
+            return await _db.Ingresos
+                .Where(i => i.UserId == userId
+                            && (i.Anio < hoy.Year || (i.Anio == hoy.Year && i.Mes <= hoy.Month))
+                            && ((patron != null && EF.Functions.ILike(i.Concepto, patron, "\\"))
+                                || (monto != null && i.Monto == monto)))
+                .OrderByDescending(i => i.Anio)
+                .ThenByDescending(i => i.Mes)
+                .ThenByDescending(i => i.CreadoEn)
+                .Take(limite)
+                .ToListAsync();
+        }
     }
 }

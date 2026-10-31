@@ -6,8 +6,8 @@
         <h1 class="page-title">Metas de ahorro</h1>
       </div>
       <button v-if="!showForm" class="btn btn-primary btn-new-meta" @click="showForm = !showForm">
-        <svg  width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-       Nueva meta
+        <Plus :size="15" :stroke-width="2.4" />
+        Nueva meta
       </button>
     </div>
 
@@ -222,65 +222,110 @@
     </div>
 
     <template v-else-if="store.metas.length > 0">
-      <div class="metas-grid">
-        <div v-for="meta in store.metas" :key="meta.id" class="meta-card" :class="{ 'meta-completada': meta.completada }">
-          <div style="display: flex; align-items: center;" class="meta-header">
-            <span  class="meta-nombre">{{ meta.nombre }}</span>
-            <div style="display: flex; gap: 0.35rem; align-items: center;">
-              <span v-if="meta.completada" class="badge-completada">✓ Lograda</span>
-              <button v-if="isDesktop" class="btn btn-sm" @click="verHistorial(meta)">Ver historial</button>
-              <button  v-if="isDesktop" class="btn btn-sm" @click="iniciarAbono(meta)">Gestionar saldo</button>
-              <button  class="icon-btn" title="Editar" @click="iniciarEdicion(meta)">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-              <button class="icon-btn danger" @click="borrarMeta(meta.id!)">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
+      <!-- Resumen general -->
+      <div class="metas-resumen">
+        <div class="resumen-item">
+          <span class="resumen-label">Total ahorrado</span>
+          <strong class="resumen-val resumen-val--pos">{{ fmt(totalAhorrado) }}</strong>
+        </div>
+        <span class="resumen-sep" aria-hidden="true" />
+        <div class="resumen-item">
+          <span class="resumen-label">Objetivo total</span>
+          <strong class="resumen-val">{{ fmt(totalObjetivo) }}</strong>
+        </div>
+        <span class="resumen-sep" aria-hidden="true" />
+        <div class="resumen-item">
+          <span class="resumen-label">Metas logradas</span>
+          <strong class="resumen-val">{{ metasLogradas }} / {{ store.metas.length }}</strong>
+        </div>
+      </div>
+
+      <div class="metas-grid" :class="{ 'metas-grid--single': store.metas.length === 1 }">
+        <article v-for="meta in store.metas" :key="meta.id" class="meta-card" :class="{ 'meta-completada': meta.completada }">
+          <!-- Encabezado -->
+          <header class="meta-header">
+            <div class="meta-title">
+              <span class="meta-icon">
+                <Trophy v-if="meta.completada" :size="18" :stroke-width="1.9" />
+                <PiggyBank v-else :size="18" :stroke-width="1.9" />
+              </span>
+              <div class="meta-title-text">
+                <h3 class="meta-nombre">{{ meta.nombre }}</h3>
+                <div class="meta-chips">
+                  <span v-if="meta.completada" class="chip chip--pos"><Check :size="11" :stroke-width="2.6" /> Lograda</span>
+                  <span
+                    v-else-if="calcularProyeccionMeta(meta).urgencia === 'danger' || calcularProyeccionMeta(meta).urgencia === 'warn'"
+                    class="chip"
+                    :class="calcularProyeccionMeta(meta).urgencia === 'danger' ? 'chip--neg' : 'chip--warn'"
+                  >
+                    <TriangleAlert :size="11" :stroke-width="2.4" />
+                    {{ calcularProyeccionMeta(meta).diasRestantes! < 0 ? 'Vencida' : `${calcularProyeccionMeta(meta).diasRestantes} días` }}
+                  </span>
+                  <span v-if="meta.fechaLimite" class="chip"><CalendarDays :size="11" :stroke-width="2.2" /> {{ formatFecha(meta.fechaLimite) }}</span>
+                  <span v-if="cuentaNombre(meta.cuentaId)" class="chip"><Landmark :size="11" :stroke-width="2.2" /> {{ cuentaNombre(meta.cuentaId) }}</span>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div class="meta-progress-bar-wrap">
-            <div class="meta-progress-bar" :style="{ width: pctMeta(meta) + '%' }" />
-          </div>
+            <div class="meta-actions">
+              <button class="btn btn-sm btn-ghost" @click="verHistorial(meta)">
+                <History :size="14" :stroke-width="1.9" /> Historial
+              </button>
+              <button class="btn btn-sm btn-ghost" @click="iniciarAbono(meta)">
+                <ArrowLeftRight :size="14" :stroke-width="1.9" /> Gestionar
+              </button>
+              <div class="more" :class="{ 'more--open': menuMetaId === meta.id }">
+                <button class="icon-btn" title="Más opciones" aria-haspopup="menu" :aria-expanded="menuMetaId === meta.id" @click.stop="toggleMenuMeta(meta.id!)">
+                  <Ellipsis :size="16" :stroke-width="2" />
+                </button>
+                <Transition name="menu">
+                  <div v-if="menuMetaId === meta.id" class="more-menu" role="menu" @click.stop>
+                    <button class="more-item" role="menuitem" @click="menuMetaId = ''; iniciarEdicion(meta)">
+                      <Pencil :size="14" :stroke-width="1.9" /> Editar meta
+                    </button>
+                    <button class="more-item more-item--danger" role="menuitem" @click="menuMetaId = ''; borrarMeta(meta.id!)">
+                      <Trash2 :size="14" :stroke-width="1.9" /> Eliminar
+                    </button>
+                  </div>
+                </Transition>
+              </div>
+            </div>
+          </header>
 
-          <div class="meta-footer">
-            <span class="meta-actual">{{ fmt(meta.montoActual) }}</span>
-            <span class="meta-pct">{{ pctMeta(meta) }}%</span>
-            <span class="meta-objetivo">{{ fmt(meta.montoObjetivo) }}</span>
-          </div>
-          <div v-if="meta.fechaLimite" class="meta-fecha">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            {{ formatFecha(meta.fechaLimite) }}
-          </div>
-          <div v-if="cuentaNombre(meta.cuentaId)" class="meta-fecha">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg>
-            {{ cuentaNombre(meta.cuentaId) }}
-          </div>
-          <template v-if="!meta.completada">
-            <div
-              v-if="calcularProyeccionMeta(meta).urgencia === 'danger' || calcularProyeccionMeta(meta).urgencia === 'warn'"
-              class="meta-urgencia"
-              :class="calcularProyeccionMeta(meta).urgencia!"
-            >
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-              </svg>
-              <span>
-                {{ calcularProyeccionMeta(meta).diasRestantes! < 0 ? 'Vencida' : `${calcularProyeccionMeta(meta).diasRestantes} días` }}
+          <div class="meta-body">
+            <!-- Progreso y montos -->
+            <div class="meta-progress">
+              <div class="meta-amount-row">
+                <span class="meta-actual">{{ fmt(meta.montoActual) }}</span>
+                <span class="pct-badge">{{ pctMeta(meta) }}%</span>
+              </div>
+              <span class="meta-objetivo">de {{ fmt(meta.montoObjetivo) }}</span>
+
+              <div class="meta-progress-bar-wrap" :title="`${pctMeta(meta)}% de la meta`">
+                <div class="meta-progress-bar" :style="{ width: Math.max(pctMeta(meta), 1.5) + '%' }" />
+              </div>
+              <span class="meta-falta">
+                <template v-if="meta.completada || meta.montoActual >= meta.montoObjetivo">¡Llegaste a tu objetivo! 🎉</template>
+                <template v-else>Faltan <strong>{{ fmt(meta.montoObjetivo - meta.montoActual) }}</strong></template>
               </span>
             </div>
-            <div v-if="mesesParaMeta(meta) !== null" class="meta-ritmo">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              Al ritmo actual (~{{ fmt(promedioAhorro) }}/mes), en ~{{ mesesParaMeta(meta) }} mes{{ mesesParaMeta(meta) !== 1 ? 'es' : '' }}
-            </div>
-            <div v-else-if="calcularProyeccionMeta(meta).fechaEstimada" class="meta-estimada">
-              ~{{ fmtFechaEstimada(calcularProyeccionMeta(meta).fechaEstimada!) }}
-            </div>
-          </template>
 
-          <button v-if="isMobile" style="margin-top: 0.75rem;" class="btn btn-sm" @click="verHistorial(meta)">Ver historial</button>
-          <button  v-if="isMobile" class="btn btn-sm" @click="iniciarAbono(meta)">Gestionar saldo</button>
-        </div>
+            <!-- Ritmo / proyección -->
+            <div v-if="!meta.completada && (mesesParaMeta(meta) !== null || calcularProyeccionMeta(meta).fechaEstimada)" class="meta-ritmo">
+              <span class="ritmo-icon"><Gauge :size="16" :stroke-width="1.9" /></span>
+              <div>
+                <p class="ritmo-title">Ritmo</p>
+                <p v-if="mesesParaMeta(meta) !== null" class="ritmo-text">
+                  A este ritmo (~<strong>{{ fmt(promedioAhorro) }}</strong>/mes), alcanzarás tu meta en
+                  <strong>~{{ mesesParaMeta(meta) }} {{ mesesParaMeta(meta) !== 1 ? 'meses' : 'mes' }}</strong>.
+                </p>
+                <p v-else class="ritmo-text">
+                  Fecha estimada: <strong>{{ fmtFechaEstimada(calcularProyeccionMeta(meta).fechaEstimada!) }}</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+        </article>
       </div>
     </template>
 
@@ -297,20 +342,41 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
+import {
+  Plus, PiggyBank, Trophy, Check, TriangleAlert, CalendarDays, Landmark,
+  History, ArrowLeftRight, Ellipsis, Pencil, Trash2, Gauge,
+} from '@lucide/vue'
 import { useFinanceStore } from '@/stores/finance'
 import { useToast } from '@/composables/useToast'
 import { fmtCOP as fmt } from '@/utils'
 import { Teleport } from 'vue'
-import { useDeviceType } from '@/composables/useDeviceType'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
 import type { Meta, MovimientoMeta, TipoRetiroMeta } from '@/types'
 import { calcularProyeccionMeta } from '@/composables/useMetaProjection'
 
-
-const { isMobile, isTablet, isDesktop } = useDeviceType()
 const store = useFinanceStore()
 const toast = useToast()
+
+const totalAhorrado = computed(() => store.metas.reduce((s, m) => s + m.montoActual, 0))
+const totalObjetivo = computed(() => store.metas.reduce((s, m) => s + m.montoObjetivo, 0))
+const metasLogradas = computed(() => store.metas.filter(m => m.completada).length)
+
+// Menú ⋯ de cada meta (editar / eliminar)
+const menuMetaId = ref('')
+function toggleMenuMeta(id: string) {
+  menuMetaId.value = menuMetaId.value === id ? '' : id
+}
+function cerrarMenuMeta() { menuMetaId.value = '' }
+function onEscMenu(e: KeyboardEvent) { if (e.key === 'Escape') cerrarMenuMeta() }
+onMounted(() => {
+  document.addEventListener('click', cerrarMenuMeta)
+  document.addEventListener('keydown', onEscMenu)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', cerrarMenuMeta)
+  document.removeEventListener('keydown', onEscMenu)
+})
 
 const promedioAhorro = computed(() => {
   const positivos = store.tendencia.filter(r => r.ahorro > 0).slice(-3)
@@ -508,8 +574,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-.page-title  { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.25rem; }
 .form-card   { margin-bottom: 1rem; }
 
 .meta-form   { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -529,49 +593,152 @@ onMounted(async () => {
 .form-slide-enter-from   { opacity: 0; transform: translateY(-8px); }
 .form-slide-leave-to     { opacity: 0; transform: translateY(-8px); }
 
-.metas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); gap: 0.75rem; }
+/* ── Resumen general ── */
+.metas-resumen {
+  display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+  padding: 0.9rem 1.25rem; margin-bottom: 1rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+}
+.resumen-item  { display: flex; flex-direction: column; gap: 0.25rem; }
+.resumen-label { font-size: 0.62rem; font-weight: 500; color: var(--text-subtle); letter-spacing: 0.1em; text-transform: uppercase; }
+.resumen-val   { font-family: var(--ff-mono); font-variant-numeric: tabular-nums; font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+.resumen-val--pos { color: var(--c-pos); }
+.resumen-sep   { width: 1px; height: 32px; background: var(--border-hover); }
+
+/* ── Grid: varias metas lado a lado; una sola ocupa todo el ancho ── */
+.metas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1rem; }
+.metas-grid--single { grid-template-columns: minmax(0, 1000px); }
 
 .meta-card {
+  display: flex; flex-direction: column; gap: 1.25rem;
+  padding: 1.35rem 1.4rem;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s ease;
 }
-.meta-card.meta-completada { border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+.meta-card:hover { border-color: var(--border-hover); }
+.meta-card.meta-completada {
+  border-color: color-mix(in srgb, var(--c-pos) 30%, var(--border));
+  background:
+    radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--c-pos) 8%, transparent), transparent 55%),
+    var(--surface);
+}
 
-.meta-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
-.meta-nombre { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+/* Encabezado */
+.meta-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.meta-title  { display: flex; align-items: flex-start; gap: 0.8rem; min-width: 0; }
+.meta-icon {
+  display: grid; place-items: center; flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: 11px;
+  color: var(--c-pos);
+  background: color-mix(in srgb, var(--c-pos) 13%, transparent);
+}
+.meta-title-text { min-width: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.meta-nombre {
+  font-family: var(--ff-body);
+  font-size: 1.02rem; font-weight: 700; color: var(--text-primary); line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.meta-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.chip {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.64rem; font-weight: 500; color: var(--text-subtle);
+  padding: 0.18rem 0.55rem; border-radius: 999px;
+  background: var(--surface2);
+}
+.chip--pos  { color: var(--c-pos);  background: color-mix(in srgb, var(--c-pos) 13%, transparent); }
+.chip--warn { color: var(--c-want); background: color-mix(in srgb, var(--c-want) 13%, transparent); }
+.chip--neg  { color: var(--c-neg);  background: color-mix(in srgb, var(--c-neg) 13%, transparent); }
 
-.badge-completada { font-size: 0.62rem; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); padding: 0.2rem 0.5rem; border-radius: 4px; white-space: nowrap; }
+.meta-actions { display: flex; align-items: center; gap: 0.25rem; flex-shrink: 0; }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--surface2); border-color: var(--border); color: var(--text-primary); }
 
-.meta-progress-bar-wrap { height: 5px; border-radius: 3px; background: var(--surface2); overflow: hidden; }
-.meta-progress-bar { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.5s ease; }
-
-.meta-footer { display: flex; justify-content: space-between; align-items: center; }
-.meta-actual  { font-size: 0.72rem; color: var(--text-secondary); }
-.meta-pct     { font-size: 0.65rem; color: var(--text-muted); }
-.meta-objetivo { font-size: 0.72rem; color: var(--text-muted); }
-
-.meta-fecha { display: flex; align-items: center; gap: 0.3rem; font-size: 0.65rem; color: var(--text-muted); }
-
-.btn-sm { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
 .icon-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 4px 5px;
-  border-radius: 4px;
+  display: grid; place-items: center;
+  width: 32px; height: 32px; padding: 0;
+  background: none; border: none; border-radius: 8px;
+  color: var(--text-secondary); cursor: pointer;
   transition: color 0.15s, background 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
-.icon-btn:hover        { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
-.icon-btn.danger:hover { color: var(--red);   background: color-mix(in srgb, var(--red) 8%, transparent); }
+.icon-btn:hover, .more--open .icon-btn { color: var(--text-primary); background: var(--surface2); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.more { position: relative; }
+.more-menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 30;
+  min-width: 170px; padding: 0.3rem;
+  background: var(--surface); border: 1px solid var(--border-hover);
+  border-radius: 12px; box-shadow: var(--shadow-pop);
+}
+.more-item {
+  display: flex; align-items: center; gap: 0.6rem; width: 100%;
+  padding: 0.55rem 0.65rem; border: none; border-radius: 8px;
+  background: none; font: inherit; font-size: 0.78rem; text-align: left;
+  color: var(--text-primary); cursor: pointer;
+}
+.more-item:hover { background: var(--surface2); }
+.more-item--danger { color: var(--c-neg); }
+.more-item--danger:hover { background: color-mix(in srgb, var(--c-neg) 12%, transparent); }
+.menu-enter-active { transition: opacity 0.14s ease, transform 0.14s var(--ease-out); }
+.menu-leave-active { transition: opacity 0.1s ease; }
+.menu-enter-from   { opacity: 0; transform: translateY(-4px) scale(0.98); }
+.menu-leave-to     { opacity: 0; }
+
+/* Cuerpo: progreso + ritmo (en una sola meta, dos columnas) */
+.meta-body { display: flex; flex-direction: column; gap: 1rem; }
+.metas-grid--single .meta-body {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(240px, 1fr);
+  gap: 2rem; align-items: center;
+}
+
+.meta-progress { display: flex; flex-direction: column; }
+.meta-amount-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.meta-actual {
+  font-family: var(--ff-mono); font-variant-numeric: tabular-nums;
+  font-size: 1.85rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1;
+  color: var(--text-primary);
+}
+.pct-badge {
+  font-family: var(--ff-mono); font-variant-numeric: tabular-nums;
+  font-size: 0.72rem; font-weight: 700;
+  padding: 0.2rem 0.55rem; border-radius: 999px;
+  color: var(--c-pos); background: color-mix(in srgb, var(--c-pos) 13%, transparent);
+}
+.meta-objetivo { font-family: var(--ff-mono); font-variant-numeric: tabular-nums; font-size: 0.76rem; color: var(--text-subtle); margin-top: 0.3rem; }
+
+.meta-progress-bar-wrap {
+  height: 12px; margin-top: 1rem; border-radius: 99px; overflow: hidden;
+  background: color-mix(in srgb, var(--text-muted) 22%, var(--surface2));
+}
+.meta-progress-bar {
+  height: 100%; border-radius: 99px; max-width: 100%;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c-pos) 70%, #3b82f6), var(--c-pos));
+  box-shadow: 0 0 12px -2px color-mix(in srgb, var(--c-pos) 60%, transparent);
+  transition: width 0.7s cubic-bezier(0.2, 0, 0, 1);
+}
+.meta-falta { font-size: 0.72rem; color: var(--text-subtle); margin-top: 0.55rem; }
+.meta-falta strong { font-family: var(--ff-mono); font-weight: 700; color: var(--text-primary); }
+
+.meta-ritmo {
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.ritmo-icon {
+  display: grid; place-items: center; flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 9px;
+  color: var(--c-need);
+  background: color-mix(in srgb, var(--c-need) 14%, transparent);
+}
+.ritmo-title { font-size: 0.64rem; font-weight: 500; color: var(--c-need); letter-spacing: 0.1em; text-transform: uppercase; }
+.ritmo-text  { font-size: 0.78rem; line-height: 1.5; color: var(--text-subtle); margin-top: 0.2rem; }
+.ritmo-text strong { color: var(--text-primary); font-weight: 700; }
 
 /* Empty state */
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 0 3rem; text-align: center; gap: 0.4rem; }
@@ -585,35 +752,13 @@ onMounted(async () => {
 
 /* Modal abonar */
 .overlay { position: fixed; inset: 0; background: rgba(8,12,16,0.75); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 500; }
-.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; width: 400px; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-modal); padding: 1.5rem; width: 400px; box-shadow: var(--shadow-pop); }
 .modal-title { font-family: var(--ff-display); font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.25rem; }
 .modal-sub   { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.5rem; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
 
-.meta-urgencia {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.62rem;
-  font-weight: 600;
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
-  width: fit-content;
-}
-.meta-urgencia.warn   { background: color-mix(in srgb, var(--amber) 10%, transparent); color: var(--amber); }
-.meta-urgencia.danger { background: color-mix(in srgb, var(--red) 10%, transparent); color: var(--red); }
-
-.meta-estimada {
-  font-size: 0.62rem;
-  color: var(--text-muted);
-}
-
-.meta-ritmo {
-  display: flex; align-items: center; gap: 0.3rem;
-  font-size: 0.62rem; color: var(--accent);
-}
-
 .modal-saldo { width: 380px; }
+.saldo-card .meta-progress-bar-wrap { height: 8px; margin-top: 0; }
 
 .saldo-card {
   background: var(--surface2);
@@ -685,10 +830,19 @@ onMounted(async () => {
 .historial-tag--in  { background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); }
 .historial-tag--out { background: color-mix(in srgb, var(--red) 12%, transparent); color: var(--red); }
 
+@media (max-width: 800px) {
+  .metas-grid--single .meta-body { grid-template-columns: 1fr; gap: 1rem; }
+}
+
+@media (max-width: 640px) {
+  .meta-header { flex-direction: column; }
+  .meta-actions { width: 100%; }
+  .meta-actions .btn-ghost { flex: 1; background: var(--surface2); }
+  .resumen-sep { display: none; }
+  .metas-resumen { justify-content: space-between; gap: 0.9rem; }
+}
+
 @media (max-width: 500px) {
-  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
-  .page-title { font-size: 2rem;  }
-  .section-label { font-size: 0.75rem; }
   .btn-new-meta { width: 100%; justify-content: center; }
 
   .form-row    { flex-direction: column; }
@@ -696,6 +850,6 @@ onMounted(async () => {
   .field-fecha { max-width: none; }
 
 
-  .metas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));}
+  .metas-grid { grid-template-columns: 1fr; }
 }
 </style>

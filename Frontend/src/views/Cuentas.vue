@@ -5,18 +5,37 @@
         <div class="section-label">Finanzas</div>
         <h1 class="page-title">Cuentas</h1>
       </div>
-      <button class="btn btn-primary btn-sm btn-new-account" @click="abrirForm()">
-         <svg  width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <button class="btn btn-primary btn-new-account" @click="abrirForm()">
+        <Plus :size="15" :stroke-width="2.4" />
         Nueva cuenta
       </button>
     </div>
 
-    <!-- Resumen -->
-    <div v-if="!loading && cuentas.length > 0" class="resumen-grid">
-      <div class="resumen-card">
-        <span class="resumen-label">Total en cuentas</span>
-        <span class="resumen-val" :class="totalGeneral >= 0 ? 'total-pos' : 'total-neg'">{{ fmt(totalGeneral) }}</span>
-        <span class="resumen-count">{{ cuentas.length }} cuenta{{ cuentas.length !== 1 ? 's' : '' }}</span>
+    <!-- Hero: total en cuentas a todo el ancho -->
+    <div v-if="!loading && cuentas.length > 0" class="hero">
+      <div class="hero-main">
+        <span class="hero-label">Total en cuentas</span>
+        <span class="hero-val" :class="{ 'is-neg': totalGeneral < 0 }">{{ fmt(totalGeneral) }}</span>
+        <span class="hero-sub">en {{ cuentas.length }} cuenta{{ cuentas.length !== 1 ? 's' : '' }}</span>
+      </div>
+
+      <div v-if="distribucion.length > 0" class="hero-dist">
+        <div class="dist-bar">
+          <span
+            v-for="d in distribucion"
+            :key="d.id"
+            class="dist-seg"
+            :style="{ width: d.pct + '%', background: d.color }"
+            :title="`${d.nombre}: ${d.pct}%`"
+          />
+        </div>
+        <ul class="dist-legend">
+          <li v-for="d in distribucion" :key="d.id">
+            <span class="dist-dot" :style="{ background: d.color }" />
+            <span class="dist-name">{{ d.nombre }}</span>
+            <span class="dist-pct">{{ d.pct }}%</span>
+          </li>
+        </ul>
       </div>
     </div>
 
@@ -26,31 +45,44 @@
 
     <template v-else-if="cuentas.length > 0">
       <div class="cuentas-grid">
-        <div v-for="c in cuentas" :key="c.id" class="cuenta-card">
+        <article v-for="c in cuentas" :key="c.id" class="cuenta-card" :style="{ '--tc': TIPO_META[c.tipo].color }">
           <div class="cuenta-top">
-            <span class="tag" :class="tagClass(c.tipo)">{{ TIPO_LABEL[c.tipo] }}</span>
+            <div class="cuenta-tipo">
+              <span class="cuenta-icon"><component :is="TIPO_META[c.tipo].icon" :size="17" :stroke-width="1.9" /></span>
+              <span class="tipo-badge">{{ TIPO_LABEL[c.tipo] }}</span>
+            </div>
             <div class="cuenta-actions">
-              <button class="icon-btn" title="Editar" @click="abrirForm(c)">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <button class="icon-btn" title="Editar" aria-label="Editar cuenta" @click="abrirForm(c)">
+                <Pencil :size="14" :stroke-width="1.9" />
               </button>
-              <button class="icon-btn danger" title="Eliminar" @click="eliminar(c)">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <button class="icon-btn icon-btn--danger" title="Eliminar" aria-label="Eliminar cuenta" @click="eliminar(c)">
+                <Trash2 :size="14" :stroke-width="1.9" />
               </button>
             </div>
           </div>
-          <p class="cuenta-nombre">{{ c.nombre }}</p>
-          <p class="cuenta-saldo" :class="c.saldo >= 0 ? 'total-pos' : 'total-neg'">{{ fmt(c.saldo) }}</p>
-          <button class="btn btn-sm" @click="abrirMovimientoModal(c)">+ Movimiento</button>
-        </div>
+
+          <div class="cuenta-body">
+            <p class="cuenta-nombre">{{ c.nombre }}</p>
+            <p class="cuenta-saldo" :class="{ 'is-neg': c.saldo < 0 }">{{ fmt(c.saldo) }}</p>
+            <p v-if="totalGeneral > 0 && c.saldo > 0" class="cuenta-share">{{ Math.round(c.saldo / totalGeneral * 100) }}% de tu dinero</p>
+          </div>
+
+          <button class="btn-mov" @click="abrirMovimientoModal(c)">
+            <Plus :size="14" :stroke-width="2.4" />
+            Nuevo movimiento
+          </button>
+        </article>
       </div>
     </template>
 
     <template v-else>
       <div class="empty-state">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" style="color: var(--text-muted)"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg>
+        <span class="empty-icon"><Landmark :size="24" :stroke-width="1.8" /></span>
         <p class="empty-state-title">Sin cuentas registradas</p>
         <p class="empty-state-sub">Crea tu efectivo, cuentas bancarias o alcancía para saber cuánto tienes en cada una</p>
-        <button class="btn btn-primary" style="margin-top: 0.75rem" @click="abrirForm()">+ Nueva cuenta</button>
+        <button class="btn btn-primary" style="margin-top: 0.75rem" @click="abrirForm()">
+          <Plus :size="15" :stroke-width="2.4" /> Nueva cuenta
+        </button>
       </div>
     </template>
 
@@ -154,7 +186,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, onMounted } from 'vue'
+import { ref, computed, reactive, onMounted, type Component } from 'vue'
+import {
+  Plus, Pencil, Trash2, Landmark, PiggyBank, Wallet, Smartphone, CreditCard, Bitcoin, CircleDollarSign,
+} from '@lucide/vue'
 import type { Cuenta, LineaCuenta, TipoCuenta } from '@/types'
 import { cuentasService } from '@/services/api'
 import { fmtCOP as fmt } from '@/utils'
@@ -174,17 +209,27 @@ const TIPO_LABEL: Record<TipoCuenta, string> = {
   OTRO: 'Otro',
 }
 
-const TIPO_TAG: Record<TipoCuenta, string> = {
-  EFECTIVO: 'tag-green',
-  BANCO: 'tag-red',
-  BILLETERA_DIGITAL: 'tag-amber',
-  TARJETA_CREDITO: 'tag-amber',
-  ALCANCIA: 'tag-green',
-  CRIPTO: 'tag-red',
-  OTRO: 'tag-amber',
+// Ícono + color (hex para poder usarlo también en la barra de distribución)
+const TIPO_META: Record<TipoCuenta, { icon: Component; color: string }> = {
+  EFECTIVO:          { icon: Wallet,           color: '#10b981' },
+  BANCO:             { icon: Landmark,         color: '#60a5fa' },
+  BILLETERA_DIGITAL: { icon: Smartphone,       color: '#a78bfa' },
+  TARJETA_CREDITO:   { icon: CreditCard,       color: '#fb923c' },
+  ALCANCIA:          { icon: PiggyBank,        color: '#f472b6' },
+  CRIPTO:            { icon: Bitcoin,          color: '#facc15' },
+  OTRO:              { icon: CircleDollarSign, color: '#94a3b8' },
 }
 
-function tagClass(tipo: TipoCuenta) { return TIPO_TAG[tipo] }
+// Reparto del dinero entre cuentas con saldo positivo
+const distribucion = computed(() => {
+  const positivas = cuentas.value.filter(c => c.saldo > 0)
+  const total = positivas.reduce((s, c) => s + c.saldo, 0)
+  if (total <= 0) return []
+  return positivas
+    .sort((a, b) => b.saldo - a.saldo)
+    .map((c, i) => ({ id: c.id, nombre: c.nombre, color: DIST_COLORS[i % DIST_COLORS.length], pct: Math.round(c.saldo / total * 100) }))
+})
+const DIST_COLORS = ['#60a5fa', '#10b981', '#a78bfa', '#fb923c', '#f472b6', '#facc15']
 
 const LINEA_LABEL: Record<LineaCuenta['tipo'], string> = {
   MOVIMIENTO: 'Manual',
@@ -332,43 +377,124 @@ onMounted(cargar)
 </script>
 
 <style scoped>
-.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-.page-title  { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.25rem; }
 
-.resumen-grid { margin-bottom: 1.25rem; }
-.resumen-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-  padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.2rem; max-width: 280px;
+.fade-up { font-variant-numeric: tabular-nums; }
+
+/* ── Hero: total en cuentas ── */
+.hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 2.5rem;
+  margin-bottom: 1.25rem;
+  padding: 1.6rem 1.75rem;
+  border: 1px solid color-mix(in srgb, var(--c-need) 18%, var(--border));
+  border-radius: var(--radius-card);
+  background:
+    radial-gradient(140% 160% at 0% 0%, color-mix(in srgb, var(--c-need) 12%, transparent), transparent 60%),
+    linear-gradient(135deg, var(--surface) 0%, color-mix(in srgb, #1e3a8a 14%, var(--surface)) 100%);
+  box-shadow: var(--shadow-card);
 }
-.resumen-label { font-size: 0.62rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
-.resumen-val   { font-size: 1.3rem; font-weight: 700; }
-.resumen-count { font-size: 0.68rem; color: var(--text-muted); }
+.hero-main  { display: flex; flex-direction: column; gap: 0.45rem; }
+.hero-label { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.14em; text-transform: uppercase; }
+.hero-val {
+  font-family: var(--ff-mono);
+  font-size: 2.4rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1;
+  color: var(--text-primary);
+}
+.hero-val.is-neg { color: var(--c-neg); }
+.hero-sub { font-size: 0.72rem; color: var(--text-subtle); }
 
-.total-pos { color: var(--accent); }
-.total-neg { color: var(--red); }
+.hero-dist { min-width: 0; max-width: 520px; justify-self: end; width: 100%; }
+.dist-bar { display: flex; gap: 3px; height: 10px; border-radius: 99px; overflow: hidden; background: var(--surface2); }
+.dist-seg { height: 100%; min-width: 4px; }
+.dist-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; margin-top: 0.8rem; }
+.dist-legend li { display: flex; align-items: center; gap: 0.45rem; font-size: 0.72rem; color: var(--text-secondary); }
+.dist-dot  { width: 8px; height: 8px; border-radius: 99px; flex-shrink: 0; }
+.dist-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dist-pct  { font-family: var(--ff-mono); color: var(--text-primary); }
 
+/* Colores del historial (modal) */
+.total-pos { color: var(--c-pos); }
+.total-neg { color: var(--c-neg); }
+
+/* ── Tarjetas de cuenta: se expanden para llenar el ancho ── */
 .cuentas-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
 }
 .cuenta-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-  padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;
+  display: flex; flex-direction: column; gap: 1.1rem;
+  padding: 1.2rem 1.25rem 1.25rem;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s ease;
 }
-.cuenta-top { display: flex; justify-content: space-between; align-items: center; }
-.cuenta-actions { display: flex; gap: 0.2rem; }
-.cuenta-nombre { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
-.cuenta-saldo { font-size: 1.15rem; font-weight: 700; }
+.cuenta-card:hover { border-color: var(--border-hover); }
+
+.cuenta-top  { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.cuenta-tipo { display: flex; align-items: center; gap: 0.6rem; }
+.cuenta-icon {
+  display: grid; place-items: center;
+  width: 36px; height: 36px; border-radius: 10px;
+  color: var(--tc); background: color-mix(in srgb, var(--tc) 14%, transparent);
+}
+.tipo-badge {
+  font-size: 0.62rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 0.2rem 0.6rem; border-radius: 999px;
+  color: var(--tc); background: color-mix(in srgb, var(--tc) 12%, transparent);
+}
+
+.cuenta-actions {
+  display: flex; gap: 0.1rem;
+  opacity: 0; transition: opacity 0.15s ease;
+}
+.cuenta-card:hover .cuenta-actions,
+.cuenta-card:focus-within .cuenta-actions { opacity: 1; }
+@media (hover: none) { .cuenta-actions { opacity: 1; } }
+
+.cuenta-body   { display: flex; flex-direction: column; gap: 0.3rem; }
+.cuenta-nombre { font-size: 0.86rem; font-weight: 500; color: var(--text-secondary); }
+.cuenta-saldo  {
+  font-family: var(--ff-mono);
+  font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.cuenta-saldo.is-neg { color: var(--c-neg); }
+.cuenta-share { font-size: 0.68rem; color: var(--text-muted); }
+
+.btn-mov {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+  width: 100%; min-height: 38px; margin-top: auto;
+  font: inherit; font-size: 0.76rem; font-weight: 500;
+  color: var(--text-primary);
+  background: var(--surface2);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.btn-mov:hover  { background: color-mix(in srgb, var(--accent) 14%, var(--surface2)); border-color: var(--accent); }
+.btn-mov:active { transform: scale(0.98); }
+.btn-mov:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
 .icon-btn {
-  background: none; border: none; color: var(--text-muted); cursor: pointer;
-  padding: 4px 5px; border-radius: 4px; transition: color 0.15s, background 0.15s;
-  display: flex; align-items: center;
+  display: grid; place-items: center;
+  width: 30px; height: 30px; padding: 0;
+  background: none; border: none; border-radius: 8px;
+  color: var(--text-secondary); cursor: pointer;
+  transition: color 0.15s, background 0.15s;
 }
-.icon-btn:hover        { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
-.icon-btn.danger:hover { color: var(--red);   background: color-mix(in srgb, var(--red) 8%, transparent); }
+.icon-btn:hover         { color: var(--text-primary); background: var(--surface2); }
+.icon-btn--danger:hover { color: var(--c-neg); background: color-mix(in srgb, var(--c-neg) 12%, transparent); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; opacity: 1; }
 
+.empty-icon {
+  display: grid; place-items: center;
+  width: 52px; height: 52px; border-radius: 999px;
+  color: var(--text-secondary); background: var(--surface2);
+}
 .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 3rem 1rem; gap: 0.35rem; }
 .empty-state-title { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-top: 0.5rem; }
 .empty-state-sub   { font-size: 0.78rem; color: var(--text-muted); max-width: 320px; }
@@ -382,9 +508,10 @@ onMounted(cargar)
 
 
 .modal {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-modal);
   padding: 1.5rem; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 1rem;
   max-height: calc(100vh - 4rem); overflow-y: auto;
+  box-shadow: var(--shadow-pop);
 }
 .modal-title  { font-size: 1rem; font-weight: 700; margin: 0; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; }
@@ -433,17 +560,14 @@ onMounted(cargar)
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
+@media (max-width: 768px) {
+  .hero { grid-template-columns: 1fr; gap: 1.25rem; padding: 1.3rem 1.25rem; }
+  .hero-dist { justify-self: stretch; max-width: none; }
+  .hero-val { font-size: 2rem; }
+}
+
 @media (max-width: 500px) {
-  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
-  .page-title { font-size: 2rem; }
-
-  .resumen-card {
-    max-width: 100%;
-  }
-
-  .btn-new-account {
-    width: 100%;
-    justify-content: center;
-  }
+  .btn-new-account { width: 100%; }
+  .cuentas-grid { grid-template-columns: 1fr; }
 }
 </style>

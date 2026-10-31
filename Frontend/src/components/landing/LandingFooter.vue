@@ -1,42 +1,43 @@
 <template>
   <footer id="footer" class="lfoot">
-    <div class="lfoot-inner">
-      <div class="lfoot-brand">
-        <AppLogo class="lfoot-logo" />
-        <p class="lfoot-tagline">Controla tus finanzas. Cumple tus metas.</p>
+    <div class="l-container">
+      <div class="lfoot-top">
+        <div class="lfoot-brand">
+          <AppLogo class="lfoot-logo" />
+          <p class="lfoot-tagline">Tu dinero, claro por fin. Finanzas personales hechas en Colombia.</p>
+        </div>
+
+        <div class="lfoot-col">
+          <span class="lfoot-heading">Producto</span>
+          <button class="lfoot-link" @click="scrollToSection('features')">Funciones</button>
+          <button class="lfoot-link" @click="scrollToSection('how-it-works')">Cómo funciona</button>
+          <button class="lfoot-link" @click="scrollToSection('faq')">Preguntas frecuentes</button>
+        </div>
+
+        <div class="lfoot-col">
+          <span class="lfoot-heading">Cuenta</span>
+          <RouterLink to="/login" class="lfoot-link">Iniciar sesión</RouterLink>
+          <RouterLink to="/register" class="lfoot-link">Crear cuenta</RouterLink>
+        </div>
+
+        <div class="lfoot-col">
+          <span class="lfoot-heading">Contacto</span>
+          <a href="mailto:soporte@zaldo.app" class="lfoot-link"><Mail :size="14" :stroke-width="2" /> soporte@zaldo.app</a>
+          <span class="lfoot-note">Muy pronto en redes sociales</span>
+        </div>
       </div>
 
-      <div class="lfoot-col">
-        <span class="lfoot-heading">Producto</span>
-        <button class="lfoot-link" @click="scrollToSection('features')">Funciones</button>
-        <button class="lfoot-link" @click="scrollToSection('how-it-works')">Cómo funciona</button>
-        <button class="lfoot-link" @click="scrollToSection('faq')">Preguntas frecuentes</button>
+      <div class="lfoot-bottom">
+        <span>© {{ year }} Zaldo. Todos los derechos reservados.</span>
+        <span class="lfoot-status"><span class="lfoot-dot" /> Beta abierta</span>
       </div>
-
-      <div class="lfoot-col">
-        <span class="lfoot-heading">Cuenta</span>
-        <RouterLink to="/login" class="lfoot-link">Iniciar sesión</RouterLink>
-        <RouterLink to="/register" class="lfoot-link">Registrarse</RouterLink>
-      </div>
-
-      <div class="lfoot-col">
-        <span class="lfoot-heading">Contacto</span>
-        <a href="mailto:soporte@zaldo.app" class="lfoot-link">
-          <Mail :size="13" :stroke-width="2" /> soporte@zaldo.app
-        </a>
-        <span class="lfoot-note">Muy pronto en redes sociales</span>
-      </div>
-    </div>
-
-    <div class="lfoot-bottom">
-      © {{ year }} Zaldo. Todos los derechos reservados.
     </div>
   </footer>
 </template>
 
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { Mail } from '@lucide/vue'
+import { Mail } from 'lucide-vue-next'
 import { scrollToSection } from '@/composables/useLanding'
 import AppLogo from '@/components/common/AppLogo.vue'
 
@@ -44,53 +45,30 @@ const year = new Date().getFullYear()
 </script>
 
 <style scoped>
-.lfoot { padding: 3.5rem 2rem 0; border-top: 1px solid var(--border); scroll-margin-top: 5rem; }
-.lfoot-inner {
-  max-width: 1120px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
-  gap: 2rem;
-  padding-bottom: 2.5rem;
-}
-
-.lfoot-logo { font-family: var(--ff-display); font-weight: 800; font-size: 1.1rem; color: var(--text-primary); }
-.lfoot-tagline { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.5rem; max-width: 220px; }
-
-.lfoot-col { display: flex; flex-direction: column; gap: 0.6rem; }
-.lfoot-heading { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.2rem; }
+.lfoot { position: relative; padding: 4rem 0 2rem; border-top: 1px solid var(--l-line); }
+.lfoot-top { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 2rem; }
+.lfoot-logo { font-size: 1.1rem; }
+.lfoot-tagline { margin-top: 0.85rem; max-width: 280px; font-size: 0.84rem; line-height: 1.6; color: var(--l-sub); }
+.lfoot-col { display: flex; flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+.lfoot-heading { margin-bottom: 0.3rem; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--l-text); }
 .lfoot-link {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: var(--ff-body);
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  text-decoration: none;
-  cursor: pointer;
-  text-align: left;
-  transition: color 0.15s;
-  width: fit-content;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0; background: none; border: none;
+  font-size: 0.86rem; color: var(--l-sub); text-decoration: none; cursor: pointer;
+  transition: color 0.15s ease;
 }
-.lfoot-link:hover { color: var(--accent); }
-.lfoot-note { font-size: 0.72rem; color: var(--text-muted); }
-
+.lfoot-link:hover { color: var(--l-text); }
+.lfoot-note { font-size: 0.76rem; color: var(--l-muted); }
 .lfoot-bottom {
-  border-top: 1px solid var(--border);
-  padding: 1.25rem 0;
-  text-align: center;
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
+  margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--l-line);
+  font-size: 0.78rem; color: var(--l-muted);
 }
+.lfoot-status { display: inline-flex; align-items: center; gap: 0.45rem; }
+.lfoot-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--l-green); box-shadow: 0 0 8px var(--l-green); }
 
-@media (max-width: 760px) {
-  .lfoot-inner { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 480px) {
-  .lfoot { padding: 2.5rem 1.25rem 0; scroll-margin-top: 5rem; }
-  .lfoot-inner { grid-template-columns: 1fr; gap: 1.75rem; }
+@media (max-width: 820px) {
+  .lfoot-top { grid-template-columns: 1fr 1fr; }
+  .lfoot-brand { grid-column: 1 / -1; }
 }
 </style>

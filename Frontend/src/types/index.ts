@@ -47,6 +47,19 @@ export interface Categoria {
   activa: boolean
 }
 
+export interface ConteoCategorias {
+  total: number
+}
+
+export interface CategoriaGastos {
+  categoriaId: string
+  categoria: string
+  moneda: string
+  total: number
+  cantidad: number
+  gastos: Gasto[]
+}
+
 export interface Presupuesto {
   id?: string
   categoria: string
@@ -164,4 +177,28 @@ export interface ReciboExtraido {
   descripcion: string | null
   fecha: string | null
   categoriaSugerida: string | null
+}
+
+// Resultado de la búsqueda global (Ctrl/Cmd + K) — GET /buscar?q=
+export interface ResultadoBusqueda {
+  tipo: 'GASTO' | 'INGRESO'
+  id: string
+  titulo: string          // gasto: categoría · ingreso: concepto
+  detalle?: string | null // solo gastos
+  monto: number
+  mes: number
+  anio: number
+  fecha?: string | null
+  tipoGasto?: 'FIJO' | 'VARIABLE' | null
+}
+
+// Chat IA
+export interface ChatMensaje {
+  rol: 'user' | 'assistant'
+  contenido: string
+}
+
+export interface ChatRespuesta {
+  estado: 'ok' | 'error'
+  respuesta?: string
 }

@@ -9,5 +9,7 @@ namespace Finanzas.Application.Interfaces
         Task<Categoria> CreateAsync(Categoria categoria);
         Task<Categoria> UpdateAsync(Categoria categoria);
         Task DeleteAsync(Guid id);
+        Task<int> CountAsync(Guid userId);
+        Task<int> CountConGastosAsync(Guid userId);
     }
 }

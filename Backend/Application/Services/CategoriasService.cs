@@ -13,6 +13,28 @@ public class CategoriasService(ICategoriasRepository repo, IGastosRepository gas
         return mapper.Map<IEnumerable<CategoriaDto>>(cats);
     }
 
+    public async Task<ConteoCategoriasDto> ContarAsync(Guid userId) =>
+        new() { Total = await repo.CountAsync(userId) };
+
+    public async Task<ConteoCategoriasDto> ContarConGastosAsync(Guid userId) =>
+        new() { Total = await repo.CountConGastosAsync(userId) };
+
+    public async Task<CategoriaGastosDto?> GetGastosAsync(Guid id, Guid userId)
+    {
+        var cat = await repo.GetByIdAsync(id, userId);
+        if (cat is null) return null;
+
+        var gastos = (await gastosRepo.GetByCategoriaAsync(cat.Nombre, userId)).ToList();
+        return new CategoriaGastosDto
+        {
+            CategoriaId = cat.Id,
+            Categoria   = cat.Nombre,
+            Total       = gastos.Sum(g => g.Monto),
+            Cantidad    = gastos.Count,
+            Gastos      = mapper.Map<IEnumerable<GastoDto>>(gastos)
+        };
+    }
+
     public async Task<CategoriaDto> CreateAsync(CrearCategoriaDto dto, Guid userId)
     {
         var cat = mapper.Map<Categoria>(dto);

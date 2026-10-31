@@ -1,62 +1,94 @@
 <template>
   <div class="fade-up">
     <div class="page-header">
-      <div>
-        <div class="section-label">Registro</div>
-        <h1 class="page-title">Gastos</h1>
+      <div class="header-left">
+        <div>
+          <div class="section-label">Registro</div>
+          <h1 class="page-title">Gastos</h1>
+        </div>
       </div>
+
       <div class="header-actions">
-        <MonthSelector :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
-        <button v-if="store.gastos.length > 0" class="btn btn-primary" @click="descargarExcel">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Excel
-        </button>
-        <button class="btn" @click="csvInput?.click()">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Importar
-        </button>
         <input ref="csvInput" type="file" accept=".csv" style="display:none" @change="onImportCSV" />
+        <MonthSelector :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
         <input ref="reciboInput" type="file" accept=".pdf,.jpg,.jpeg,.png" style="display:none" @change="onImportRecibo" />
 
-        <button class="btn " @click="reciboInput?.click()">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-          Escanear Recibo
+        <!-- Acciones secundarias agrupadas -->
+        <div ref="accionesRef" class="acciones">
+          <button
+            class="btn"
+            :aria-expanded="accionesAbiertas"
+            aria-haspopup="menu"
+            @click="accionesAbiertas = !accionesAbiertas"
+          >
+            Acciones
+            <ChevronDown :size="14" :stroke-width="2" class="acciones-chevron" :class="{ 'is-open': accionesAbiertas }" />
+          </button>
+          <Transition name="menu">
+            <div v-if="accionesAbiertas" class="acciones-menu" role="menu">
+              <button class="acciones-item" role="menuitem" @click="accion(() => reciboInput?.click())">
+                <Camera :size="15" :stroke-width="1.9" />
+                <span>Escanear recibo<small>Foto o PDF, se lee con IA</small></span>
+              </button>
+              <button class="acciones-item" role="menuitem" @click="accion(() => csvInput?.click())">
+                <Upload :size="15" :stroke-width="1.9" />
+                <span>Importar CSV<small>Varios gastos a la vez</small></span>
+              </button>
+              <div class="acciones-sep" />
+              <button class="acciones-item" role="menuitem" :disabled="store.gastos.length === 0" @click="accion(descargarExcel)">
+                <FileSpreadsheet :size="15" :stroke-width="1.9" />
+                <span>Exportar a Excel<small>Gastos de este mes</small></span>
+              </button>
+            </div>
+          </Transition>
+        </div>
+
+        <button class="btn btn-primary" @click="nuevoGastoPrincipal">
+          <Plus :size="15" :stroke-width="2.4" />
+          Nuevo gasto
         </button>
       </div>
     </div>
 
     <!-- KPIs del mes -->
     <div v-if="!store.loading && store.gastos.length > 0" class="kpi-grid">
-      <div class="kpi-card" style="--ca: var(--red)">
+      <div class="kpi-card" style="--ca: var(--c-need)">
         <div class="kpi-top">
-          <span class="kpi-label">Gastos fijos</span>
-          <svg class="kpi-icon" style="color:var(--red)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span class="kpi-label"><span class="kpi-dot" />Gastos fijos</span>
+          <span class="kpi-icon"><Lock :size="14" :stroke-width="2" /></span>
         </div>
-        <div class="kpi-value" style="color: var(--red)">{{ fmt(totalFiltradoFijos) }}</div>
+        <div class="kpi-value">{{ fmt(totalFiltradoFijos) }}</div>
+        <div class="kpi-sub">{{ filtradosFijos.length }} {{ filtradosFijos.length === 1 ? 'gasto' : 'gastos' }}</div>
       </div>
-      <div class="kpi-card" style="--ca: var(--amber)">
+      <div class="kpi-card" style="--ca: var(--c-want)">
         <div class="kpi-top">
-          <span class="kpi-label">Gastos ocasionales</span>
-          <svg class="kpi-icon" style="color:var(--amber)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>
+          <span class="kpi-label"><span class="kpi-dot" />Gastos ocasionales</span>
+          <span class="kpi-icon"><Shuffle :size="14" :stroke-width="2" /></span>
         </div>
-        <div class="kpi-value" style="color: var(--amber)">{{ fmt(totalFiltradoVariables) }}</div>
+        <div class="kpi-value">{{ fmt(totalFiltradoVariables) }}</div>
+        <div class="kpi-sub">{{ filtradosVariables.length }} {{ filtradosVariables.length === 1 ? 'gasto' : 'gastos' }}</div>
       </div>
-      <div class="kpi-card" style="--ca: var(--accent)">
+      <div class="kpi-card" style="--ca: var(--accent-strong)">
         <div class="kpi-top">
-          <span class="kpi-label">Total gastos</span>
-          <svg class="kpi-icon" style="color:var(--accent)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span class="kpi-label"><span class="kpi-dot" />Total gastos</span>
+          <span class="kpi-icon"><Wallet :size="14" :stroke-width="2" /></span>
         </div>
-        <div class="kpi-value" style="color: var(--accent)">{{ fmt(totalFiltradoFijos + totalFiltradoVariables) }}</div>
+        <div class="kpi-value">{{ fmt(totalFiltradoFijos + totalFiltradoVariables) }}</div>
+        <div class="kpi-sub">{{ busqueda || filtroCategoria ? 'Con los filtros aplicados' : 'Este mes' }}</div>
       </div>
     </div>
 
     <!-- Barra de búsqueda + filtros -->
     <div v-if="!store.loading && store.gastos.length > 0" class="filter-bar">
       <div class="search-wrap">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input v-model="busqueda" class="input search-input" placeholder="Buscar por detalle o categoría..." />
+        <Search :size="14" :stroke-width="2" class="search-icon" />
+          <input v-model="busqueda" class="input search-input" placeholder="Buscar Gasto..." />
+        <button v-if="busqueda" class="search-clear" title="Limpiar" @click="busqueda = ''">
+          <X :size="12" :stroke-width="2.2" />
+        </button>
       </div>
-      <div class="select-wrap">
+      <div class="select-wrap filter-wrap">
+        <ListFilter :size="15" :stroke-width="2" class="field-icon" />
         <select v-model="filtroCategoria" class="input filter-select">
           <option value="">Todas las categorías</option>
           <option v-for="cat in todasCategorias" :key="cat" :value="cat">{{ cat }}</option>
@@ -90,13 +122,13 @@
     <template v-else-if="store.gastosFijos.length + store.gastosVariables.length > 0 || tipoAbierto">
 
       <!-- Gastos fijos -->
-      <div class="card" style="margin-bottom: 0.75rem;">
+      <div class="card list-card" style="--ca: var(--c-need); margin-bottom: 0.85rem;">
         <div class="card-header">
-          <span class="card-title">Gastos fijos</span>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="tag tag-red">{{ fmt(totalFiltradoFijos) }}</span>
+          <span class="card-title"><span class="kpi-dot" />Gastos fijos</span>
+          <div class="card-header-right">
+            <span class="total-badge">{{ fmt(totalFiltradoFijos) }}</span>
             <button v-if="!editando && tipoAbierto !== 'FIJO'" class="btn btn-sm btn-primary" @click="toggleFormPara('FIJO')">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <Plus :size="13" :stroke-width="2.4" />
               Nuevo gasto
             </button>
           </div>
@@ -117,19 +149,19 @@
 
         <template v-if="tipoAbierto !== 'FIJO'">
           <div v-if="filtradosFijos.length === 0" class="empty">Sin gastos fijos este mes</div>
-          <GastoRow v-for="g in filtradosFijos" :key="g.id" :gasto="g" @edit="abrirEdicion" @delete="onDelete" />
+          <GastoRow v-for="g in filtradosFijos" :key="g.id" :gasto="g" :resaltado="resaltadoId === g.id" @edit="abrirEdicion" @delete="onDelete" />
         </template>
       </div>
 
       <!-- Gastos ocasionales -->
-      <div class="card">
+      <div ref="variablesCardRef" class="card list-card" style="--ca: var(--c-want)">
         <div class="card-header">
-          <span class="card-title">Gastos ocasionales</span>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="tag tag-amber">{{ fmt(totalFiltradoVariables) }}</span>
+          <span class="card-title"><span class="kpi-dot" />Gastos ocasionales</span>
+          <div class="card-header-right">
+            <span class="total-badge">{{ fmt(totalFiltradoVariables) }}</span>
             <button v-if="!editando && tipoAbierto !== 'VARIABLE'" class="btn btn-sm btn-primary" @click="toggleFormPara('VARIABLE')">
-              <svg  width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Nuevo gasto
+              <Plus :size="13" :stroke-width="2.4" />
+              Nuevo gasto
             </button>
           </div>
         </div>
@@ -149,7 +181,7 @@
 
         <template v-if="tipoAbierto !== 'VARIABLE'">
           <div v-if="filtradosVariables.length === 0" class="empty">Sin gastos ocasionales este mes</div>
-          <GastoRow v-for="g in filtradosVariables" :key="g.id" :gasto="g" @edit="abrirEdicion" @delete="onDelete" />
+          <GastoRow v-for="g in filtradosVariables" :key="g.id" :gasto="g" :resaltado="resaltadoId === g.id" @edit="abrirEdicion" @delete="onDelete" />
         </template>
       </div>
     </template>
@@ -188,9 +220,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { ChevronDown } from '@lucide/vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import {
+  ChevronDown, Plus, Search, ListFilter, FileSpreadsheet, Upload, Camera, Lock, Shuffle, Wallet, X
+} from '@lucide/vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useFinanceStore } from '@/stores/finance'
+import { useResaltarMovimiento } from '@/composables/useResaltarMovimiento'
 import { useToast } from '@/composables/useToast'
 import { fmtCOP as fmt, exportExcel } from '@/utils'
 import type { Gasto, ReciboExtraido } from '@/types'
@@ -356,69 +392,193 @@ async function copiarRecurrentes() {
   }
 }
 
-onMounted(() => { store.cargarDatos(); store.cargarCategorias(); store.cargarCuentas() })
+// Menú "Acciones" (escanear / importar / exportar)
+const accionesRef      = ref<HTMLElement>()
+const accionesAbiertas = ref(false)
+
+function accion(fn: () => void) {
+  accionesAbiertas.value = false
+  fn()
+}
+
+function onClickFuera(e: MouseEvent) {
+  if (accionesRef.value && !accionesRef.value.contains(e.target as Node)) accionesAbiertas.value = false
+}
+function onEsc(e: KeyboardEvent) {
+  if (e.key === 'Escape') accionesAbiertas.value = false
+}
+
+// Botón principal: los ocasionales son el registro más frecuente
+const variablesCardRef = ref<HTMLElement>()
+async function nuevoGastoPrincipal() {
+  editando.value    = null
+  tipoAbierto.value = 'VARIABLE'
+  await nextTick()
+  variablesCardRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+// Búsqueda global → resaltar el gasto (limpiando filtros/formularios que lo ocultarían)
+const { resaltadoId } = useResaltarMovimiento(
+  () => store.gastos.map(g => g.id),
+  () => store.loading,
+  () => { busqueda.value = ''; filtroCategoria.value = ''; cerrarForm() },
+)
+
+// Estado vacío del Dashboard → /gastos?nuevo=1 abre el formulario directamente
+const route  = useRoute()
+const router = useRouter()
+
+onMounted(() => {
+  store.cargarDatos(); store.cargarCategorias(); store.cargarCuentas()
+  if (route.query.nuevo) {
+    const { nuevo: _quitar, ...resto } = route.query
+    router.replace({ query: resto })
+    nuevoGastoPrincipal()
+  }
+  document.addEventListener('mousedown', onClickFuera)
+  document.addEventListener('keydown', onEsc)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', onClickFuera)
+  document.removeEventListener('keydown', onEsc)
+})
 </script>
 
 <style scoped>
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-.header-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: nowrap; overflow-x: auto; }
-.header-actions > * { flex-shrink: 0; }
-.page-title  { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.25rem; }
-.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-.card-title  { font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
-.empty       { font-size: 0.72rem; color: var(--text-muted); padding: 1rem 0; text-align: center; }
+/* ── Encabezado: título + mes a la izquierda, acciones a la derecha ── */
+.header-left { display: flex; align-items: flex-end; gap: 1.25rem; flex-wrap: wrap; }
+.header-actions { display: flex; align-items: center; gap: 0.6rem; }
+
+.acciones { position: relative; }
+.acciones-chevron { transition: transform 0.18s ease; }
+.acciones-chevron.is-open { transform: rotate(180deg); }
+.acciones-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 240px;
+  padding: 0.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border-hover);
+  border-radius: 12px;
+  box-shadow: var(--shadow-pop);
+}
+.acciones-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.acciones-item svg { margin-top: 1px; flex-shrink: 0; }
+.acciones-item span { display: flex; flex-direction: column; gap: 2px; color: var(--text-primary); }
+.acciones-item small { font-size: 0.66rem; color: var(--text-muted); }
+.acciones-item:hover:not(:disabled) { background: var(--surface2); color: var(--text-primary); }
+.acciones-item:disabled { opacity: 0.45; cursor: not-allowed; }
+.acciones-sep { height: 1px; background: var(--border); margin: 0.3rem 0.4rem; }
+
+.menu-enter-active { transition: opacity 0.14s ease, transform 0.14s var(--ease-out); }
+.menu-leave-active { transition: opacity 0.1s ease; }
+.menu-enter-from   { opacity: 0; transform: translateY(-4px) scale(0.98); }
+.menu-leave-to     { opacity: 0; }
+
+/* ── Tarjetas de lista ── */
+.card-header { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
+.card-header-right { display: flex; align-items: center; gap: 0.6rem; }
+.card-title  {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.68rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase;
+}
+.total-badge {
+  font-family: var(--ff-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  color: var(--ca);
+  background: color-mix(in srgb, var(--ca) 13%, transparent);
+}
+.list-card:hover { border-color: var(--border); }
+.empty       { font-size: 0.74rem; color: var(--text-muted); padding: 1.25rem 0; text-align: center; }
 
 .form-wrap { margin-bottom: 1rem; }
 
-/* KPIs — mismo estilo que Dashboard.vue */
-.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+/* ── KPIs: borde neutro, color solo en el punto y el ícono ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem; margin-bottom: 1.25rem; }
 .kpi-card {
-  position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem 1.1rem;
-  overflow: hidden;
+  border-radius: var(--radius-card);
+  padding: 1.1rem 1.25rem;
+  box-shadow: var(--shadow-card);
 }
-.kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--ca, var(--border));
-  border-radius: 10px 10px 0 0;
+.kpi-top   { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.kpi-label {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase;
 }
-.kpi-top   { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.kpi-label { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
-.kpi-icon  { opacity: 0.7; flex-shrink: 0; }
-.kpi-value { font-size: 1.25rem; font-family: var(--ff-display); font-weight: 700; }
+.kpi-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--ca); flex-shrink: 0; }
+.kpi-icon {
+  display: grid; place-items: center;
+  width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+  color: var(--ca);
+  background: color-mix(in srgb, var(--ca) 13%, transparent);
+}
+.kpi-value {
+  font-family: var(--ff-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+.kpi-sub { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.3rem; }
 
-/* Filter bar */
+/* ── Búsqueda + filtro ── */
 .filter-bar {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.6rem;
   align-items: center;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
 }
-.search-wrap {
-  position: relative;
-  flex: 1;
-  min-width: 180px;
-}
+.search-wrap { flex: 1 1 auto; width: auto; max-width: none; }
 .search-icon {
+  position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); pointer-events: none;
+}
+.search-input { width: 100%; height: 38px; padding-left: 2.2rem; padding-right: 2rem; border-radius: 10px; background: var(--surface); border-color: var(--border-hover); }
+.search-clear {
+  position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface2); border: none; color: var(--text-muted); cursor: pointer;
+}
+.search-clear:hover { color: var(--text-primary); }
+.field-icon {
   position: absolute;
-  left: 0.65rem;
+  left: 0.8rem;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-muted);
   pointer-events: none;
+  z-index: 1;
 }
-.search-input  { padding-left: 2rem; }
-.select-wrap { min-width: 160px; flex-shrink: 0; }
-.filter-select { cursor: pointer; }
-
-.btn-sm { padding: 0.3rem 0.65rem; font-size: 0.72rem; }
+.search-wrap:focus-within .field-icon,
+.filter-wrap:focus-within .field-icon { color: var(--accent-strong); }
+.search-input,
+.filter-select { padding-left: 2.3rem; background: var(--surface); border-color: var(--border-hover); }
+.filter-wrap { position: relative; min-width: 210px; }
 
 /* Slide-down transition */
 .form-slide-enter-active { transition: opacity 0.22s ease, transform 0.22s ease; }
@@ -479,17 +639,21 @@ onMounted(() => { store.cargarDatos(); store.cargarCategorias(); store.cargarCue
 .empty-state-title { font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; margin-top: 0.5rem; }
 .empty-state-sub   { font-size: 0.72rem; color: var(--text-muted); max-width: 280px; }
 
+@media (max-width: 768px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-grid > :last-child { grid-column: 1 / -1; }
+}
+
 @media (max-width: 500px) {
-  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
-  .page-title { font-size: 2rem;  }
-  .section-label { font-size: 0.75rem; }
-  .header-actions { flex-direction: column; gap: 0.4rem; font-size: 0.9rem; align-items: center; display: block; justify-content: space-between; margin-bottom: 0.5rem; }
+  .header-left { width: 100%; justify-content: space-between; }
+  .header-actions { width: 100%; }
+  .header-actions > .btn-primary { flex: 1; }
+  .acciones-menu { right: auto; left: 0; }
 
-  .btn { margin-top: 3%; margin-left: 5px; }
-
-  .filter-bar { display: block; }
-  .search-wrap { margin-bottom: 0.5rem; }
+  .search-wrap { max-width: none; flex-basis: 100%; }
+  .filter-wrap { flex: 1; min-width: 0; }
 
   .kpi-grid { grid-template-columns: 1fr; }
+  .card-header { flex-wrap: wrap; }
 }
 </style>

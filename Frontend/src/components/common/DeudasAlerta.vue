@@ -8,10 +8,9 @@
 
     <template v-else>
       <div v-if="vencidas.length === 0 && proximas.length === 0" class="alerta-ok">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="20 6 9 17 4 12"/>
-        </svg>
-        Sin deudas por vencer
+        <span class="alerta-ok-icon"><ShieldCheck :size="26" :stroke-width="1.8" /></span>
+        <p class="alerta-ok-title">{{ sinPendientes ? '¡Felicidades! No tienes deudas pendientes' : 'Todo al día' }}</p>
+        <p class="alerta-ok-sub">{{ sinPendientes ? 'Sigue así, tus finanzas están limpias.' : 'Ninguna deuda vence en los próximos 7 días.' }}</p>
       </div>
 
       <div v-else class="alerta-lista">
@@ -35,6 +34,7 @@ import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import type { Deuda } from '@/types'
 import { deudasService } from '@/services/api'
+import { ShieldCheck } from 'lucide-vue-next'
 
 const deudas  = ref<Deuda[]>([])
 const loading = ref(false)
@@ -54,6 +54,7 @@ function fmtFecha(f: string) {
 }
 
 const pendientes = computed(() => deudas.value.filter(d => !d.pagada && d.fechaLimite))
+const sinPendientes = computed(() => deudas.value.every(d => d.pagada))
 const vencidas    = computed(() => pendientes.value.filter(d => estaVencida(d)))
 const proximas    = computed(() =>
   pendientes.value.filter(d => !estaVencida(d) && diasParaVencer(d) <= 7)
@@ -74,12 +75,14 @@ onMounted(async () => {
 .alerta-widget {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem;
+  border-radius: var(--radius-card);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-card);
 }
 
 .alerta-titulo {
-  font-size: 0.65rem;
+  font-size: 0.66rem;
+  font-weight: 500;
   color: var(--text-secondary);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -88,11 +91,25 @@ onMounted(async () => {
 
 .alerta-ok {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.78rem;
-  color: var(--accent);
+  text-align: center;
+  gap: 0.35rem;
+  padding: 1rem 0.5rem 0.75rem;
 }
+.alerta-ok-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 0.4rem;
+  border-radius: 999px;
+  color: #10b981;
+  background: color-mix(in srgb, #10b981 12%, transparent);
+  box-shadow: 0 0 0 6px color-mix(in srgb, #10b981 6%, transparent);
+}
+.alerta-ok-title { font-size: 0.84rem; font-weight: 500; color: var(--text-primary); }
+.alerta-ok-sub { font-size: 0.7rem; color: var(--text-muted); }
 
 .alerta-lista { display: flex; flex-direction: column; gap: 0.35rem; }
 

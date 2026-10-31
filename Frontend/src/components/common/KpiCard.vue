@@ -25,8 +25,9 @@ const formatted = computed(() =>
 .kpi {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-card);
 }
 .kpi-label {
   font-size: 0.62rem;
