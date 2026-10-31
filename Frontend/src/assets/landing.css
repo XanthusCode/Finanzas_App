@@ -1,0 +1,118 @@
+/*
+ * Landing: mismo lenguaje visual que Login/Registro (auth.css).
+ * Siempre oscura, Inter, luces de fondo, cristal y botón blanco.
+ * Todo va bajo .landing para no afectar la app.
+ */
+.landing {
+  --l-bg: #07090d;
+  --l-surface: rgba(255, 255, 255, 0.035);
+  --l-surface-2: rgba(255, 255, 255, 0.06);
+  --l-line: rgba(255, 255, 255, 0.08);
+  --l-line-2: rgba(255, 255, 255, 0.14);
+  --l-text: #f1f5f9;
+  --l-sub: #94a3b8;
+  --l-muted: #64748b;
+  --l-blue: #60a5fa;
+  --l-green: #34d399;
+  --l-violet: #a78bfa;
+  --l-gold: #d4a85a;
+  --l-rose: #f87171;
+
+  position: relative;
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--l-bg);
+  color: var(--l-text);
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+.landing h1, .landing h2, .landing h3, .landing button, .landing input { font-family: inherit; }
+
+/* Logo con su fuente de marca */
+.landing .app-logo { font-family: var(--ff-display); font-weight: 800; letter-spacing: 0.06em; }
+.landing .app-logo-mark { color: var(--l-blue); }
+
+/* ── Contenedor y secciones ── */
+.landing .l-container { width: 100%; max-width: 1160px; margin: 0 auto; padding: 0 1.5rem; }
+.landing .l-section { position: relative; padding: 6.5rem 0; }
+.landing .l-section-head { max-width: 640px; margin: 0 auto 3.25rem; text-align: center; }
+.landing .l-eyebrow {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  padding: 0.3rem 0.8rem; margin-bottom: 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--l-line-2);
+  background: var(--l-surface);
+  font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; color: var(--l-sub);
+}
+.landing .l-eyebrow-dot { width: 6px; height: 6px; border-radius: 99px; background: var(--l-green); box-shadow: 0 0 10px var(--l-green); }
+.landing .l-h2 {
+  font-size: clamp(1.9rem, 3.6vw, 2.75rem);
+  font-weight: 800; line-height: 1.1; letter-spacing: -0.035em;
+  color: var(--l-text);
+}
+.landing .l-lead { margin-top: 1rem; font-size: 1rem; line-height: 1.65; color: var(--l-sub); }
+.landing .l-grad {
+  background: linear-gradient(90deg, #60a5fa, #34d399);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* ── Botones ── */
+.landing .l-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  height: 46px; padding: 0 1.35rem;
+  border-radius: 12px; border: 1px solid transparent;
+  font-size: 0.9rem; font-weight: 600; text-decoration: none; white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-out), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+.landing .l-btn:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.45); }
+.landing .l-btn--white {
+  background: #f8fafc; color: #0b0f17;
+  box-shadow: 0 10px 30px -10px rgba(255, 255, 255, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+}
+.landing .l-btn--white:hover { background: #fff; transform: translateY(-1px); box-shadow: 0 16px 36px -12px rgba(255, 255, 255, 0.45), inset 0 -2px 0 rgba(0, 0, 0, 0.08); }
+.landing .l-btn--ghost { background: var(--l-surface); border-color: var(--l-line-2); color: var(--l-text); }
+.landing .l-btn--ghost:hover { background: var(--l-surface-2); border-color: rgba(255, 255, 255, 0.24); }
+.landing .l-btn--sm { height: 38px; padding: 0 1rem; font-size: 0.82rem; border-radius: 10px; }
+.landing .l-btn--lg { height: 52px; padding: 0 1.6rem; font-size: 0.95rem; border-radius: 14px; }
+.landing .l-btn .l-arrow { transition: transform 0.2s var(--ease-out); }
+.landing .l-btn:hover .l-arrow { transform: translateX(3px); }
+
+/* ── Cristal ── */
+.landing .l-glass {
+  position: relative;
+  background: var(--l-surface);
+  border: 1px solid var(--l-line);
+  border-radius: 20px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 24px 48px -28px rgba(0, 0, 0, 0.85);
+}
+.landing .l-icon {
+  --ic: var(--l-blue);
+  display: grid; place-items: center; flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: 12px;
+  color: var(--ic);
+  background: color-mix(in srgb, var(--ic) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ic) 22%, rgba(255, 255, 255, 0.06));
+}
+
+/* ── Luces ── */
+.landing .l-glow {
+  position: absolute; border-radius: 50%; pointer-events: none;
+  filter: blur(120px);
+}
+
+/* ── Aparición al hacer scroll (Landing.vue agrega .is-visible) ── */
+.landing .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out); }
+.landing .reveal.is-visible { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .landing .reveal { opacity: 1; transform: none; }
+}
+
+@media (max-width: 700px) {
+  .landing .l-section { padding: 4.5rem 0; }
+  .landing .l-section-head { margin-bottom: 2.25rem; }
+  .landing .l-container { padding: 0 1.1rem; }
+}

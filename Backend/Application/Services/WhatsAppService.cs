@@ -60,7 +60,7 @@ namespace Finanzas.Application.Services
 
             // Colombia es UTC-5 todo el año. Fecha a medianoche UTC del día local,
             // igual que las fechas "YYYY-MM-DD" que manda el formulario.
-            var hoy = DateTime.UtcNow.AddHours(-5).Date;
+            var hoy = DateTime.UtcNow.AddHours(-5);   // Colombia no tiene horario de verano
             await _gastosRepo.CreateAsync(new Gasto
             {
                 UserId    = user.Id,

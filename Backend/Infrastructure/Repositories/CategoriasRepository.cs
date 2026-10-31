@@ -15,6 +15,15 @@ namespace Finanzas.Infrastructure.Repositories
                 .OrderBy(c => c.Nombre)
                 .ToListAsync();
 
+        public async Task<int> CountAsync(Guid userId) =>
+            await _db.Categorias.CountAsync(c => c.Activa && c.UserId == userId);
+
+        // Los gastos referencian la categoría por nombre, no por Id.
+        public async Task<int> CountConGastosAsync(Guid userId) =>
+            await _db.Categorias.CountAsync(c =>
+                c.Activa && c.UserId == userId &&
+                _db.Gastos.Any(g => g.UserId == userId && g.Categoria == c.Nombre));
+
         public async Task<Categoria?> GetByIdAsync(Guid id, Guid userId) =>
             await _db.Categorias.FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
 

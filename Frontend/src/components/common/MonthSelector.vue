@@ -1,12 +1,13 @@
 <template>
   <div class="month-selector">
-    <button class="arrow" @click="prev">&#8249;</button>
+    <button class="arrow" aria-label="Mes anterior" @click="prev"><ChevronLeft :size="16" :stroke-width="2" /></button>
     <span class="label">{{ label }}</span>
-    <button class="arrow" @click="next">&#8250;</button>
+    <button class="arrow" aria-label="Mes siguiente" @click="next"><ChevronRight :size="16" :stroke-width="2" /></button>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ChevronLeft, ChevronRight } from '@lucide/vue'
 import { computed } from 'vue'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -31,37 +32,45 @@ function next() {
 </script>
 
 <style scoped>
+/* Sutil: no compite con el botón principal de cada vista */
 .month-selector {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.35rem 0.75rem;
+  gap: 0.25rem;
+  height: 38px;
+  padding: 0 0.25rem;
+  background: var(--surface2);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  transition: border-color 0.15s ease;
 }
+.month-selector:hover { border-color: var(--border); }
 .label {
   font-size: 0.78rem;
+  font-weight: 500;
   color: var(--text-primary);
   min-width: 110px;
   text-align: center;
+  text-transform: capitalize;
+  font-variant-numeric: tabular-nums;
 }
 .arrow {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   background: none;
   border: none;
+  border-radius: 8px;
   color: var(--text-secondary);
-  font-size: 1.1rem;
   cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  transition: color 0.2s;
+  transition: color 0.15s ease, background 0.15s ease;
 }
-.arrow:hover { color: var(--text-primary); }
+.arrow:hover { color: var(--text-primary); background: var(--surface); }
+.arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 @media (max-width: 500px) {
- .month-selector {
-    gap: 0.35rem;
-    justify-content: space-between;
-  }
+  .month-selector { justify-content: space-between; }
 }
 </style>

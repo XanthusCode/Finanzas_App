@@ -1,82 +1,142 @@
 <template>
   <div class="auth-page">
-    <!-- Panel izquierdo -->
-    <div class="auth-panel">
-      <div class="panel-logo"><AppLogo /></div>
-      <p class="panel-tagline">Controla tus finanzas.<br>Cumple tus metas.</p>
-      <ul class="panel-features">
-        <li>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          Dashboard con resumen mensual y anual
-        </li>
-        <li>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          Control de gastos e ingresos por categoría
-        </li>
-        <li>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Metas de ahorro con seguimiento visual
-        </li>
-        <li>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Presupuestos por categoría con alertas
-        </li>
-      </ul>
-    </div>
+    <!-- Luces de fondo (se filtran a través del cristal) -->
+    <div class="glow glow--blue" aria-hidden="true" />
+    <div class="glow glow--green" aria-hidden="true" />
+    <div class="glow glow--violet" aria-hidden="true" />
+    <div class="grain" aria-hidden="true" />
 
-    <!-- Panel derecho -->
-    <div class="auth-right">
-      <div class="auth-card">
-        <div class="auth-logo-mobile"><AppLogo /></div>
+    <div class="auth-shell">
+      <!-- ── Showcase: widgets de la app flotando (bento) ── -->
+      <section class="showcase" aria-label="Vista previa de Zaldo">
+        <div class="brand"><AppLogo /></div>
+        <h2 class="showcase-title">Tu dinero, <span>claro</span> por fin.</h2>
+        <p class="showcase-sub">Gastos, metas, cuentas y presupuestos en un solo lugar. Así se ve tu mes en Zaldo:</p>
+
+        <div class="bento">
+          <!-- Saldo total + sparkline -->
+          <article class="widget w-saldo">
+            <div class="w-head">
+              <span class="w-label">Total en cuentas</span>
+              <span class="w-chip w-chip--pos"><TrendingUp :size="11" :stroke-width="2.4" /> 12%</span>
+            </div>
+            <p class="w-big">$4.820.000</p>
+            <svg class="spark" viewBox="0 0 200 48" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.45" />
+                  <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <path d="M0 38 L22 34 L44 36 L66 26 L88 29 L110 20 L132 22 L154 12 L176 15 L200 6 L200 48 L0 48 Z" fill="url(#sparkFill)" />
+              <path d="M0 38 L22 34 L44 36 L66 26 L88 29 L110 20 L132 22 L154 12 L176 15 L200 6" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+            </svg>
+          </article>
+
+          <!-- Anillo de ahorro -->
+          <article class="widget w-ahorro">
+            <span class="w-label">Ahorro del mes</span>
+            <div class="ring">
+              <svg viewBox="0 0 64 64" aria-hidden="true">
+                <circle cx="32" cy="32" r="26" class="ring-track" />
+                <circle cx="32" cy="32" r="26" class="ring-fill" />
+              </svg>
+              <span class="ring-val">29%</span>
+            </div>
+            <span class="w-foot">+$924.067</span>
+          </article>
+
+          <!-- Presupuestos -->
+          <article class="widget w-presu">
+            <span class="w-label">Presupuestos</span>
+            <ul class="presu-list">
+              <li v-for="p in PRESUPUESTOS" :key="p.nombre">
+                <div class="presu-top"><span>{{ p.nombre }}</span><span class="presu-pct">{{ p.pct }}%</span></div>
+                <div class="presu-track"><span :style="{ width: p.pct + '%', background: p.color }" /></div>
+              </li>
+            </ul>
+          </article>
+
+          <!-- WhatsApp -->
+          <article class="widget w-chat">
+            <span class="w-label"><MessageCircle :size="12" :stroke-width="2.2" /> Gasto por WhatsApp</span>
+            <div class="bubble bubble--out">25000 almuerzo</div>
+            <div class="bubble bubble--in"><Check :size="12" :stroke-width="3" /> Registrado en Comida</div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ── Formulario: cristal esmerilado ── -->
+      <section class="glass">
+        <div class="glass-logo"><AppLogo /></div>
         <h1 class="auth-title">Bienvenido de vuelta</h1>
         <p class="auth-subtitle">Ingresa a tu cuenta para continuar</p>
 
-        <form class="auth-form" @submit.prevent="onSubmit">
+        <form class="auth-form" novalidate @submit.prevent="onSubmit">
           <div class="field">
-            <label class="field-label">Correo electrónico</label>
-            <input
-              v-model="form.email"
-              type="email"
-              class="field-input"
-              :class="{ 'input-error': errors.email }"
-              placeholder="tu@correo.com"
-              autocomplete="email"
-            />
+            <label class="field-label" for="login-email">Correo electrónico</label>
+            <div class="input-wrap" :class="{ 'has-error': errors.email }">
+              <Mail :size="16" :stroke-width="1.9" class="input-icon" />
+              <input
+                id="login-email"
+                v-model="form.email"
+                type="email"
+                class="field-input"
+                placeholder="tu@correo.com"
+                autocomplete="email"
+                :aria-invalid="!!errors.email"
+              />
+            </div>
             <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
           </div>
 
           <div class="field">
-            <label class="field-label">Contraseña</label>
-            <div class="input-wrap">
+            <label class="field-label" for="login-password">Contraseña</label>
+            <div class="input-wrap" :class="{ 'has-error': errors.password }">
+              <LockKeyhole :size="16" :stroke-width="1.9" class="input-icon" />
               <input
+                id="login-password"
                 v-model="form.password"
                 :type="showPassword ? 'text' : 'password'"
                 class="field-input"
-                :class="{ 'input-error': errors.password }"
                 placeholder="••••••••"
                 autocomplete="current-password"
+                :aria-invalid="!!errors.password"
               />
-              <button type="button" class="eye-btn" @click="showPassword = !showPassword" tabindex="-1">
-                <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              <button
+                type="button"
+                class="eye-btn"
+                :aria-label="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                @click="showPassword = !showPassword"
+              >
+                <EyeOff v-if="showPassword" :size="16" :stroke-width="1.9" />
+                <Eye v-else :size="16" :stroke-width="1.9" />
               </button>
             </div>
             <span v-if="errors.password" class="field-error">{{ errors.password }}</span>
           </div>
 
-          <p v-if="serverError" class="server-error">{{ serverError }}</p>
+          <p v-if="serverError" class="server-error" role="alert">
+            <CircleAlert :size="15" :stroke-width="2" /> {{ serverError }}
+          </p>
 
           <button type="submit" class="btn-submit" :disabled="loading">
             <span v-if="loading" class="spinner" />
-            {{ loading ? 'Ingresando...' : 'Iniciar sesión' }}
+            {{ loading ? 'Ingresando…' : 'Iniciar sesión' }}
+            <ArrowRight v-if="!loading" :size="16" :stroke-width="2.2" class="btn-arrow" />
           </button>
         </form>
 
         <p class="auth-footer">
           ¿No tienes cuenta?
-          <RouterLink to="/register" class="auth-link">Regístrate aquí</RouterLink>
+          <RouterLink to="/register" class="auth-link">Créala gratis</RouterLink>
         </p>
-      </div>
+
+        <p class="trust">
+          <ShieldCheck :size="13" :stroke-width="2" />
+          Tus datos viajan cifrados y nunca los compartimos.
+        </p>
+      </section>
     </div>
   </div>
 </template>
@@ -84,9 +144,13 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
+import {
+  Mail, LockKeyhole, Eye, EyeOff, ArrowRight, CircleAlert, ShieldCheck, TrendingUp, MessageCircle, Check,
+} from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import { z } from 'zod'
 import AppLogo from '@/components/common/AppLogo.vue'
+import '@/assets/auth.css'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -96,6 +160,13 @@ const errors = reactive({ email: '', password: '' })
 const serverError = ref('')
 const loading = ref(false)
 const showPassword = ref(false)
+
+// Datos ilustrativos del showcase (no son del usuario)
+const PRESUPUESTOS = [
+  { nombre: 'Comida',     pct: 72, color: '#10b981' },
+  { nombre: 'Transporte', pct: 48, color: '#60a5fa' },
+  { nombre: 'Ocio',       pct: 91, color: '#d4a85a' },
+]
 
 const schema = z.object({
   email: z.email({ message: 'Correo inválido' }),
@@ -124,206 +195,3 @@ async function onSubmit() {
   router.push('/dashboard')
 }
 </script>
-
-<style scoped>
-.auth-page {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-
-/* ── Panel izquierdo ── */
-.auth-panel {
-  background: #0d0f12;
-  background-image:
-    radial-gradient(ellipse 80% 60% at 20% 50%, color-mix(in srgb, var(--accent) 8%, transparent) 0%, transparent 70%),
-    linear-gradient(180deg, #0d0f12 0%, #14181c 100%);
-  padding: 3rem 3.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2rem;
-  position: relative;
-  overflow: hidden;
-}
-.auth-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(color-mix(in srgb, var(--accent) 4%, transparent) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
-.panel-logo {
-  font-family: var(--ff-display);
-  font-weight: 800;
-  font-size: 1.3rem;
-  letter-spacing: 0.08em;
-  color: #fff;
-  position: relative;
-}
-.panel-logo span { color: var(--accent); }
-
-.panel-tagline {
-  font-size: 2rem;
-  font-weight: 800;
-  line-height: 1.2;
-  color: #fff;
-  margin: 0;
-  position: relative;
-}
-
-.panel-features {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  position: relative;
-}
-.panel-features li {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.55);
-}
-.panel-features li svg { color: var(--accent); flex-shrink: 0; }
-
-/* ── Panel derecho ── */
-.auth-right {
-  background: var(--bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1.5rem;
-}
-
-.auth-card {
-  width: 100%;
-  max-width: 380px;
-}
-
-.auth-logo-mobile {
-  display: none;
-  font-family: var(--ff-display);
-  font-weight: 800;
-  font-size: 1.1rem;
-  letter-spacing: 0.06em;
-  color: var(--text-primary);
-  margin-bottom: 1.5rem;
-}
-.auth-logo-mobile span { color: var(--accent); }
-
-.auth-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0 0 0.3rem;
-  letter-spacing: -0.02em;
-}
-
-.auth-subtitle {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  margin: 0 0 2rem;
-}
-
-.auth-form { display: flex; flex-direction: column; gap: 1.1rem; }
-
-.field { display: flex; flex-direction: column; gap: 0.35rem; }
-
-.field-label {
-  font-size: 0.72rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.field-input {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.65rem 0.85rem;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.field-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
-}
-.field-input.input-error { border-color: var(--red); }
-
-.input-wrap { position: relative; }
-.input-wrap .field-input { width: 100%; padding-right: 2.5rem; box-sizing: border-box; }
-.eye-btn {
-  position: absolute; right: 0.65rem; top: 50%; transform: translateY(-50%);
-  background: none; border: none; cursor: pointer; color: var(--text-muted);
-  display: flex; align-items: center; padding: 2px;
-  transition: color 0.15s;
-}
-.eye-btn:hover { color: var(--text-primary); }
-
-.field-error { font-size: 0.72rem; color: var(--red); }
-
-.server-error {
-  font-size: 0.8rem;
-  color: var(--red);
-  background: color-mix(in srgb, var(--red) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--red) 20%, transparent);
-  border-radius: 8px;
-  padding: 0.6rem 0.85rem;
-  margin: 0;
-}
-
-.btn-submit {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.75rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s;
-  margin-top: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  letter-spacing: 0.01em;
-}
-.btn-submit:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
-.btn-submit:active:not(:disabled) { transform: translateY(0); }
-.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.spinner {
-  width: 14px; height: 14px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.auth-footer {
-  text-align: center;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin: 1.75rem 0 0;
-}
-.auth-link { color: var(--accent); text-decoration: none; font-weight: 500; }
-.auth-link:hover { text-decoration: underline; }
-
-/* ── Mobile ── */
-@media (max-width: 700px) {
-  .auth-page { grid-template-columns: 1fr; }
-  .auth-panel { display: none; }
-  .auth-right { padding: 2.5rem 1.25rem; align-items: flex-start; padding-top: 3rem; }
-  .auth-logo-mobile { display: block; }
-}
-</style>

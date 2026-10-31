@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
 import { api, perfilService } from '@/services/api'
+import { useCopiloto } from '@/composables/useCopiloto'
 
 interface AuthResponse {
   token: string
@@ -72,6 +73,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   function logout() {
     clearSession()
+    useCopiloto().limpiar()
   }
 
   return { token, isAuthenticated, login, register, changePassword, updateNombre, logout }

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta, MovimientoMeta, MovimientoMetaPayload, ResumenCategoria, Deuda, Abono, Cuenta, LineaCuenta, TipoCuenta, Suscripcion, HeatmapDia, Insights, ReciboExtraido } from '@/types'
+import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, ConteoCategorias, CategoriaGastos, Presupuesto, Meta, MovimientoMeta, MovimientoMetaPayload, ResumenCategoria, Deuda, Abono, Cuenta, LineaCuenta, TipoCuenta, Suscripcion, HeatmapDia, Insights, ReciboExtraido, ResultadoBusqueda, ChatMensaje, ChatRespuesta } from '@/types'
 
 const TOKEN_KEY = 'finanzas_token'
 
@@ -24,6 +24,7 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       localStorage.removeItem(TOKEN_KEY)
       localStorage.removeItem('finanzas_user')
+      sessionStorage.removeItem('finanzas_copiloto')
       window.location.href = '/login'
     }
     return Promise.reject(err)
@@ -97,7 +98,13 @@ export const categoriasService = {
   update: (id: string, cat: Omit<Categoria, 'id'>) =>
     api.put<Categoria>(`/categorias/${id}`, cat),
   delete: (id: string) =>
-    api.delete(`/categorias/${id}`)
+    api.delete(`/categorias/${id}`),
+  getTotal: () =>
+    api.get<ConteoCategorias>('/categorias/total'),
+  getTotalConGastos: () =>
+    api.get<ConteoCategorias>('/categorias/con-gastos'),
+  getGastos: (id: string) =>
+    api.get<CategoriaGastos>(`/categorias/${id}/gastos`)
 }
 
 export const presupuestosService = {
@@ -169,4 +176,15 @@ export const perfilService = {
     api.post<{ codigo: string; expiraEn: string }>('/auth/whatsapp/codigo'),
   desvincularWhatsapp: () =>
     api.delete('/auth/whatsapp')
+}
+
+export const busquedaService = {
+  buscar: (q: string) =>
+    api.get<ResultadoBusqueda[]>('/buscar', { params: { q } }),
+}
+
+export const chatIAService = {
+  chat: (mensajes: ChatMensaje[]) =>
+  api.post<ChatRespuesta>('/copiloto/chat', { mensajes }),
+
 }

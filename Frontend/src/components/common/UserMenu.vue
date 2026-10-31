@@ -1,109 +1,50 @@
 <template>
   <div class="user-menu" ref="menuRef">
-    <button class="avatar-btn" @click="toggleDropdown" :title="userFromToken(auth.token ?? '')?.nombre">
-      <span class="avatar-initials">{{ initials }}</span>
+    <button @mouseenter="showTooltip($event, 'Cerrar sesión')" @mouseleave="hideTooltip" class="dropdown-item dropdown-item--danger" @click="handleLogout">
+      <LogOut :size="20" />
     </button>
 
-    <Transition name="dropdown">
-      <div v-if="open" class="dropdown">
-        <div class="dropdown-header ">
-          <span class="dropdown-name mb-10">{{ userFromToken(auth.token ?? '')?.nombre }}</span>
+     <!-- En body: el sticky del aside crea un contexto de apilamiento y el contenido lo taparía -->
+    <Teleport to="body">
+      <Transition name="tooltip">
+        <div
+          v-if="tooltip.visible"
+          class="sidebar-tooltip"
+          :style="{ top: `${tooltip.top}px`, left: `${tooltip.left}px` }"
+          role="tooltip"
+        >
+          {{ tooltip.text }}
         </div>
-
-        <div class="dropdown-divider" />
-        <div class="dropdown-divider" />
-
-        <button class="dropdown-item" @click="handlePerfil">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Perfil
-        </button>
-
-        <div class="dropdown-divider" />
-        <div class="dropdown-divider" />
-
-        <button class="dropdown-item dropdown-item--danger" @click="handleLogout">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          Cerrar sesión
-        </button>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
+import { LogOut } from 'lucide-vue-next'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { z } from 'zod'
-import { userFromToken } from '@/utils/index'
 
 const auth = useAuthStore()
 const router = useRouter()
 const menuRef = ref<HTMLElement | null>(null)
-const open = ref(false)
-const loading = ref(false)
-const serverError = ref('')
-const success = ref(false)
+const tooltip = reactive({ visible: false, text: '', top: 0, left: 0 })
 
-const form = reactive({ current: '', next: '', confirm: '' })
-const errors = reactive({ current: '', next: '', confirm: '' })
-
-const initials = computed(() => {
-  const name = userFromToken(auth.token ?? '')?.nombre ?? ''
-  return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
-})
-
-const schema = z.object({
-  current:  z.string().min(1, { message: 'Ingresa tu contraseña actual' }),
-  next:     z.string().min(6, { message: 'Mínimo 6 caracteres' }),
-  confirm:  z.string()
-}).refine(d => d.next === d.confirm, {
-  message: 'Las contraseñas no coinciden',
-  path: ['confirm']
-})
-
-function toggleDropdown() { open.value = !open.value }
-
-function handleClickOutside(e: MouseEvent) {
-  if (menuRef.value && !menuRef.value.contains(e.target as Node)) {
-    open.value = false
-  }
-}
-
-onMounted(() => document.addEventListener('mousedown', handleClickOutside))
-onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
-
-function handlePerfil() {
-  router.push('/perfil')
-}
 function handleLogout() {
   auth.logout()
   router.push('/login')
 }
 
-async function onSubmit() {
-  errors.current = ''
-  errors.next = ''
-  errors.confirm = ''
-  serverError.value = ''
-  success.value = false
-
-  const result = schema.safeParse(form)
-  if (!result.success) {
-    result.error.issues.forEach(i => {
-      const f = i.path[0] as keyof typeof errors
-      if (f in errors) errors[f] = i.message
-    })
-    return
-  }
-
-  loading.value = true
-  const err = await auth.changePassword(form.current, form.next)
-  loading.value = false
-
-  if (err) { serverError.value = err; return }
-  success.value = true
+function showTooltip(e: Event, text: string) {
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  tooltip.text = text
+  tooltip.top = rect.bottom + 10
+  tooltip.left = rect.left + rect.width / 2
+  tooltip.visible = true
 }
+
+function hideTooltip() { tooltip.visible = false }
 </script>
 
 <style scoped>
@@ -111,71 +52,11 @@ async function onSubmit() {
   position: relative;
 }
 
-.avatar-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-.avatar-btn:hover { background: color-mix(in srgb, var(--accent) 25%, transparent); }
-
-.avatar-initials {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.04em;
-}
-
-/* Dropdown */
-.dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  min-width: 200px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  z-index: 100;
-  overflow: hidden;
-}
-
-.dropdown-header {
-  padding: 0.85rem 1rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.dropdown-name {
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-bottom: 3px;
-  color: var(--text-primary);
-}
-
-.dropdown-email {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-}
-
-.dropdown-divider {
-  height: 1px;
-  background: var(--border);
-}
-
 .dropdown-item {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
   width: 100%;
-  padding: 0.65rem 1rem;
+  padding: 0.65rem;
   font-size: 0.78rem;
   color: var(--text-secondary);
   background: none;
@@ -191,138 +72,26 @@ async function onSubmit() {
 .dropdown-enter-active, .dropdown-leave-active { transition: opacity 0.15s, transform 0.15s; }
 .dropdown-enter-from, .dropdown-leave-to { opacity: 0; transform: translateY(-6px); }
 
-/* Modal overlay */
-.modal-overlay {
+/* ── Tooltip ) ── */
+.sidebar-tooltip {
   position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 200;
-  padding: 1rem;
-}
-
-.modal-card {
+  transform: translateX(-65%);   /* ✅ centra sobre el punto */
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.75rem;
-  width: 100%;
-  max-width: 380px;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-}
-
-.modal-title {
-  font-size: 1rem;
-  font-weight: 700;
+  border: 1px solid var(--border-hover);
   color: var(--text-primary);
-  margin: 0;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: color 0.2s;
-}
-.modal-close:hover { color: var(--text-primary); }
-
-.modal-form { display: flex; flex-direction: column; gap: 1rem; }
-
-.field { display: flex; flex-direction: column; gap: 0.3rem; }
-.field-label { font-size: 0.73rem; color: var(--text-secondary); font-weight: 500; }
-.field-input {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.55rem 0.75rem;
-  font-size: 0.83rem;
-  color: var(--text-primary);
-  outline: none;
-  transition: border-color 0.2s;
-}
-.field-input:focus { border-color: var(--accent); }
-.field-input.input-error { border-color: var(--red); }
-.field-error { font-size: 0.7rem; color: var(--red); }
-
-.server-error {
   font-size: 0.78rem;
-  color: var(--red);
-  background: color-mix(in srgb, var(--red) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--red) 20%, transparent);
-  border-radius: 6px;
-  padding: 0.5rem 0.75rem;
-  margin: 0;
-}
-.server-success {
-  font-size: 0.78rem;
-  color: var(--green);
-  background: color-mix(in srgb, var(--green) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--green) 20%, transparent);
-  border-radius: 6px;
-  padding: 0.5rem 0.75rem;
-  margin: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
 }
 
-.modal-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-  margin-top: 0.25rem;
-}
+.tooltip-enter-active { transition: opacity 0.12s ease, transform 0.12s ease; }
+.tooltip-leave-active { transition: opacity 0.08s ease; }
 
-.btn-cancel {
-  padding: 0.55rem 1rem;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
-}
-.btn-cancel:hover { border-color: var(--text-muted); color: var(--text-primary); }
-
-.btn-submit {
-  padding: 0.55rem 1.25rem;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: opacity 0.2s;
-}
-.btn-submit:hover:not(:disabled) { opacity: 0.88; }
-.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.spinner {
-  width: 12px;
-  height: 12px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Modal animation */
-.modal-enter-active, .modal-leave-active { transition: opacity 0.2s; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-.modal-enter-active .modal-card, .modal-leave-active .modal-card { transition: transform 0.2s; }
-.modal-enter-from .modal-card, .modal-leave-to .modal-card { transform: scale(0.95); }
+/* animación desde arriba (porque ahora aparece abajo) */
+.tooltip-enter-from { opacity: 0; transform: translate(-50%, -4px); }
+.tooltip-leave-to   { opacity: 0; }   /* deja el transform base intacto */
 </style>

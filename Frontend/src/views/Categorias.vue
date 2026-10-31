@@ -4,66 +4,54 @@
       <div>
         <div class="section-label">Configuración</div>
         <h1 class="page-title">Categorías</h1>
+        <p class="page-sub">Organiza tus gastos a tu manera</p>
       </div>
+
+      <button v-if="!showForm" class="btn btn-primary btn-new-cat" @click="abrirForm()">
+        <Plus :size="15" :stroke-width="2.4" />
+        Nueva categoría
+      </button>
+    </div>
+
+    <section class="cat-grid">
+      <div v-for="kpi in kpis" :key="kpi.label" class="kpi-card" :style="{ '--kc': kpi.color }">
+        <div class="kpi-left">
+          <div class="kpi-icon"><component :is="kpi.icon" :size="17" :stroke-width="1.9" /></div>
+          <div class="kpi-label">{{ kpi.label }}</div>
+        </div>
+        <div class="kpi-value">{{ kpi.value ?? '—' }}</div>
+      </div>
+    </section>
+
+    <!-- Barra de búsqueda -->
+    <div v-if="!loadingCats && store.categoriasActivas.length > 0" class="filter-bar">
+      <div class="search-wrap">
+        <Search :size="15" :stroke-width="2" class="search-icon" />
+        <input v-model="busqueda" class="input search-input" placeholder="Buscar categoría..." />
+        <button v-if="busqueda" class="search-clear" title="Limpiar" aria-label="Limpiar búsqueda" @click="busqueda = ''">
+          <X :size="12" :stroke-width="2.2" />
+        </button>
+      </div>
+      <span class="filter-count">{{ categoriasFiltradas.length }} de {{ store.categoriasActivas.length }}</span>
     </div>
 
     <div v-if="loadingCats" class="loading-list">
       <div v-for="i in 3" :key="i" class="skeleton-row" />
     </div>
 
-    <template v-else>
-      <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <p class="card-title">Categorías</p>
-
-          <button v-if="!showForm" class="btn btn-sm" @click="abrirForm()"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Nueva categoría
-          </button>
-        </div>
-
-        <div v-if="store.categoriasActivas.length === 0 && !showForm" class="empty">
-          Sin categorías
-        </div>
-
-        <template v-for="cat in store.categoriasActivas" :key="cat.id">
-          <div v-if="editando?.id === cat.id" class="inline-form-row">
-            <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '4d', color: guessColor(form.nombre) }">
-              <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
-            </div>
-            <input v-model="form.nombre" class="input input-inline" maxlength="100" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
-            <span class="char-counter" :class="{ 'char-counter--limit': form.nombre.length >= 100 }">{{ form.nombre.length }}/100</span>
-            <button class="btn btn-sm" @click="cancelar">Cancelar</button>
-            <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
-          </div>
-          <div v-else class="cat-row">
-            <div class="cat-info">
-              <div class="cat-icon-badge" :style="{ background: guessColor(cat.nombre) + '4d', color: guessColor(cat.nombre) }">
-                <component :is="guessIcono(cat.nombre)" :size="14" :stroke-width="2" />
-              </div>
-              <span class="cat-name">{{ cat.nombre }}</span>
-            </div>
-            <div class="cat-actions">
-              <button class="icon-btn" title="Editar" @click="abrirForm(cat)">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-              <button class="icon-btn danger" title="Eliminar" @click="onDelete(cat.id!)">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-          </div>
-        </template>
-
-        <div v-if="showForm && !editando" class="inline-form-row">
-          <div class="cat-icon-badge" :style="{ background: guessColor(form.nombre) + '4d', color: guessColor(form.nombre) }">
-            <component :is="guessIcono(form.nombre)" :size="14" :stroke-width="2" />
-          </div>
-          <input v-model="form.nombre" class="input input-inline" maxlength="100" placeholder="Nombre de la categoría" @keydown.enter.prevent="guardar" @keydown.escape="cancelar" autofocus />
-          <span class="char-counter" :class="{ 'char-counter--limit': form.nombre.length >= 100 }">{{ form.nombre.length }}/100</span>
-          <button class="btn btn-sm" @click="cancelar">Cancelar</button>
-          <button class="btn btn-primary btn-sm" :disabled="saving" @click="guardar">{{ saving ? '...' : 'Guardar' }}</button>
-        </div>
-      </div>
-    </template>
+    <CategoryCard
+      v-else
+      v-model:nombre="form.nombre"
+      :categorias="categoriasFiltradas"
+      :show-form="showForm"
+      :saving="saving"
+      :editando="editando"
+      @abrir-form="abrirForm"
+      @guardar="guardar"
+      @cancelar="cancelar"
+      @delete="onDelete"
+      @ver="verMovimientos"
+    />
 
     <ConfirmModal
       v-model="showConfirm"
@@ -71,15 +59,52 @@
       message="Si eliminas esta categoría, los gastos que la usan quedarán sin categoría. ¿Continuar?"
       @confirm="confirmDelete"
     />
+
+    <!-- Movimientos de la categoría -->
+    <Teleport to="body">
+      <div v-if="movCategoria" class="modal-backdrop" @click.self="cerrarMovimientos">
+        <div class="modal fade-up">
+          <div class="modal-head">
+            <p class="modal-title">{{ movCategoria.nombre }}</p>
+            <button class="icon-close" aria-label="Cerrar" @click="cerrarMovimientos"><X :size="16" :stroke-width="2" /></button>
+          </div>
+
+          <div v-if="loadingMov" class="loading-list">
+            <div v-for="i in 3" :key="i" class="skeleton-row" />
+          </div>
+
+          <template v-else-if="movimientos">
+            <div class="mov-total">
+              <span>{{ movimientos.cantidad }} {{ movimientos.cantidad === 1 ? 'gasto' : 'gastos' }}</span>
+              <strong>{{ fmtCOP(movimientos.total) }} {{ movimientos.moneda }}</strong>
+            </div>
+
+            <div v-if="movimientos.gastos.length === 0" class="empty">Esta categoría aún no tiene gastos</div>
+            <ul v-else class="mov-list">
+              <li v-for="g in movimientos.gastos" :key="g.id" class="mov-row">
+                <div class="mov-info">
+                  <span class="mov-detalle">{{ g.detalle || 'Sin detalle' }}</span>
+                  <span class="mov-fecha">{{ fechaGasto(g) }} · {{ g.tipo === 'FIJO' ? 'Fijo' : 'Variable' }}</span>
+                </div>
+                <span class="mov-monto">{{ fmtCOP(g.monto) }}</span>
+              </li>
+            </ul>
+          </template>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useFinanceStore } from '@/stores/finance'
 import { useToast } from '@/composables/useToast'
-import { guessIcono, guessColor } from '@/composables/useCategoriaOptions'
-import type { Categoria } from '@/types'
+import { categoriasService } from '@/services/api'
+import { fmtCOP } from '@/utils'
+import type { Categoria, CategoriaGastos, Gasto } from '@/types'
+import { LayoutGrid, SquareActivity, CircleDashed, Plus, Search, X } from 'lucide-vue-next'
+import CategoryCard from '@/components/Category/CategoryCard.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 
 const store = useFinanceStore()
@@ -91,8 +116,46 @@ const loadingCats = ref(false)
 const editando    = ref<Categoria | null>(null)
 const showConfirm = ref(false)
 const pendingId   = ref<string | null>(null)
+const busqueda    = ref('')
 
-const form = reactive({ nombre: ''})
+const totalCategorias = ref<number | null>(null)
+const conGastos       = ref<number | null>(null)
+
+const movCategoria = ref<Categoria | null>(null)
+const movimientos  = ref<CategoriaGastos | null>(null)
+const loadingMov   = ref(false)
+
+const form = reactive({ nombre: '' })
+
+const categoriasFiltradas = computed(() => {
+  const q = busqueda.value.trim().toLowerCase()
+  if (!q) return store.categoriasActivas
+  return store.categoriasActivas.filter(c => c.nombre.toLowerCase().includes(q))
+})
+
+const kpis = computed(() => [
+  { label: 'Categorías', value: totalCategorias.value, icon: LayoutGrid,     color: 'var(--accent-strong)' },
+  { label: 'Con gastos', value: conGastos.value,       icon: SquareActivity, color: 'var(--c-pos)' },
+  {
+    label: 'Sin gastos',
+    value: totalCategorias.value != null && conGastos.value != null ? totalCategorias.value - conGastos.value : null,
+    icon: CircleDashed,
+    color: 'var(--text-secondary)',
+  },
+])
+
+async function cargarConteos() {
+  try {
+    const [total, usadas] = await Promise.all([
+      categoriasService.getTotal(),
+      categoriasService.getTotalConGastos(),
+    ])
+    totalCategorias.value = total.data.total
+    conGastos.value       = usadas.data.total
+  } catch {
+    // Los KPIs son informativos; si fallan se muestran como "—"
+  }
+}
 
 function abrirForm(cat?: Categoria) {
   editando.value = cat ?? null
@@ -118,9 +181,8 @@ async function guardar() {
       await store.agregarCategoria(payload)
       toast.success('Categoría creada')
     }
-    showForm.value = false
-    editando.value = null
-    form.nombre    = ''
+    cancelar()
+    cargarConteos()
   } catch {
     toast.error('No se pudo guardar la categoría')
   } finally {
@@ -138,6 +200,7 @@ async function confirmDelete() {
     try {
       await store.eliminarCategoria(pendingId.value)
       toast.success('Categoría eliminada')
+      cargarConteos()
     } catch (error: any) {
       const msg = error?.response?.status === 409
         ? error.response.data
@@ -149,10 +212,41 @@ async function confirmDelete() {
   }
 }
 
+async function verMovimientos(cat: Categoria) {
+  movCategoria.value = cat
+  movimientos.value  = null
+  loadingMov.value   = true
+  try {
+    const { data } = await categoriasService.getGastos(cat.id!)
+    movimientos.value = data
+  } catch {
+    toast.error('No se pudieron cargar los movimientos')
+    movCategoria.value = null
+  } finally {
+    loadingMov.value = false
+  }
+}
+
+function cerrarMovimientos() {
+  movCategoria.value = null
+  movimientos.value  = null
+}
+
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+
+// Las cuotas 2..N y copias recurrentes no tienen fecha: se muestra el mes/año
+function fechaGasto(g: Gasto) {
+  if (g.fecha) {
+    const [y, m, d] = g.fecha.slice(0, 10).split('-')
+    return `${Number(d)} ${MESES[Number(m) - 1]} ${y}`
+  }
+  return `${MESES[g.mes - 1]} ${g.anio}`
+}
+
 onMounted(async () => {
   loadingCats.value = true
   try {
-    await store.cargarCategorias()
+    await Promise.all([store.cargarCategorias(), cargarConteos()])
   } finally {
     loadingCats.value = false
   }
@@ -160,61 +254,86 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page-header  { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
-.page-title   { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.25rem; }
-.card-title   { font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.75rem; }
+.page-sub { font-size: 0.82rem; color: var(--text-subtle); margin-top: 0.4rem; }
 
-.cat-row      { display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0; border-bottom: 1px solid var(--border); }
-.cat-row:last-of-type { border-bottom: none; }
-.cat-info     { display: flex; align-items: center; gap: 0.65rem; }
-.cat-name     { font-size: 0.82rem; color: var(--text-primary); }
-.cat-actions  { display: flex; gap: 0.35rem; }
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
 
-.cat-icon-badge {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
+/* KPIs: ícono + etiqueta a la izquierda, número a la derecha */
+.kpi-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+}
+.kpi-left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+.kpi-icon {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--kc); background: color-mix(in srgb, var(--kc) 13%, transparent);
+}
+.kpi-label { font-size: 0.68rem; font-weight: 500; color: var(--text-subtle); letter-spacing: 0.08em; text-transform: uppercase; }
+.kpi-value { font-family: var(--ff-mono); font-variant-numeric: tabular-nums; font-size: 1.45rem; font-weight: 700; color: var(--text-primary); }
+
+/* Modal de movimientos */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; align-items: flex-start; justify-content: center; z-index: 100; padding: 3rem 1rem;
+}
+.modal {
+  background: var(--surface); border: 1px solid var(--border-hover); border-radius: var(--radius-modal);
+  padding: 1.5rem; width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 1rem;
+  max-height: calc(100vh - 4rem); overflow-y: auto;
+  box-shadow: var(--shadow-pop);
+}
+.icon-close {
+  display: grid; place-items: center; width: 32px; height: 32px; padding: 0;
+  background: none; border: none; border-radius: 8px; color: var(--text-secondary); cursor: pointer;
+}
+.icon-close:hover { color: var(--text-primary); background: var(--surface2); }
+.modal-head  { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.modal-title { font-size: 1rem; font-weight: 700; margin: 0; }
+.mov-total {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 0.78rem; color: var(--text-secondary);
+  padding-bottom: 0.6rem; border-bottom: 1px solid var(--border);
+}
+.mov-total strong { font-family: var(--ff-mono); font-size: 1.05rem; color: var(--text-primary); }
+.mov-list    { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.mov-row     { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
+.mov-row:last-child { border-bottom: none; }
+.mov-info    { display: flex; flex-direction: column; min-width: 0; }
+.mov-detalle { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mov-fecha   { font-size: 0.68rem; color: var(--text-subtle); }
+.mov-monto   { font-family: var(--ff-mono); font-variant-numeric: tabular-nums; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); flex-shrink: 0; }
+.empty       { font-size: 0.72rem; color: var(--text-muted); padding: 1rem 0; text-align: center; }
+
+/* Filter bar */
+.filter-bar {
   display: flex;
+  gap: 0.6rem;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  margin-bottom: 1.25rem;
 }
-
-.inline-form-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
+.search-wrap {  position: relative;  flex: 1 1 auto; width: auto; max-width: none; }
+.search-icon  { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); }
+.search-input { width: 100%; height: 38px; padding-left: 2.2rem; padding-right: 2rem; border-radius: 10px; background: var(--surface); border-color: var(--border-hover); }
+.search-clear {
+  position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface2); border: none; color: var(--text-muted); cursor: pointer;
 }
-.input-inline {
-  flex: 1;
-  height: 30px;
-  font-size: 0.78rem;
-  padding: 0 0.6rem;
-  min-width: 120px;
-}
-.btn-sm { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
-
-.char-counter { font-size: 0.62rem; color: var(--text-muted); flex-shrink: 0; }
-.char-counter--limit { color: var(--red); }
-
-.icon-btn {
-  background: none;
-  border: none;
+.search-clear:hover { color: var(--text-primary); }
+.filter-count {  font-family: var(--ff-mono);
+  font-size: 0.72rem;
   color: var(--text-muted);
-  cursor: pointer;
-  padding: 4px 5px;
-  border-radius: 4px;
-  transition: color 0.15s, background 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.icon-btn:hover        { color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
-.icon-btn.danger:hover { color: var(--red);   background: color-mix(in srgb, var(--red) 8%, transparent); }
-.empty { font-size: 0.72rem; color: var(--text-muted); padding: 1rem 0; text-align: center; }
+  white-space: nowrap;
+  flex-shrink: 0; /* Para que no se aplaste */ }
 
 /* Skeleton loading */
 .loading-list { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -226,4 +345,14 @@ onMounted(async () => {
   animation: shimmer 1.4s infinite;
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
+
+@media (max-width: 900px) {
+  .cat-grid { gap: 0.5rem; }
+  .kpi-card { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 640px) {
+  .search-wrap { max-width: none; }
+  .btn-new-cat { width: 100%; }
+}
 </style>

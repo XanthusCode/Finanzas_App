@@ -84,10 +84,11 @@ function onSubmit(gasto: Omit<Gasto, 'id'>) {
 .modal {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-modal);
   padding: 1.5rem;
   width: 420px;
   max-width: 90vw;
+  box-shadow: var(--shadow-pop);
 }
 .modal-title { font-family: var(--ff-display); font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.35rem; }
 .modal-msg { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1rem; }

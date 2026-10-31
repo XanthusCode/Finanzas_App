@@ -1,6 +1,7 @@
 import {
-  Tag, Utensils, Car, Home, ShoppingBag, HeartPulse, Gamepad2, GraduationCap,
-  Plane, Dumbbell, PawPrint, Gift, Zap, Phone, Shirt, Coffee, Wifi, Film,
+  Tag, Utensils, Coffee, Car, Motorbike, Fuel,Gem, Home, Shirt, HeartPulse, Dumbbell, GraduationCap,
+  Plane, PawPrint, Gift, Zap, Wifi, Phone, Gamepad2, Film, ShoppingBag,Cog,
+  Bot, Laptop, Droplets, HandCoins, Music, Pill, Landmark, Baby, Wrench, Beer, Scissors,
 } from 'lucide-vue-next'
 
 export const COLOR_PALETTE = [
@@ -31,51 +32,75 @@ const COLOR_PALETTE_LIGHT = [
   '#57616b', // gris neutro
 ]
 
+function hslToHex(h: number, s: number, l: number): string {
+  s /= 100
+  l /= 100
+  const a = s * Math.min(l, 1 - l)
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12
+    const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))
+    return Math.round(c * 255).toString(16).padStart(2, '0')
+  }
+  return `#${f(0)}${f(8)}${f(4)}`
+}
+
 function esTemaClaro() {
   return typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light'
 }
 
-// Palabras clave (sin tildes) → ícono. Se evalúan en orden, la primera que aparezca en el
-// nombre de la categoría gana. Así el ícono se infiere solo, sin pedirle al usuario que elija uno.
 const KEYWORD_ICONS: [string[], typeof Tag][] = [
-  [['comida', 'mercado', 'restaurante', 'almuerzo', 'super', 'supermercado'], Utensils],
+  [['comida', 'mercado', 'restaurante', 'almuerzo', 'super', 'domicilio', 'rappi'], Utensils],
   [['cafe'], Coffee],
-  [['transporte', 'carro', 'gasolina', 'uber', 'taxi', 'bus', 'moto'], Car],
-  [['arriendo', 'casa', 'vivienda', 'hogar'], Home],
-  [['ropa', 'vestir'], Shirt],
-  [['salud', 'medico', 'eps', 'droguer', 'farmacia'], HeartPulse],
+  [[ 'moto', 'motocicleta' ], Motorbike],
+  [[ 'gasolina' ], Fuel],
+  [['accesorio', 'repuesto', 'llanta', 'casco', 'aceite'], Cog],
+  [['joya', 'bijou', 'pulsera', 'anillo'], Gem],
+  [['transporte', 'carro', 'uber', 'taxi', 'bus', 'peaje', 'parqueadero'], Car],
+  [['arriendo', 'casa', 'vivienda', 'hogar', 'administracion'], Home],
+  [['ropa', 'vestir', 'zapato'], Shirt],
+  [['salud', 'medico', 'eps', 'droguer', 'farmacia', 'odonto', 'dentista'], HeartPulse],
+  [['suplement', 'proteina', 'vitamina', 'creatina'], Pill],
   [['gym', 'gimnasio', 'deporte', 'ejercicio'], Dumbbell],
-  [['estudio', 'universidad', 'colegio', 'curso', 'educacion'], GraduationCap],
+  [['estudio', 'universidad', 'colegio', 'curso', 'educacion', 'libro'], GraduationCap],
   [['viaje', 'vuelo', 'vacaciones', 'hotel'], Plane],
   [['mascota', 'perro', 'gato', 'veterinar'], PawPrint],
   [['regalo', 'cumplea'], Gift],
-  [['servicio', 'luz', 'agua', 'gas', 'electric'], Zap],
+  [['servicio', 'luz', 'agua', 'electric', 'energia'], Zap],
   [['internet', 'wifi'], Wifi],
   [['telefono', 'celular', 'plan'], Phone],
-  [['entretenimiento', 'cine', 'netflix', 'juego', 'streaming'], Gamepad2],
+  [['computador', 'laptop', 'pc', 'tecnologia', 'software', 'hosting', 'dominio'], Laptop],
+  [['ia', 'agente', 'chatgpt', 'claude', 'openai', 'gemini'], Bot],
+  [['spotify', 'musica'], Music],
+  [['entretenimiento', 'cine', 'netflix', 'juego', 'streaming', 'steam', 'xbox', 'playstation'], Gamepad2],
   [['pelicula', 'serie'], Film],
-  [['compra', 'ropa', 'tienda'], ShoppingBag],
+  [['prestamo', 'deuda', 'credito', 'cuota'], HandCoins],
+  [['banco', 'impuesto', 'ahorro', 'inversion', 'seguro'], Landmark],
+  [['higiene', 'aseo', 'limpieza', 'cuidado'], Droplets],
+  [['peluqueria', 'barberia', 'corte', 'belleza'], Scissors],
+  [['bebe', 'hijo', 'pañal'], Baby],
+  [['reparacion', 'mantenimiento', 'taller', 'herramienta', 'accesorio'], Wrench],
+  [['fiesta', 'bar', 'trago', 'cerveza', 'salida'], Beer],
+  [['compra', 'tienda', 'app'], ShoppingBag],
 ]
 
-function sinTildes(s: string) {
-  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+function normalizar(texto: string): string {
+  return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 }
 
 export function guessIcono(nombre: string) {
-  const n = sinTildes(nombre)
-  for (const [keywords, icon] of KEYWORD_ICONS) {
-    if (keywords.some(k => n.includes(k))) return icon
+  const palabras = normalizar(nombre).split(/\s+/)
+  for (const [keywords, icono] of KEYWORD_ICONS) {
+    if (keywords.some(k => palabras.some(p => p.startsWith(k)))) return icono
   }
   return Tag
 }
 
-// Mismo nombre → mismo color siempre, distinto entre categorías. Sin pedirle nada al usuario ni guardar nada.
 export function guessColor(nombre: string) {
   let hash = 0
   for (let i = 0; i < nombre.length; i++) {
     hash = (hash << 5) - hash + nombre.charCodeAt(i)
     hash |= 0
   }
-  const idx = Math.abs(hash) % COLOR_PALETTE.length
-  return (esTemaClaro() ? COLOR_PALETTE_LIGHT : COLOR_PALETTE)[idx]!
+  const hue = (Math.abs(hash) * 137.508) % 360
+  return esTemaClaro() ? hslToHex(hue, 60, 42) : hslToHex(hue, 65, 62)
 }

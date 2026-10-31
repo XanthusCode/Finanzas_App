@@ -1,8 +1,8 @@
 import {
   LayoutDashboard,
-  ArrowDownCircle,
-  ArrowUpCircle,
-  Wallet,
+  Receipt,
+  Banknote,
+  PieChart,
   Target,
   HandCoins,
   CreditCard,
@@ -24,12 +24,12 @@ export const menu = [
       },
       {
         title: 'Gastos',
-        icon: ArrowDownCircle,
+        icon: Receipt,
         route: '/gastos'
       },
       {
         title: 'Ingresos',
-        icon: ArrowUpCircle,
+        icon: Banknote,
         route: '/ingresos'
       }
     ]
@@ -40,7 +40,7 @@ export const menu = [
     items: [
       {
         title: 'Presupuesto',
-        icon: Wallet,
+        icon: PieChart,
         route: '/presupuesto'
       },
       {

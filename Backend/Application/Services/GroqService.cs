@@ -21,7 +21,7 @@ namespace Finanzas.Application.Services
                 return null;
             }
 
-            var modelo = _config["Groq:Model"] ?? "llama-3.3-70b-versatile";
+            var modelo = _config["Groq:Model"] ?? "openai/gpt-oss-120b";
 
             var req = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/chat/completions")
             {
@@ -64,7 +64,7 @@ namespace Finanzas.Application.Services
                 return null;
             }
 
-            var modelo = _config["Groq:VisionModel"] ?? "qwen/qwen3.6-27b";
+            var modelo = _config["Groq:VisionModel"] ?? "qwen/qwen3.8-27b";
             var base64 = Convert.ToBase64String(imagenBytes);
             var dataUri = $"data:{mimeType};base64,{base64}";
 
@@ -73,6 +73,9 @@ namespace Finanzas.Application.Services
                 Content = JsonContent.Create(new
                 {
                     model = modelo,
+                    // El tier gratis de Groq limita a 1000 tokens de salida por minuto en este modelo;
+                    // sin tope pide más y responde 429. El JSON del recibo cabe de sobra.
+                    max_tokens = 600,
                     response_format = new { type = "json_object" },
                     messages = new object[]
                     {
@@ -97,6 +100,49 @@ namespace Finanzas.Application.Services
             if (!res.IsSuccessStatusCode)
             {
                 _logger.LogError("Groq (visión) respondió {Status}: {Body}", res.StatusCode, body);
+                return null;
+            }
+
+            using var doc = JsonDocument.Parse(body);
+            return doc.RootElement
+                .GetProperty("choices")[0]
+                .GetProperty("message")
+                .GetProperty("content")
+                .GetString();
+        }
+
+        public async Task<string?> ChatAsync(string systemPrompt, IEnumerable<(string rol, string contenido)> mensajes)
+        {
+            var apiKey = _config["Groq:ApiKey"];
+            if (string.IsNullOrWhiteSpace(apiKey) || apiKey.StartsWith("CHANGE_ME"))
+            {
+                _logger.LogWarning("Groq:ApiKey no configurado, se omite el copiloto");
+                return null;
+            }
+
+            var modelo = _config["Groq:Model"] ?? "openai/gpt-oss-120b";   // el de texto, NO VisionModel
+
+            var mensajesGroq = new List<object> { new { role = "system", content = systemPrompt } };
+            mensajesGroq.AddRange(mensajes.Select(m => new { role = m.rol, content = m.contenido }));
+
+            var req = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/chat/completions")
+            {
+                Content = JsonContent.Create(new
+                {
+                    model = modelo,
+                    messages = mensajesGroq,
+                    max_tokens = 500,
+                    temperature = 0.6
+                })
+            };
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+            var res = await _http.SendAsync(req);
+            var body = await res.Content.ReadAsStringAsync();
+
+            if (!res.IsSuccessStatusCode)
+            {
+                _logger.LogError("Groq respondió {Status}: {Body}", res.StatusCode, body);
                 return null;
             }
 

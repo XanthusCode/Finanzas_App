@@ -46,9 +46,11 @@ builder.Services.AddScoped<CuentaService>();
 builder.Services.AddScoped<ReporteService>();
 builder.Services.AddScoped<RecordatoriosService>();
 builder.Services.AddScoped<WhatsAppService>();
+builder.Services.AddScoped<BusquedaService>();
 builder.Services.AddHttpClient<EmailService>();
 builder.Services.AddScoped<InsightsService>();
 builder.Services.AddHttpClient<GroqService>();
+builder.Services.AddScoped<CopilotoService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
@@ -184,6 +186,13 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "WhatsAppCodigo" character varying(6) NULL;
         ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "WhatsAppCodigoExpira" timestamp with time zone NULL;
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_Users_WhatsAppId" ON "Users" ("WhatsAppId") WHERE "WhatsAppId" IS NOT NULL;
+
+        -- Reparación: cuotas que perdieron NumCuotas al editarlas (bug ya corregido en GastosService.UpdateAsync)
+        UPDATE "Gastos" g SET "NumCuotas" = o."NumCuotas"
+        FROM "Gastos" o
+        WHERE g."NumCuotas" IS NULL AND g."CuotaActual" IS NOT NULL
+          AND o."NumCuotas" IS NOT NULL AND o."Id" <> g."Id"
+          AND COALESCE(o."GastoOrigenId", o."Id") = COALESCE(g."GastoOrigenId", g."Id");
 
         DO $mig$
         BEGIN

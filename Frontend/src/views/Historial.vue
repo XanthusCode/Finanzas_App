@@ -6,9 +6,9 @@
         <h1 class="page-title">Historial anual</h1>
       </div>
       <div class="year-selector">
-        <button class="year-btn" @click="anio--">‹</button>
+        <button class="year-btn" aria-label="Año anterior" @click="anio--"><ChevronLeft :size="16" :stroke-width="2" /></button>
         <span class="year-label">{{ anio }}</span>
-        <button class="year-btn" @click="anio++" :disabled="anio >= anioHoy">›</button>
+        <button class="year-btn" aria-label="Año siguiente" :disabled="anio >= anioHoy" @click="anio++"><ChevronRight :size="16" :stroke-width="2" /></button>
       </div>
     </div>
 
@@ -19,47 +19,48 @@
     <template v-else>
       <!-- KPIs anuales -->
       <div class="kpi-grid">
-        <div class="kpi-card" style="--ca: var(--accent)">
+        <div class="kpi-card" style="--ca: var(--c-need)">
           <div class="kpi-top">
             <span class="kpi-label">Ingresos totales</span>
-            <svg class="kpi-icon" style="color:var(--accent)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            <span class="kpi-icon"><ArrowUpRight :size="15" :stroke-width="2" /></span>
           </div>
-          <div class="kpi-value" style="color: var(--accent)">{{ fmt(totalIngresos) }}</div>
+          <div class="kpi-value">{{ fmt(totalIngresos) }}</div>
+          <div class="kpi-sub">{{ mesesActivos.length }} {{ mesesActivos.length === 1 ? 'mes' : 'meses' }} con ingresos</div>
         </div>
-        <div class="kpi-card" style="--ca: var(--red)">
+        <div class="kpi-card" style="--ca: var(--c-neg)">
           <div class="kpi-top">
             <span class="kpi-label">Gastos totales</span>
-            <svg class="kpi-icon" style="color:var(--red)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span class="kpi-icon"><ShoppingBag :size="15" :stroke-width="2" /></span>
           </div>
-          <div class="kpi-value" style="color: var(--red)">{{ fmt(totalGastos) }}</div>
+          <div class="kpi-value is-neg">{{ fmt(totalGastos) }}</div>
+          <div class="kpi-sub">{{ fmt(totalFijos) }} fijos · {{ fmt(totalVariables) }} ocasionales</div>
         </div>
-        <div class="kpi-card" style="--ca: var(--green)">
+        <div class="kpi-card" style="--ca: var(--c-pos)">
           <div class="kpi-top">
             <span class="kpi-label">Ahorro total</span>
-            <svg class="kpi-icon" style="color:var(--green)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
+            <span class="kpi-icon"><PiggyBank :size="15" :stroke-width="2" /></span>
           </div>
-          <div class="kpi-value" :style="{ color: totalAhorro >= 0 ? 'var(--green)' : 'var(--red)' }">
+          <div class="kpi-value" :class="totalAhorro >= 0 ? 'is-pos' : 'is-neg'">
             {{ totalAhorro >= 0 ? '+' : '' }}{{ fmt(totalAhorro) }}
           </div>
+          <div class="kpi-sub">en {{ anio }}</div>
         </div>
-        <div class="kpi-card kpi-ahorro" style="--ca: var(--green)">
+        <div class="kpi-card" :style="{ '--ca': colorPct(pctAhorroPromedio) }">
           <div class="kpi-top">
             <span class="kpi-label">% Ahorro promedio</span>
-            <svg class="kpi-icon" style="color:var(--green)" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>
+            <span class="kpi-icon"><Percent :size="15" :stroke-width="2" /></span>
           </div>
-          <div class="kpi-value" :style="{ color: pctAhorroPromedio >= 20 ? 'var(--green)' : pctAhorroPromedio >= 10 ? 'var(--amber)' : 'var(--red)' }">
-            {{ pctAhorroPromedio.toFixed(1) }}%
-          </div>
+          <div class="kpi-value" :style="{ color: colorPct(pctAhorroPromedio) }">{{ pctAhorroPromedio.toFixed(1) }}%</div>
           <div class="kpi-bar-wrap">
-            <div class="kpi-bar" :style="{ width: Math.min(Math.max(pctAhorroPromedio, 0), 100) + '%', background: pctAhorroPromedio >= 20 ? 'var(--green)' : pctAhorroPromedio >= 10 ? 'var(--amber)' : 'var(--red)' }" />
+            <div class="kpi-bar" :style="{ width: Math.min(Math.max(pctAhorroPromedio, 0), 100) + '%' }" />
           </div>
         </div>
       </div>
 
       <!-- Tendencia del año -->
-      <div v-if="mesesConDatos.length > 1" class="card" style="margin-bottom: 1rem">
+      <div v-if="mesesConDatos.length > 1" class="card chart-card">
         <p class="card-title">Ingresos vs. gastos {{ anio }}</p>
-        <BarChart :labels="MESES" :datasets="tendenciaDatasets" />
+        <BarChart :labels="MESES" :datasets="tendenciaDatasets" hide-y />
       </div>
 
       <!-- Tabla mensual -->
@@ -82,30 +83,33 @@
               :key="m.mes"
               :class="{ 'row-vacio': m.totalIngresos === 0 && m.totalGastos === 0, 'row-actual': esActual(m) }"
             >
-              <td class="td-mes">{{ MESES[m.mes - 1] }}</td>
-              <td class="num">{{ m.totalIngresos > 0 ? fmt(m.totalIngresos) : '—' }}</td>
-              <td class="num">{{ m.totalFijos > 0 ? fmt(m.totalFijos) : '—' }}</td>
-              <td class="num">{{ m.totalVariables > 0 ? fmt(m.totalVariables) : '—' }}</td>
-              <td class="num">{{ m.totalGastos > 0 ? fmt(m.totalGastos) : '—' }}</td>
-              <td class="num" :class="m.totalIngresos > 0 ? (m.ahorro >= 0 ? 'aho-pos' : 'aho-neg') : ''">
-                {{ m.totalIngresos > 0 ? (m.ahorro >= 0 ? '+' : '') + fmt(m.ahorro) : '—' }}
+              <td class="td-mes">
+                {{ MESES[m.mes - 1] }}
+                <span v-if="esActual(m)" class="actual-pill">Actual</span>
               </td>
-              <td class="num" :class="m.totalIngresos > 0 ? (m.pctAhorro >= 20 ? 'aho-pos' : m.pctAhorro >= 10 ? 'aho-warn' : 'aho-neg') : ''">
-                {{ m.totalIngresos > 0 ? m.pctAhorro.toFixed(1) + '%' : '—' }}
+              <td class="num num--strong">{{ m.totalIngresos > 0 ? fmt(m.totalIngresos) : '' }}</td>
+              <td class="num">{{ m.totalFijos > 0 ? fmt(m.totalFijos) : '' }}</td>
+              <td class="num">{{ m.totalVariables > 0 ? fmt(m.totalVariables) : '' }}</td>
+              <td class="num">{{ m.totalGastos > 0 ? fmt(m.totalGastos) : '' }}</td>
+              <td class="num" :class="m.totalIngresos > 0 ? (m.ahorro >= 0 ? 'aho-pos' : 'aho-neg') : ''">
+                {{ m.totalIngresos > 0 ? (m.ahorro >= 0 ? '+' : '') + fmt(m.ahorro) : '' }}
+              </td>
+              <td class="num" :class="m.totalIngresos > 0 ? clasePct(m.pctAhorro) : ''">
+                {{ m.totalIngresos > 0 ? m.pctAhorro.toFixed(1) + '%' : '' }}
               </td>
             </tr>
           </tbody>
           <tfoot>
             <tr class="row-total">
               <td>Total</td>
-              <td class="num">{{ fmt(totalIngresos) }}</td>
+              <td class="num num--strong">{{ fmt(totalIngresos) }}</td>
               <td class="num">{{ fmt(totalFijos) }}</td>
               <td class="num">{{ fmt(totalVariables) }}</td>
               <td class="num">{{ fmt(totalGastos) }}</td>
               <td class="num" :class="totalAhorro >= 0 ? 'aho-pos' : 'aho-neg'">
                 {{ totalAhorro >= 0 ? '+' : '' }}{{ fmt(totalAhorro) }}
               </td>
-              <td class="num" :class="pctAhorroPromedio >= 20 ? 'aho-pos' : pctAhorroPromedio >= 10 ? 'aho-warn' : 'aho-neg'">
+              <td class="num" :class="clasePct(pctAhorroPromedio)">
                 {{ pctAhorroPromedio.toFixed(1) }}%
               </td>
             </tr>
@@ -146,7 +150,7 @@
             </div>
             <div class="mes-card-item">
               <span class="mes-card-lbl">% Ahorro</span>
-              <span class="mes-card-val" :class="m.totalIngresos > 0 ? (m.pctAhorro >= 20 ? 'aho-pos' : m.pctAhorro >= 10 ? 'aho-warn' : 'aho-neg') : ''">
+              <span class="mes-card-val" :class="m.totalIngresos > 0 ? clasePct(m.pctAhorro) : ''">
                 {{ m.totalIngresos > 0 ? m.pctAhorro.toFixed(1) + '%' : '—' }}
               </span>
             </div>
@@ -179,7 +183,7 @@
             </div>
             <div class="mes-card-item">
               <span class="mes-card-lbl">% Ahorro</span>
-              <span class="mes-card-val" :class="pctAhorroPromedio >= 20 ? 'aho-pos' : pctAhorroPromedio >= 10 ? 'aho-warn' : 'aho-neg'">
+              <span class="mes-card-val" :class="clasePct(pctAhorroPromedio)">
                 {{ pctAhorroPromedio.toFixed(1) }}%
               </span>
             </div>
@@ -192,6 +196,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { ChevronLeft, ChevronRight, ArrowUpRight, ShoppingBag, PiggyBank, Percent } from '@lucide/vue'
 import { resumenService } from '@/services/api'
 import { fmtCOP as fmt } from '@/utils'
 import type { Resumen } from '@/types'
@@ -233,9 +238,13 @@ const pctAhorroPromedio = computed(() => {
 })
 
 const tendenciaDatasets = computed(() => [
-  { label: 'Ingresos', data: datosMeses.value.map(m => m.totalIngresos), color: 'rgba(99,179,255,0.7)'  },
-  { label: 'Gastos',   data: datosMeses.value.map(m => m.totalGastos),   color: 'rgba(248,113,113,0.7)' },
+  { label: 'Ingresos', data: datosMeses.value.map(m => m.totalIngresos), color: '#3b82f6' },
+  { label: 'Gastos',   data: datosMeses.value.map(m => m.totalGastos),   color: '#f43f5e' },
 ])
+
+// Semáforo del % de ahorro: ≥20% verde, ≥10% naranja, menos rojo
+const clasePct = (p: number) => p >= 20 ? 'aho-pos' : p >= 10 ? 'aho-warn' : 'aho-neg'
+const colorPct = (p: number) => p >= 20 ? 'var(--c-pos)' : p >= 10 ? 'var(--c-want)' : 'var(--c-neg)'
 
 function esActual(m: Resumen): boolean {
   return anio.value === anioHoy && m.mes === mesHoy
@@ -257,94 +266,128 @@ onMounted(cargar)
 </script>
 
 <style scoped>
-.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-.page-title  { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 0.25rem; }
+.fade-up { font-variant-numeric: tabular-nums; }
 
-.year-selector { display: flex; align-items: center; gap: 0.5rem; }
+/* Selector de año (mismo estilo que MonthSelector) */
+.year-selector {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  height: 38px; padding: 0 0.25rem;
+  background: var(--surface2); border: 1px solid transparent; border-radius: 10px;
+}
+.year-selector:hover { border-color: var(--border); }
 .year-btn {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
-  width: 30px; height: 30px; font-size: 1.1rem; color: var(--text-secondary);
-  cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+  display: grid; place-items: center;
+  width: 30px; height: 30px; padding: 0;
+  background: none; border: none; border-radius: 8px;
+  color: var(--text-secondary); cursor: pointer;
+  transition: color 0.15s, background 0.15s;
 }
-.year-btn:hover:not(:disabled) { background: var(--surface2); color: var(--text-primary); }
+.year-btn:hover:not(:disabled) { color: var(--text-primary); background: var(--surface); }
 .year-btn:disabled { opacity: 0.3; cursor: default; }
-.year-label { font-size: 1rem; font-weight: 700; min-width: 48px; text-align: center; }
+.year-label { font-family: var(--ff-mono); font-size: 0.86rem; font-weight: 700; min-width: 56px; text-align: center; color: var(--text-primary); }
 
-/* KPIs — mismo estilo que Dashboard.vue */
-.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+/* ── KPIs: borde neutro, color solo en ícono y monto ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem; margin-bottom: 1rem; }
 .kpi-card {
-  position: relative;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem 1.1rem;
-  overflow: hidden;
+  display: flex; flex-direction: column;
+  padding: 1.1rem 1.25rem 1.2rem;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-card);
 }
-.kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--ca, var(--border));
-  border-radius: 10px 10px 0 0;
+.kpi-top   { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.kpi-label { font-size: 0.68rem; font-weight: 500; color: var(--text-subtle); letter-spacing: 0.08em; text-transform: uppercase; }
+.kpi-icon {
+  display: grid; place-items: center; flex-shrink: 0;
+  width: 30px; height: 30px; border-radius: 9px;
+  color: var(--ca); background: color-mix(in srgb, var(--ca) 13%, transparent);
 }
-.kpi-ahorro {
-  background: linear-gradient(135deg, var(--surface) 40%, color-mix(in srgb, var(--green) 5%, transparent) 100%);
-  border-color: color-mix(in srgb, var(--green) 15%, transparent);
+.kpi-value {
+  font-family: var(--ff-mono);
+  font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em;
+  color: var(--text-primary);
 }
-.kpi-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.kpi-label { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
-.kpi-icon { opacity: 0.7; flex-shrink: 0; }
-.kpi-value { font-size: 1.25rem; font-family: var(--ff-display); font-weight: 700; margin-bottom: 0.5rem; }
-.kpi-bar-wrap { height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
-.kpi-bar { height: 100%; border-radius: 2px; max-width: 100%; }
+.kpi-value.is-pos { color: var(--c-pos); }
+.kpi-value.is-neg { color: var(--c-neg); }
+.kpi-sub { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.35rem; }
+.kpi-bar-wrap { height: 6px; margin-top: 0.7rem; border-radius: 99px; overflow: hidden; background: color-mix(in srgb, var(--text-muted) 22%, var(--surface2)); }
+.kpi-bar { height: 100%; border-radius: 99px; max-width: 100%; background: var(--ca); }
 
-.card-title { font-size: 0.62rem; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; }
+.chart-card { margin-bottom: 1rem; padding: 1.25rem 1.35rem; }
+.chart-card:hover { border-color: var(--border); }
+.card-title {
+  font-size: 0.72rem; font-weight: 500; color: var(--text-primary);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.85rem;
+}
 
-/* Tabla */
-.tabla-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
-.tabla { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+/* ── Tabla ── */
+.tabla-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+  overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+  padding: 0.35rem;
+}
+.tabla { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.76rem; }
 .tabla th {
-  padding: 0.6rem 0.9rem; text-align: left; font-size: 0.6rem;
-  font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--text-muted); border-bottom: 1px solid var(--border);
-  background: var(--surface2); white-space: nowrap;
+  padding: 0.85rem 1rem 0.7rem; text-align: left;
+  font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-subtle); white-space: nowrap;
+  border-bottom: 1px solid var(--border);
 }
 .tabla th.num, .tabla td.num { text-align: right; }
-.tabla td { padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); white-space: nowrap; }
+.tabla td {
+  padding: 0.7rem 1rem;
+  color: var(--text-secondary); white-space: nowrap;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  transition: background 0.12s ease;
+}
+.tabla td.num { font-family: var(--ff-mono); }
+.tabla td.num--strong { color: var(--text-primary); }
 .tabla tbody tr:last-child td { border-bottom: none; }
+.tabla tbody tr:hover td { background: var(--surface2); }
+.tabla tbody tr td:first-child { border-radius: 10px 0 0 10px; }
+.tabla tbody tr td:last-child  { border-radius: 0 10px 10px 0; }
 
-.td-mes { font-weight: 600; color: var(--text-primary) !important; }
-.row-vacio td { opacity: 0.35; }
-.row-actual td { background: color-mix(in srgb, var(--accent) 4%, transparent); }
-.row-actual .td-mes::after { content: ' ·'; color: var(--accent); }
+.td-mes { font-weight: 700; color: var(--text-primary) !important; }
+.row-vacio td { color: var(--text-muted); }
+.row-vacio .td-mes { color: var(--text-muted) !important; font-weight: 500; }
+.row-actual td { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.actual-pill {
+  margin-left: 0.4rem; padding: 0.08rem 0.45rem; border-radius: 999px;
+  font-size: 0.58rem; font-weight: 500; letter-spacing: 0.04em; vertical-align: middle;
+  color: var(--accent-strong); background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
 
-.row-total td { font-weight: 700; color: var(--text-primary); border-top: 1px solid var(--border); background: var(--surface2); }
+.row-total td {
+  font-weight: 700; color: var(--text-primary);
+  border-top: 1px solid var(--border-hover);
+  padding-top: 0.85rem; padding-bottom: 0.85rem;
+}
 
-.aho-pos  { color: var(--green) !important; font-weight: 600; }
-.aho-neg  { color: var(--red) !important; font-weight: 600; }
-.aho-warn { color: var(--amber) !important; font-weight: 600; }
+.aho-pos  { color: var(--c-pos) !important; font-weight: 700; }
+.aho-neg  { color: var(--c-neg) !important; font-weight: 700; }
+.aho-warn { color: var(--c-want) !important; font-weight: 700; }
 
 /* Tarjetas mensuales (mobile) */
 .meses-cards { display: none; }
 .mes-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card);
   padding: 0.75rem 0.9rem;
+  box-shadow: var(--shadow-card);
 }
 .mes-card-header {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
 }
-.mes-card-nombre { font-weight: 600; color: var(--text-primary); font-size: 0.82rem; }
-.mes-card-ahorro { font-weight: 700; font-size: 0.82rem; }
+.mes-card-nombre { font-weight: 700; color: var(--text-primary); font-size: 0.86rem; }
+.mes-card-ahorro { font-family: var(--ff-mono); font-weight: 700; font-size: 0.86rem; }
 .mes-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem 0.75rem; }
 .mes-card-item { display: flex; flex-direction: column; gap: 0.15rem; }
-.mes-card-lbl { font-size: 0.58rem; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
-.mes-card-val { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+.mes-card-lbl { font-size: 0.6rem; color: var(--text-subtle); letter-spacing: 0.06em; text-transform: uppercase; }
+.mes-card-val { font-family: var(--ff-mono); font-size: 0.76rem; color: var(--text-primary); font-weight: 500; }
 
 .mes-vacio { opacity: 0.4; }
-.mes-actual { border-color: color-mix(in srgb, var(--accent) 30%, transparent); background: color-mix(in srgb, var(--accent) 4%, transparent); }
-.mes-actual .mes-card-nombre::after { content: ' ·'; color: var(--accent); }
+.mes-actual { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+.mes-actual .mes-card-nombre::after { content: ' · Actual'; font-size: 0.66rem; font-weight: 500; color: var(--accent-strong); }
 
 .mes-card-total { background: var(--surface2); }
 .mes-card-total .mes-card-nombre, .mes-card-total .mes-card-val { color: var(--text-primary); font-weight: 700; }
@@ -354,15 +397,13 @@ onMounted(cargar)
 .skeleton-row { height: 44px; border-radius: 6px; background: linear-gradient(90deg, var(--surface) 0%, var(--surface2) 50%, var(--surface) 100%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
+@media (max-width: 900px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+}
+
 @media (max-width: 500px) {
-  .page-header { flex-direction: column; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
-  .page-title { font-size: 2rem;  }
-  .section-label { font-size: 0.75rem; }
-
   .year-selector { width: 100%; justify-content: space-between; }
-  .year-selector :deep(.label) { flex: 1; }
-
-  .kpi-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.75rem; margin-bottom: 1rem; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
 
   .tabla-card { display: none; }
   .meses-cards { display: flex; flex-direction: column; gap: 0.6rem; }

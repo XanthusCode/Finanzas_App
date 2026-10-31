@@ -3,24 +3,16 @@ import { ref, watch } from 'vue'
 const THEME_KEY = 'finanzas_theme'
 const ACCENT_KEY = 'finanzas_accent'
 
+// Paleta curada: tonos profundos que llevan bien texto blanco encima (no flúor).
+// El color elegido pinta --accent (detalles) y --primary (botones principales).
 export const ACCENT_PRESETS: { name: string; value: string | null }[] = [
-  { name: 'Acero (predeterminado)', value: null },
-
-  { name: 'Bosque', value: '#4a8a6e' },
-  { name: 'Océano', value: '#4f83a8' },
-  { name: 'Índigo', value: '#6875b5' },
-  { name: 'Violeta', value: '#8667a8' },
-
-  { name: 'Vino', value: '#a85a6e' },
-  { name: 'Coral', value: '#b86f68' },
-  { name: 'Terracota', value: '#b8795f' },
-
-  { name: 'Dorado', value: '#c2a06b' },
-  { name: 'Oliva', value: '#8d9160' },
-  { name: 'Turquesa', value: '#57999a' },
-
-  { name: 'Pizarra', value: '#6b6f78' },
-  { name: 'Carbón', value: '#555b66' },
+  { name: 'Predeterminado', value: null },
+  { name: 'Esmeralda', value: '#059669' },
+  { name: 'Zafiro',    value: '#2563eb' },
+  { name: 'Amatista',  value: '#7c3aed' },
+  { name: 'Rubí',      value: '#be123c' },
+  { name: 'Ámbar',     value: '#b45309' },
+  { name: 'Pizarra',   value: '#475569' },
 ]
 
 const theme = ref<'dark' | 'light'>(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark')
@@ -28,8 +20,16 @@ const accent = ref<string | null>(localStorage.getItem(ACCENT_KEY))
 
 function apply() {
   document.documentElement.setAttribute('data-theme', theme.value)
-  if (accent.value) document.documentElement.style.setProperty('--accent', accent.value)
-  else document.documentElement.style.removeProperty('--accent')
+  const root = document.documentElement.style
+  if (accent.value) {
+    root.setProperty('--accent', accent.value)
+    root.setProperty('--primary', accent.value)
+    root.setProperty('--primary-hover', `color-mix(in srgb, ${accent.value} 84%, #fff)`)
+  } else {
+    root.removeProperty('--accent')
+    root.removeProperty('--primary')
+    root.removeProperty('--primary-hover')
+  }
 }
 apply()
 

@@ -30,6 +30,22 @@ namespace Finanzas.Infrastructure.Repositories
         public async Task<bool> ExistePorCategoriaAsync(string nombreCategoria, Guid userId) =>
              await _db.Gastos.AnyAsync(g => g.Categoria == nombreCategoria && g.UserId == userId);
 
+        // Solo hasta el mes actual: las cuotas de meses futuros aún no son movimientos reales.
+        public async Task<IEnumerable<Gasto>> GetByCategoriaAsync(string nombreCategoria, Guid userId)
+        {
+            var hoy  = DateTime.UtcNow;
+            var anio = hoy.Year;
+            var mes  = hoy.Month;
+
+            return await _db.Gastos
+                .Where(g => g.Categoria == nombreCategoria && g.UserId == userId
+                            && (g.Anio < anio || (g.Anio == anio && g.Mes <= mes)))
+                .OrderByDescending(g => g.Anio)
+                .ThenByDescending(g => g.Mes)
+                .ThenByDescending(g => g.Fecha ?? g.CreadoEn)
+                .ToListAsync();
+        }
+
         public async Task<Gasto?> GetByIdAsync(Guid id, Guid userId) =>
             await _db.Gastos.FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
 
@@ -90,5 +106,28 @@ namespace Finanzas.Infrastructure.Repositories
             await _db.Gastos
                 .Where(g => g.UserId == userId)
                 .MaxAsync(g => (DateTime?)(g.ActualizadoEn ?? g.CreadoEn));
+
+        // Búsqueda global: texto en detalle/categoría (sin distinguir mayúsculas) o monto exacto.
+        // Solo hasta el mes actual, igual que GetByCategoriaAsync (las cuotas futuras aún no son reales).
+        public async Task<IEnumerable<Gasto>> BuscarAsync(string? texto, decimal? monto, Guid userId, int limite)
+        {
+            var hoy    = DateTime.UtcNow;
+            var patron = texto is null ? null : $"%{EscaparLike(texto)}%";
+
+            return await _db.Gastos
+                .Where(g => g.UserId == userId
+                            && (g.Anio < hoy.Year || (g.Anio == hoy.Year && g.Mes <= hoy.Month))
+                            && ((patron != null && (EF.Functions.ILike(g.Detalle, patron, "\\")
+                                                    || EF.Functions.ILike(g.Categoria, patron, "\\")))
+                                || (monto != null && g.Monto == monto)))
+                .OrderByDescending(g => g.Anio)
+                .ThenByDescending(g => g.Mes)
+                .ThenByDescending(g => g.Fecha ?? g.CreadoEn)
+                .Take(limite)
+                .ToListAsync();
+        }
+
+        internal static string EscaparLike(string s) =>
+            s.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
     }
 }
