@@ -78,7 +78,7 @@
           <div class="kpi-top"><span class="kpi-label">Gastado hasta hoy</span><span class="kpi-icon"><CalendarDays :size="15" :stroke-width="2" /></span></div>
           <span class="kpi-val">{{ fmt(resumen.totalGastos) }}</span>
         </div>
-        <div class="kpi-card">
+        <div v-if="!pocosDatos" class="kpi-card">
           <div class="kpi-top"><span class="kpi-label">Proyección fin de mes</span><span class="kpi-icon"><TrendingUp :size="15" :stroke-width="2" /></span></div>
           <span class="kpi-val" :class="{ 'is-neg': gastoProyectado > resumen.totalIngresos }">{{ fmt(gastoProyectado) }}</span>
         </div>
@@ -86,8 +86,8 @@
           <div class="kpi-top"><span class="kpi-label">Ingresos</span><span class="kpi-icon"><Banknote :size="15" :stroke-width="2" /></span></div>
           <span class="kpi-val">{{ fmt(resumen.totalIngresos) }}</span>
         </div>
-        <div class="kpi-card">
-          <div class="kpi-top"><span class="kpi-label">Ahorro proyectado</span><span class="kpi-icon kpi-icon--pos"><PiggyBank :size="15" :stroke-width="2" /></span></div>
+        <div v-if="!pocosDatos" class="kpi-card">
+          <div class="kpi-top"><span class="kpi-label">Sin gastar al cierre</span><span class="kpi-icon kpi-icon--pos"><PiggyBank :size="15" :stroke-width="2" /></span></div>
           <span class="kpi-val" :class="ahorroProyectado >= 0 ? 'is-pos' : 'is-neg'">
             {{ ahorroProyectado >= 0 ? '+' : '' }}{{ fmt(ahorroProyectado) }}
           </span>
@@ -95,11 +95,11 @@
       </div>
 
       <!-- Ritmo de gasto: la barra completa = tus ingresos -->
-      <div class="burn-card">
+      <div v-if="!pocosDatos" class="burn-card">
         <div class="burn-header">
           <div>
             <h2 class="burn-title">Ritmo de gasto</h2>
-            <p class="burn-sub">La barra completa son tus ingresos; lo que queda vacío es tu ahorro.</p>
+            <p class="burn-sub">La barra completa son tus ingresos; lo que queda vacío es lo que no has gastado.</p>
           </div>
           <span class="burn-rate"><Flame :size="14" :stroke-width="2" /> {{ fmt(tasaDiaria) }}<small>/día</small></span>
         </div>
@@ -126,9 +126,9 @@
       </div>
 
       <!-- Consejo -->
-      <div class="consejo" :class="`consejo--${sinIngresos ? 'warn' : estadoConsejo}`">
+      <div class="consejo" :class="`consejo--${sinIngresos || pocosDatos ? 'warn' : estadoConsejo}`">
         <span class="consejo-icon">
-          <Info v-if="sinIngresos" :size="16" :stroke-width="2.6" />
+         <Info v-if="sinIngresos || pocosDatos" :size="16" :stroke-width="2.6" />
           <Check v-else-if="estadoConsejo === 'ok'" :size="16" :stroke-width="2.8" />
           <TriangleAlert v-else-if="estadoConsejo === 'warn'" :size="15" :stroke-width="2.4" />
           <TrendingDown v-else :size="16" :stroke-width="2.4" />
@@ -138,9 +138,13 @@
             <p class="consejo-title">Faltan ingresos por registrar</p>
             <p class="consejo-texto">Aún no registraste ingresos este mes — la proyección de cierre no es confiable todavía.</p>
           </template>
+          <template v-else-if="pocosDatos">
+            <p class="consejo-title">Aún es pronto para proyectar</p>
+            <p class="consejo-texto">Sigue registrando tus gastos. Con al menos 5 gastos y 7 días del mes podremos estimar tu cierre.</p>
+          </template>
           <template v-else-if="estadoConsejo === 'ok'">
-            <p class="consejo-title">¡Vas muy bien!</p>
-            <p class="consejo-texto">Proyección de ahorro: <strong class="hl">{{ fmt(ahorroProyectado) }}</strong> ({{ pctAhorroProyectado }}% del ingreso).</p>
+            <p class="consejo-title">Vas por buen camino</p>
+            <p class="consejo-texto">Te quedaría sin gastar: <strong class="hl">{{ fmt(ahorroProyectado) }}</strong> ({{ pctAhorroProyectado }}% del ingreso).</p>
           </template>
           <template v-else-if="estadoConsejo === 'warn'">
             <p class="consejo-title">Estás cerca del límite</p>
@@ -225,6 +229,8 @@ const baseBarra = computed(() =>
 const pctBarra = (n: number) => Math.min((n / baseBarra.value) * 100, 100)
 
 const sinIngresos = computed(() => (resumen.value?.totalIngresos ?? 0) === 0)
+const pocosDatos = computed(() => store.gastos.length < 5 || diaActual < 7)
+
 
 const estadoConsejo = computed(() => {
   const ingresos = resumen.value?.totalIngresos ?? 0
@@ -265,9 +271,9 @@ const pctAhorroProyectado = computed(() => {
   border-radius: var(--radius-card); box-shadow: var(--shadow-card);
 }
 .tiempo-info  { display: flex; align-items: baseline; gap: 0.5rem; }
-.tiempo-label { font-size: 0.86rem; font-weight: 700; color: var(--text-primary); }
+.tiempo-label { font-size: 0.86rem; font-weight: 600; color: var(--text-primary); }
 .tiempo-resta { font-size: 0.78rem; color: var(--text-subtle); }
-.tiempo-pct   { margin-left: auto; font-family: var(--ff-mono); font-size: 0.74rem; font-weight: 700; color: var(--text-primary); }
+.tiempo-pct   { margin-left: auto; font-family: var(--ff-mono); font-size: 0.74rem; font-weight: 600; color: var(--text-primary); }
 .tiempo-track { height: 6px; border-radius: 99px; overflow: hidden; background: color-mix(in srgb, var(--text-muted) 22%, var(--surface2)); }
 .tiempo-fill  { height: 100%; border-radius: 99px; background: var(--c-need); transition: width 0.4s ease; }
 
@@ -280,7 +286,7 @@ const pctAhorroProyectado = computed(() => {
   border-radius: var(--radius-card); box-shadow: var(--shadow-card);
 }
 .kpi-top   { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
-.kpi-label { font-size: 0.7rem; font-weight: 500; color: var(--text-subtle); letter-spacing: 0.06em; text-transform: uppercase; }
+.kpi-label { font-size: 0.7rem; font-weight: 500; color: var(--text-subtle); }
 .kpi-icon {
   --ic: var(--accent-strong);
   display: grid; place-items: center; flex-shrink: 0;
@@ -290,7 +296,7 @@ const pctAhorroProyectado = computed(() => {
 .kpi-icon--pos { --ic: var(--c-pos); }
 .kpi-val {
   font-family: var(--ff-mono);
-  font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em;
+  font-size: 1.4rem; font-weight: 600;
   color: var(--text-primary);
 }
 .kpi-val.is-pos  { color: var(--c-pos); }
@@ -307,7 +313,7 @@ const pctAhorroProyectado = computed(() => {
 .burn-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
 .burn-title {
   font-family: var(--ff-body);
-  font-size: 0.78rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 0.78rem; font-weight: 500;
   color: var(--text-primary);
 }
 .burn-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.25rem; }
@@ -315,7 +321,7 @@ const pctAhorroProyectado = computed(() => {
   display: inline-flex; align-items: center; gap: 0.35rem; flex-shrink: 0;
   padding: 0.4rem 0.75rem; border-radius: 10px;
   background: var(--surface2); border: 1px solid var(--border);
-  font-family: var(--ff-mono); font-size: 0.86rem; font-weight: 700; color: var(--text-primary);
+  font-family: var(--ff-mono); font-size: 0.86rem; font-weight: 600; color: var(--text-primary);
 }
 .burn-rate svg { color: var(--c-want); }
 .burn-rate small { font-size: 0.7rem; font-weight: 400; color: var(--text-subtle); }
@@ -328,7 +334,7 @@ const pctAhorroProyectado = computed(() => {
   font-size: 0.72rem; color: var(--text-secondary);
   background: var(--surface2);
 }
-.legend-pill strong { font-family: var(--ff-mono); font-weight: 700; color: var(--text-primary); }
+.legend-pill strong { font-family: var(--ff-mono); font-weight: 600; color: var(--text-primary); }
 .legend-pill .dot { width: 10px; height: 10px; border-radius: 3px; background: var(--lc); flex-shrink: 0; }
 .legend-pill--proj .dot {
   background: repeating-linear-gradient(135deg, var(--text-secondary) 0 2px, transparent 2px 4px);
@@ -386,9 +392,9 @@ const pctAhorroProyectado = computed(() => {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--cc) 18%, transparent);
 }
 .consejo-body  { display: flex; flex-direction: column; gap: 0.2rem; padding-top: 0.15rem; }
-.consejo-title { font-size: 0.86rem; font-weight: 700; color: var(--text-primary); }
+.consejo-title { font-size: 0.86rem; font-weight: 600; color: var(--text-primary); }
 .consejo-texto { font-size: 0.76rem; color: var(--text-secondary); line-height: 1.55; }
-.consejo-texto .hl { font-family: var(--ff-mono); font-weight: 700; color: var(--cc); }
+.consejo-texto .hl { font-family: var(--ff-mono); font-weight: 600; color: var(--cc); }
 
 /* ── Vacío / carga ── */
 .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.4rem; padding: 4rem 1rem; }

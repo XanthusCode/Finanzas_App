@@ -19,7 +19,7 @@
 
       <div class="lnav-actions">
         <RouterLink to="/login" class="l-btn l-btn--sm lnav-login">Iniciar sesión</RouterLink>
-        <RouterLink to="/register" class="l-btn l-btn--sm l-btn--white">
+        <RouterLink to="/register" class="l-btn l-btn--sm l-btn--primary">
           Crear cuenta <ArrowRight :size="14" :stroke-width="2.4" class="l-arrow" />
         </RouterLink>
       </div>
@@ -70,7 +70,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Menu, X, LayoutGrid, ListChecks, HelpCircle, Mail, LogIn, UserPlus, Home, ArrowRight } from 'lucide-vue-next'
+import { Menu, X, LayoutGrid, ListChecks, HelpCircle, Mail, LogIn, UserPlus, Home, ArrowRight } from '@lucide/vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { scrollToSection } from '@/composables/useLanding'
 import AppLogo from '@/components/common/AppLogo.vue'
@@ -169,14 +169,14 @@ onUnmounted(() => window.removeEventListener('scroll', handleScroll))
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   backdrop-filter: blur(20px);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--ff-body);
   color: #f1f5f9;
   transform: translateX(calc(100% + 20px));
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
 .ldrawer--open { transform: none; }
 .ldrawer-header { display: flex; justify-content: space-between; align-items: center; }
-.ldrawer-logo { font-family: var(--ff-display); font-weight: 800; letter-spacing: 0.06em; font-size: 1.05rem; }
+.ldrawer-logo { font-family: var(--ff-display); font-weight: 600; letter-spacing: 0.06em; font-size: 1.05rem; }
 .ldrawer-logo :deep(.app-logo-mark) { color: #60a5fa; }
 .ldrawer-close {
   display: grid; place-items: center; width: 36px; height: 36px;

@@ -283,7 +283,7 @@
                     <button class="more-item" role="menuitem" @click="menuMetaId = ''; iniciarEdicion(meta)">
                       <Pencil :size="14" :stroke-width="1.9" /> Editar meta
                     </button>
-                    <button class="more-item more-item--danger" role="menuitem" @click="menuMetaId = ''; borrarMeta(meta.id!)">
+                    <button class="more-item more-item--danger" role="menuitem" @click="menuMetaId = ''; metaABorrar = meta">
                       <Trash2 :size="14" :stroke-width="1.9" /> Eliminar
                     </button>
                   </div>
@@ -305,7 +305,7 @@
                 <div class="meta-progress-bar" :style="{ width: Math.max(pctMeta(meta), 1.5) + '%' }" />
               </div>
               <span class="meta-falta">
-                <template v-if="meta.completada || meta.montoActual >= meta.montoObjetivo">¡Llegaste a tu objetivo! 🎉</template>
+                <template v-if="meta.completada || meta.montoActual >= meta.montoObjetivo">Objetivo alcanzado</template>
                 <template v-else>Faltan <strong>{{ fmt(meta.montoObjetivo - meta.montoActual) }}</strong></template>
               </span>
             </div>
@@ -338,6 +338,14 @@
         Nueva meta
       </button>
     </div>
+
+    <ConfirmModal
+      :model-value="!!metaABorrar"
+      title="Eliminar meta"
+      :message="`¿Eliminar la meta «${metaABorrar?.nombre ?? ''}» y su historial? Esta acción no se puede deshacer.`"
+      @update:model-value="v => { if (!v) metaABorrar = null }"
+      @confirm="metaABorrar && borrarMeta(metaABorrar.id!)"
+    />
   </div>
 </template>
 
@@ -352,11 +360,13 @@ import { useToast } from '@/composables/useToast'
 import { fmtCOP as fmt } from '@/utils'
 import { Teleport } from 'vue'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
+import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import type { Meta, MovimientoMeta, TipoRetiroMeta } from '@/types'
 import { calcularProyeccionMeta } from '@/composables/useMetaProjection'
 
 const store = useFinanceStore()
 const toast = useToast()
+const metaABorrar = ref<Meta | null>(null)
 
 const totalAhorrado = computed(() => store.metas.reduce((s, m) => s + m.montoActual, 0))
 const totalObjetivo = computed(() => store.metas.reduce((s, m) => s + m.montoObjetivo, 0))
@@ -601,8 +611,8 @@ onMounted(async () => {
   border-radius: var(--radius-card); box-shadow: var(--shadow-card);
 }
 .resumen-item  { display: flex; flex-direction: column; gap: 0.25rem; }
-.resumen-label { font-size: 0.62rem; font-weight: 500; color: var(--text-subtle); letter-spacing: 0.1em; text-transform: uppercase; }
-.resumen-val   { font-family: var(--ff-mono); font-variant-numeric: tabular-nums; font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+.resumen-label { font-size: 0.62rem; font-weight: 500; color: var(--text-subtle); }
+.resumen-val   { font-family: var(--ff-mono); font-variant-numeric: tabular-nums; font-size: 1rem; font-weight: 600; color: var(--text-primary); }
 .resumen-val--pos { color: var(--c-pos); }
 .resumen-sep   { width: 1px; height: 32px; background: var(--border-hover); }
 
@@ -639,7 +649,7 @@ onMounted(async () => {
 .meta-title-text { min-width: 0; display: flex; flex-direction: column; gap: 0.4rem; }
 .meta-nombre {
   font-family: var(--ff-body);
-  font-size: 1.02rem; font-weight: 700; color: var(--text-primary); line-height: 1.25;
+  font-size: 1.02rem; font-weight: 600; color: var(--text-primary); line-height: 1.25;
   overflow-wrap: anywhere;
 }
 .meta-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
@@ -699,12 +709,12 @@ onMounted(async () => {
 .meta-amount-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
 .meta-actual {
   font-family: var(--ff-mono); font-variant-numeric: tabular-nums;
-  font-size: 1.85rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1;
+  font-size: 1.85rem; font-weight: 600; line-height: 1.1;
   color: var(--text-primary);
 }
 .pct-badge {
   font-family: var(--ff-mono); font-variant-numeric: tabular-nums;
-  font-size: 0.72rem; font-weight: 700;
+  font-size: 0.72rem; font-weight: 600;
   padding: 0.2rem 0.55rem; border-radius: 999px;
   color: var(--c-pos); background: color-mix(in srgb, var(--c-pos) 13%, transparent);
 }
@@ -721,7 +731,7 @@ onMounted(async () => {
   transition: width 0.7s cubic-bezier(0.2, 0, 0, 1);
 }
 .meta-falta { font-size: 0.72rem; color: var(--text-subtle); margin-top: 0.55rem; }
-.meta-falta strong { font-family: var(--ff-mono); font-weight: 700; color: var(--text-primary); }
+.meta-falta strong { font-family: var(--ff-mono); font-weight: 600; color: var(--text-primary); }
 
 .meta-ritmo {
   display: flex; align-items: flex-start; gap: 0.75rem;
@@ -736,9 +746,9 @@ onMounted(async () => {
   color: var(--c-need);
   background: color-mix(in srgb, var(--c-need) 14%, transparent);
 }
-.ritmo-title { font-size: 0.64rem; font-weight: 500; color: var(--c-need); letter-spacing: 0.1em; text-transform: uppercase; }
+.ritmo-title { font-size: 0.64rem; font-weight: 500; color: var(--c-need); }
 .ritmo-text  { font-size: 0.78rem; line-height: 1.5; color: var(--text-subtle); margin-top: 0.2rem; }
-.ritmo-text strong { color: var(--text-primary); font-weight: 700; }
+.ritmo-text strong { color: var(--text-primary); font-weight: 600; }
 
 /* Empty state */
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 0 3rem; text-align: center; gap: 0.4rem; }
@@ -753,7 +763,7 @@ onMounted(async () => {
 /* Modal abonar */
 .overlay { position: fixed; inset: 0; background: rgba(8,12,16,0.75); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 500; }
 .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-modal); padding: 1.5rem; width: 400px; box-shadow: var(--shadow-pop); }
-.modal-title { font-family: var(--ff-display); font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.25rem; }
+.modal-title { font-family: var(--ff-display); font-weight: 600; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.25rem; }
 .modal-sub   { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.5rem; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
 
@@ -771,7 +781,7 @@ onMounted(async () => {
 }
 .saldo-card-row { display: flex; justify-content: space-between; align-items: baseline; }
 .saldo-card-row--sub { font-size: 0.65rem; color: var(--text-muted); }
-.saldo-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.saldo-label { font-size: 0.65rem; color: var(--text-muted); }
 .saldo-value { font-family: var(--ff-display); font-size: 1.35rem; color: var(--text-primary); }
 
 .tipo-toggle { display: flex; gap: 0.5rem; margin-top: 0.4rem; }

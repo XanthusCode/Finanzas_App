@@ -7,7 +7,7 @@
         <p class="l-lead">¿Algo más? Escríbenos a <a href="mailto:soporte@zaldo.app">soporte@zaldo.app</a>.</p>
       </div>
 
-      <div class="faq-list l-glass reveal">
+      <div class="faq-list l-card reveal">
         <div v-for="(item, i) in faqItems" :key="item.question" class="faq-item" :class="{ 'is-open': openIndex === i }">
           <button
             :id="`faq-q-${i}`"
@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Plus } from 'lucide-vue-next'
+import { Plus } from '@lucide/vue'
 import { faqItems } from '@/composables/useLanding'
 
 const openIndex = ref<number | null>(0)

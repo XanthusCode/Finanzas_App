@@ -87,7 +87,7 @@
 
 <script setup lang="ts">
 import { fmtCOP as fmt } from '@/utils'
-import { Pencil, Trash2, Plus } from 'lucide-vue-next'
+import { Pencil, Trash2, Plus } from '@lucide/vue'
 import { guessIcono, guessColor } from '@/composables/useCategoriaOptions'
 import type { PresupuestoMensualItem } from '@/composables/usePresupuestoMensual'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
@@ -166,12 +166,12 @@ const COLOR_ESTADO: Record<PresupuestoMensualItem['estado'], string> = {
 }
 .bc-info { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
 .bc-cat  {
-  font-size: 0.86rem; font-weight: 700;
+  font-size: 0.86rem; font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .bc-sub  { font-size: 0.7rem; color: var(--text-subtle); white-space: nowrap; }
-.bc-sub strong { font-family: var(--ff-mono); font-weight: 700; color: var(--text-secondary); }
+.bc-sub strong { font-family: var(--ff-mono); font-weight: 600; color: var(--text-secondary); }
 
 /* ── 2. Barra ── */
 .bc-bar-col { min-width: 0; padding: 0 0.25rem; }
@@ -194,7 +194,7 @@ const COLOR_ESTADO: Record<PresupuestoMensualItem['estado'], string> = {
 .bc-pct { display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; }
 .bc-pct-value {
   font-family: var(--ff-mono);
-  font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em;
+  font-size: 1.05rem; font-weight: 600;
   color: var(--st);
 }
 .bc-resto { font-family: var(--ff-mono); font-size: 0.68rem; color: var(--text-muted); white-space: nowrap; }
@@ -235,10 +235,10 @@ const COLOR_ESTADO: Record<PresupuestoMensualItem['estado'], string> = {
 .bc-edit { grid-column: 2 / -1; display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
 .bc-edit-field { flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.75rem; margin: 0; }
 .bc-edit-label {
-  font-size: 0.66rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+  font-size: 0.66rem; font-weight: 500;
   color: var(--text-muted); white-space: nowrap;
 }
-.input-edit { flex: 1; min-width: 0; height: 38px; font-size: 0.88rem; font-weight: 700; }
+.input-edit { flex: 1; min-width: 0; height: 38px; font-size: 0.88rem; font-weight: 600; }
 .bc-edit-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
 
 @media (prefers-reduced-motion: reduce) {

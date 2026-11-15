@@ -1,15 +1,15 @@
 /*
- * Estilos compartidos de Login y Registro (glassmorphism + showcase).
+ * Estilos compartidos de Login y Registro (showcase + formulario).
  * Todo va bajo .auth-page para no afectar al resto de la app. Siempre en oscuro.
  */
 /* El login es siempre oscuro (independiente del tema elegido): paleta propia */
 .auth-page {
-  --l-bg: #07090d;
+  --l-bg: #0f1114;
   --l-text: #f1f5f9;
   --l-sub: #94a3b8;
   --l-muted: #64748b;
   --l-line: rgba(255, 255, 255, 0.08);
-  --l-glass: rgba(17, 22, 31, 0.55);
+  --l-surface: #171a1f;
 
   position: relative;
   min-height: 100vh;
@@ -22,28 +22,6 @@
   background: var(--l-bg);
   color: var(--l-text);
   font-variant-numeric: tabular-nums;
-}
-
-/* ── Luces ── */
-.auth-page .glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(110px);
-  pointer-events: none;
-  animation: drift 18s ease-in-out infinite alternate;
-}
-.auth-page .glow--blue { width: 620px; height: 620px; top: -180px; left: -120px; background: rgba(37, 99, 235, 0.45); }
-.auth-page .glow--green { width: 520px; height: 520px; bottom: -200px; right: 8%;  background: rgba(16, 185, 129, 0.32); animation-delay: -6s; }
-.auth-page .glow--violet { width: 380px; height: 380px; top: 30%; right: -120px;  background: rgba(139, 92, 246, 0.25); animation-delay: -12s; }
-@keyframes drift {
-  from { transform: translate(0, 0) scale(1); }
-  to   { transform: translate(40px, 30px) scale(1.08); }
-}
-/* Grano sutil para que las luces no se vean "planas" */
-.auth-page .grain {
-  position: absolute; inset: 0; pointer-events: none; opacity: 0.35;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 3px 3px;
 }
 
 .auth-page .auth-shell {
@@ -60,7 +38,7 @@
 /* ── Showcase ── */
 .auth-page .brand {
   font-family: var(--ff-display);
-  font-weight: 800;
+  font-weight: 600;
   font-size: 1.25rem;
   letter-spacing: 0.06em;
   color: var(--l-text);
@@ -70,16 +48,13 @@
 
 .auth-page .showcase-title {
   font-size: clamp(2rem, 3.6vw, 2.9rem);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.08;
   letter-spacing: -0.03em;
   color: var(--l-text);
 }
 .auth-page .showcase-title span {
-  background: linear-gradient(90deg, #60a5fa, #34d399);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #60a5fa;
 }
 .auth-page .showcase-sub { margin-top: 0.9rem; max-width: 440px; font-size: 0.88rem; line-height: 1.6; color: var(--l-sub); }
 
@@ -95,30 +70,16 @@
   position: relative;
   display: flex; flex-direction: column; gap: 0.6rem;
   padding: 1rem 1.1rem;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--l-surface);
   border: 1px solid var(--l-line);
-  border-radius: 18px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 20px 40px -24px rgba(0, 0, 0, 0.8);
-  transition: transform 0.3s var(--ease-out), border-color 0.3s ease;
-  animation: float 7s ease-in-out infinite;
-}
-.auth-page .widget:hover { transform: translateY(-4px); border-color: rgba(255, 255, 255, 0.16); }
-.auth-page .w-saldo { animation-delay: 0s; }
-.auth-page .w-ahorro { animation-delay: -1.8s; }
-.auth-page .w-presu { animation-delay: -3.5s; }
-.auth-page .w-chat { animation-delay: -5.2s; }
-@keyframes float {
-  0%, 100% { translate: 0 0; }
-  50%      { translate: 0 -6px; }
+  border-radius: 16px;
 }
 
 .auth-page .w-head { display: flex; justify-content: space-between; align-items: center; }
-.auth-page .w-label { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.66rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-sub); }
+.auth-page .w-label { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.66rem; font-weight: 500; color: var(--l-sub); }
 .auth-page .w-chip { display: inline-flex; align-items: center; gap: 2px; padding: 0.12rem 0.45rem; border-radius: 999px; font-size: 0.64rem; font-weight: 600; }
 .auth-page .w-chip--pos { color: #34d399; background: rgba(16, 185, 129, 0.14); }
-.auth-page .w-big { font-family: var(--ff-mono); font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; color: var(--l-text); }
+.auth-page .w-big { font-family: var(--ff-mono); font-size: 1.6rem; font-weight: 600; color: var(--l-text); }
 .auth-page .spark { width: 100%; height: 48px; display: block; }
 
 .auth-page .w-ahorro { align-items: flex-start; }
@@ -128,10 +89,9 @@
 .auth-page .ring-fill {
   fill: none; stroke: #10b981; stroke-width: 7; stroke-linecap: round;
   stroke-dasharray: 163.4; stroke-dashoffset: 116; /* 29% */
-  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.5));
 }
-.auth-page .ring-val { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--ff-mono); font-size: 1rem; font-weight: 700; }
-.auth-page .w-foot { align-self: center; font-family: var(--ff-mono); font-size: 0.78rem; font-weight: 700; color: #34d399; }
+.auth-page .ring-val { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--ff-mono); font-size: 1rem; font-weight: 600; }
+.auth-page .w-foot { align-self: center; font-family: var(--ff-mono); font-size: 0.78rem; font-weight: 600; color: #34d399; }
 
 .auth-page .presu-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
 .auth-page .presu-top { display: flex; justify-content: space-between; font-size: 0.74rem; color: var(--l-text); margin-bottom: 0.3rem; }
@@ -145,44 +105,30 @@
 .auth-page .bubble--in { align-self: flex-start; display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(255, 255, 255, 0.07); color: var(--l-text); border-bottom-left-radius: 4px; }
 .auth-page .bubble--in svg { color: #34d399; }
 
-/* ── Cristal ── */
+/* ── Formulario (misma tarjeta que la app) ── */
 .auth-page .glass {
   position: relative;
   padding: 2.4rem 2.2rem 2rem;
-  background: var(--l-glass);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 40px 80px -30px rgba(0, 0, 0, 0.85);
-}
-/* Borde con brillo en la esquina superior */
-.auth-page .glass::before {
-  content: '';
-  position: absolute; inset: -1px; border-radius: inherit; padding: 1px; pointer-events: none;
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0) 70%, rgba(96, 165, 250, 0.25));
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  background: var(--l-surface);
+  border: 1px solid var(--l-line);
+  border-radius: 16px;
 }
 
 .auth-page .glass-logo {
   display: none;
-  font-family: var(--ff-display); font-weight: 800; font-size: 1.1rem; letter-spacing: 0.06em;
+  font-family: var(--ff-body); font-weight: 600; font-size: 1.1rem;
   margin-bottom: 1.5rem;
 }
 .auth-page .glass-logo .app-logo-mark { color: #60a5fa; }
 
-.auth-page .auth-title { font-family: var(--ff-body); font-size: 1.55rem; font-weight: 700; letter-spacing: -0.02em; color: var(--l-text); }
+.auth-page .auth-title { font-family: var(--ff-body); font-size: 1.55rem; font-weight: 600; color: var(--l-text); }
 .auth-page .auth-subtitle { margin: 0.35rem 0 1.9rem; font-size: 0.84rem; color: var(--l-sub); }
 
 .auth-page .auth-form { display: flex; flex-direction: column; gap: 1.1rem; }
 .auth-page .field { display: flex; flex-direction: column; gap: 0.4rem; }
 .auth-page .field-label {
   margin: 0;
-  font-size: 0.7rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+  font-size: 0.7rem; font-weight: 500;
   color: var(--l-sub);
 }
 
@@ -238,19 +184,14 @@
   margin-top: 0.4rem;
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
   height: 50px;
-  background: #f8fafc;
-  color: #0b0f17;
+  background: #2563eb;
+  color: #fff;
   border: none; border-radius: 12px;
-  font: inherit; font-size: 0.9rem; font-weight: 700;
+  font: inherit; font-size: 0.9rem; font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 10px 30px -10px rgba(255, 255, 255, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.08);
   transition: transform 0.15s var(--ease-out), box-shadow 0.2s ease, background 0.2s ease;
 }
-.auth-page .btn-submit:hover:not(:disabled) {
-  transform: translateY(-1px);
-  background: #fff;
-  box-shadow: 0 16px 36px -12px rgba(255, 255, 255, 0.45), inset 0 -2px 0 rgba(0, 0, 0, 0.08);
-}
+.auth-page .btn-submit:hover:not(:disabled) { background: #3b74f0; }
 .auth-page .btn-submit:active:not(:disabled) { transform: translateY(0) scale(0.99); }
 .auth-page .btn-submit:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.45); }
 .auth-page .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -259,7 +200,7 @@
 
 .auth-page .spinner {
   width: 15px; height: 15px; border-radius: 50%;
-  border: 2px solid rgba(11, 15, 23, 0.2); border-top-color: #0b0f17;
+  border: 2px solid rgba(255, 255, 255, 0.3); border-top-color: #fff;
   animation: spin 0.6s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -293,10 +234,10 @@
 .auth-page h2,
 .auth-page input,
 .auth-page button {
-  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--ff-body);
 }
-.auth-page .showcase-title { font-weight: 800; letter-spacing: -0.035em; }
-.auth-page .auth-title { font-weight: 700; letter-spacing: -0.025em; }
+.auth-page .showcase-title { font-weight: 600; }
+.auth-page .auth-title { font-weight: 600; }
 .auth-page .w-big,
 .auth-page .ring-val,
 .auth-page .w-foot,

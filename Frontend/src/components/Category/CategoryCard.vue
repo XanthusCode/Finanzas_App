@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { Pencil, Trash2, ChevronRight } from 'lucide-vue-next'
+import { Pencil, Trash2, ChevronRight } from '@lucide/vue'
 import { guessIcono, guessColor } from '@/composables/useCategoriaOptions'
 import type { Categoria } from '@/types'
 

@@ -90,6 +90,6 @@ function onSubmit(gasto: Omit<Gasto, 'id'>) {
   max-width: 90vw;
   box-shadow: var(--shadow-pop);
 }
-.modal-title { font-family: var(--ff-display); font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.35rem; }
+.modal-title { font-family: var(--ff-display); font-weight: 600; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.35rem; }
 .modal-msg { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1rem; }
 </style>

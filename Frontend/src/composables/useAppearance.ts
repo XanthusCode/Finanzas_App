@@ -15,7 +15,10 @@ export const ACCENT_PRESETS: { name: string; value: string | null }[] = [
   { name: 'Pizarra',   value: '#475569' },
 ]
 
-const theme = ref<'dark' | 'light'>(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark')
+// Sin preferencia guardada, sigue el modo claro/oscuro del sistema
+const temaGuardado = localStorage.getItem(THEME_KEY)
+const temaSistema = window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+const theme = ref<'dark' | 'light'>(temaGuardado === 'light' || temaGuardado === 'dark' ? temaGuardado : temaSistema)
 const accent = ref<string | null>(localStorage.getItem(ACCENT_KEY))
 
 function apply() {

@@ -123,10 +123,19 @@
           @edit="startEdit"
           @guardar="guardar"
           @cancelar="editingCat = ''"
-          @delete="eliminar"
+          @delete="catABorrar = $event"
         />
       </div>
     </template>
+
+    <ConfirmModal
+      :model-value="!!catABorrar"
+      title="Quitar límite"
+      confirm-text="Quitar límite"
+      :message="`¿Quitar el límite de ${catABorrar}? Tus gastos no se borran.`"
+      @update:model-value="v => { if (!v) catABorrar = '' }"
+      @confirm="eliminar(catABorrar)"
+    />
   </div>
 </template>
 
@@ -135,10 +144,11 @@ import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useFinanceStore } from '@/stores/finance'
 import { useToast } from '@/composables/useToast'
-import { TriangleAlert, ArrowRight, Search, X, ListFilter, ArrowDownWideNarrow, ChevronDown, Check } from 'lucide-vue-next'
+import { TriangleAlert, ArrowRight, Search, X, ListFilter, ArrowDownWideNarrow, ChevronDown, Check } from '@lucide/vue'
 import { usePresupuestoMensual } from '@/composables/usePresupuestoMensual'
 import BudgetCategoryCard from '@/components/presupuesto/BudgetCategoryCard.vue'
 import MonthSelector from '@/components/common/MonthSelector.vue'
+import ConfirmModal from '@/components/common/ConfirmModal.vue'
 
 type Filtro = 'todas' | 'con-limite' | 'sin-limite' | 'sobrepasadas'
 type Orden  = 'nombre' | 'uso' | 'gastado'
@@ -158,6 +168,7 @@ const ORDENES: { value: Orden; label: string }[] = [
 
 const store = useFinanceStore()
 const toast = useToast()
+const catABorrar = ref('')
 
 const loadingInit = ref(false)
 const saving      = ref(false)
@@ -307,7 +318,7 @@ onMounted(async () => {
   margin-bottom: 1rem; flex-wrap: wrap;
 }
 .seccion-left    { display: flex; align-items: center; gap: 0.6rem; }
-.seccion-titulo  { margin: 0; font-family: var(--ff-body); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-primary); }
+.seccion-titulo  { margin: 0; font-family: var(--ff-body); font-size: 0.78rem; font-weight: 500; color: var(--text-primary); }
 .seccion-resumen {
   font-size: 0.68rem; font-weight: 500; color: var(--text-secondary);
   padding: 0.2rem 0.6rem; border-radius: 999px;

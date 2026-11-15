@@ -6,7 +6,7 @@
         <p class="modal-msg">{{ message }}</p>
         <div class="modal-actions">
           <button class="btn" @click="emit('update:modelValue', false)">Cancelar</button>
-          <button class="btn btn-danger" @click="confirm">Confirmar</button>
+          <button class="btn btn-danger" @click="confirm">{{ confirmText }}</button>
         </div>
       </div>
     </div>
@@ -14,7 +14,10 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{ modelValue: boolean; title: string; message: string }>()
+// El botón nombra la acción ("Eliminar", "Quitar límite") en vez de un genérico "Confirmar"
+withDefaults(defineProps<{ modelValue: boolean; title: string; message: string; confirmText?: string }>(), {
+  confirmText: 'Eliminar',
+})
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   confirm: []
@@ -47,7 +50,7 @@ function confirm() {
 }
 .modal-title {
   font-family: var(--ff-display);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 1rem;
   color: var(--text-primary);
   margin-bottom: 0.5rem;

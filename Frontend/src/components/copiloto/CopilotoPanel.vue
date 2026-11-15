@@ -9,7 +9,7 @@
   >
     <header class="chat__header">
       <div class="chat__title">
-        <div class="chat__avatar">✨</div>
+        <div class="chat__avatar">  <BotMessageSquare /> </div>
         <div>
           <h3>Copiloto</h3>
           <p><span class="chat__dot" /> Con tus datos de este mes</p>
@@ -24,7 +24,7 @@
     <div ref="lista" class="chat__messages">
       <template v-if="!mensajes.length">
         <div class="msg ai">
-          <div class="bubble">¡Hola! 👋 Pregúntame lo que quieras sobre tus finanzas.</div>
+          <div class="bubble">Pregúntame sobre tus gastos, cuentas o metas. Por ejemplo: «¿en qué gasté más este mes?»</div>
         </div>
         <div class="chips">
           <button v-for="s in sugerencias" :key="s" class="chip" @click="onEnviar(s)">{{ s }}</button>
@@ -59,13 +59,13 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import { useCopiloto } from '@/composables/useCopiloto'
+import { BotMessageSquare } from '@lucide/vue'
 
 const { abierto, mensajes, cargando, enviar, cerrar, limpiar } = useCopiloto()
 
 const texto = ref('')
 const lista = ref<HTMLElement | null>(null)
 const input = ref<HTMLInputElement | null>(null)
-
 const sugerencias = [
   '¿Cuánto llevo gastado este mes?',
   '¿En qué categoría gasto más?',
@@ -129,7 +129,7 @@ watch(abierto, async (v) => {
 .chat__title p { margin: 0; font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
 .chat__avatar {
   width: 34px; height: 34px; border-radius: var(--radius);
-  background: var(--avatar-gradient);
+  background: var(--avatar-bg);
   display: grid; place-items: center; font-size: 15px;
 }
 .chat__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }

@@ -13,6 +13,7 @@ export interface Gasto {
   gastoOrigenId?: string
   cuentaId?: string
   actualizadoEn?: string
+  creadoEn?: string
 }
 
 export type FrecuenciaIngreso = 'DIARIO' | 'SEMANAL' | 'QUINCENAL' | 'MENSUAL' | 'BIMESTRAL' | 'TRIMESTRAL' | 'ANUAL' | 'PERSONALIZADO'
@@ -28,6 +29,7 @@ export interface Ingreso {
   frecuencia?: FrecuenciaIngreso
   diaPago?: number
   actualizadoEn?: string
+  creadoEn?: string
 }
 
 export interface Resumen {
@@ -145,6 +147,8 @@ export interface Cuenta {
   tipo: TipoCuenta
   activa: boolean
   saldo: number
+  // false si el historial de la cuenta está vacío (no hace falta pedirlo)
+  tieneMovimientos?: boolean
   creadoEn?: string
   actualizadoEn?: string
 }

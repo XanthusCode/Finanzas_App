@@ -56,7 +56,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount, type Component } from 'vue'
 import { useRoute } from 'vue-router'
-import { Sun, Moon, Menu, PanelLeftClose, PanelLeftOpen, ChevronRight, UserRound, Search } from 'lucide-vue-next'
+import { Sun, Moon, Menu, PanelLeftClose, PanelLeftOpen, ChevronRight, UserRound, Search } from '@lucide/vue'
 import UserMenu from '@/components/common/UserMenu.vue'
 import CommandPalette from '@/components/common/CommandPalette.vue'
 import { useAppearance } from '@/composables/useAppearance'

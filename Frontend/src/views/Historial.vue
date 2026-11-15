@@ -284,7 +284,7 @@ onMounted(cargar)
 }
 .year-btn:hover:not(:disabled) { color: var(--text-primary); background: var(--surface); }
 .year-btn:disabled { opacity: 0.3; cursor: default; }
-.year-label { font-family: var(--ff-mono); font-size: 0.86rem; font-weight: 700; min-width: 56px; text-align: center; color: var(--text-primary); }
+.year-label { font-family: var(--ff-mono); font-size: 0.86rem; font-weight: 600; min-width: 56px; text-align: center; color: var(--text-primary); }
 
 /* ── KPIs: borde neutro, color solo en ícono y monto ── */
 .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem; margin-bottom: 1rem; }
@@ -295,7 +295,7 @@ onMounted(cargar)
   border-radius: var(--radius-card); box-shadow: var(--shadow-card);
 }
 .kpi-top   { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-.kpi-label { font-size: 0.68rem; font-weight: 500; color: var(--text-subtle); letter-spacing: 0.08em; text-transform: uppercase; }
+.kpi-label { font-size: 0.68rem; font-weight: 500; color: var(--text-subtle); }
 .kpi-icon {
   display: grid; place-items: center; flex-shrink: 0;
   width: 30px; height: 30px; border-radius: 9px;
@@ -303,7 +303,7 @@ onMounted(cargar)
 }
 .kpi-value {
   font-family: var(--ff-mono);
-  font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em;
+  font-size: 1.4rem; font-weight: 600;
   color: var(--text-primary);
 }
 .kpi-value.is-pos { color: var(--c-pos); }
@@ -315,8 +315,7 @@ onMounted(cargar)
 .chart-card { margin-bottom: 1rem; padding: 1.25rem 1.35rem; }
 .chart-card:hover { border-color: var(--border); }
 .card-title {
-  font-size: 0.72rem; font-weight: 500; color: var(--text-primary);
-  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.85rem;
+  font-size: 0.72rem; font-weight: 500; color: var(--text-primary); margin-bottom: 0.85rem;
 }
 
 /* ── Tabla ── */
@@ -329,7 +328,7 @@ onMounted(cargar)
 .tabla { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.76rem; }
 .tabla th {
   padding: 0.85rem 1rem 0.7rem; text-align: left;
-  font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+  font-size: 11px; font-weight: 500;
   color: var(--text-subtle); white-space: nowrap;
   border-bottom: 1px solid var(--border);
 }
@@ -347,7 +346,7 @@ onMounted(cargar)
 .tabla tbody tr td:first-child { border-radius: 10px 0 0 10px; }
 .tabla tbody tr td:last-child  { border-radius: 0 10px 10px 0; }
 
-.td-mes { font-weight: 700; color: var(--text-primary) !important; }
+.td-mes { font-weight: 600; color: var(--text-primary) !important; }
 .row-vacio td { color: var(--text-muted); }
 .row-vacio .td-mes { color: var(--text-muted) !important; font-weight: 500; }
 .row-actual td { background: color-mix(in srgb, var(--accent) 7%, transparent); }
@@ -358,14 +357,14 @@ onMounted(cargar)
 }
 
 .row-total td {
-  font-weight: 700; color: var(--text-primary);
+  font-weight: 600; color: var(--text-primary);
   border-top: 1px solid var(--border-hover);
   padding-top: 0.85rem; padding-bottom: 0.85rem;
 }
 
-.aho-pos  { color: var(--c-pos) !important; font-weight: 700; }
-.aho-neg  { color: var(--c-neg) !important; font-weight: 700; }
-.aho-warn { color: var(--c-want) !important; font-weight: 700; }
+.aho-pos  { color: var(--c-pos) !important; font-weight: 600; }
+.aho-neg  { color: var(--c-neg) !important; font-weight: 600; }
+.aho-warn { color: var(--c-want) !important; font-weight: 600; }
 
 /* Tarjetas mensuales (mobile) */
 .meses-cards { display: none; }
@@ -378,11 +377,11 @@ onMounted(cargar)
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
 }
-.mes-card-nombre { font-weight: 700; color: var(--text-primary); font-size: 0.86rem; }
-.mes-card-ahorro { font-family: var(--ff-mono); font-weight: 700; font-size: 0.86rem; }
+.mes-card-nombre { font-weight: 600; color: var(--text-primary); font-size: 0.86rem; }
+.mes-card-ahorro { font-family: var(--ff-mono); font-weight: 600; font-size: 0.86rem; }
 .mes-card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem 0.75rem; }
 .mes-card-item { display: flex; flex-direction: column; gap: 0.15rem; }
-.mes-card-lbl { font-size: 0.6rem; color: var(--text-subtle); letter-spacing: 0.06em; text-transform: uppercase; }
+.mes-card-lbl { font-size: 0.6rem; color: var(--text-subtle); }
 .mes-card-val { font-family: var(--ff-mono); font-size: 0.76rem; color: var(--text-primary); font-weight: 500; }
 
 .mes-vacio { opacity: 0.4; }
@@ -390,7 +389,7 @@ onMounted(cargar)
 .mes-actual .mes-card-nombre::after { content: ' · Actual'; font-size: 0.66rem; font-weight: 500; color: var(--accent-strong); }
 
 .mes-card-total { background: var(--surface2); }
-.mes-card-total .mes-card-nombre, .mes-card-total .mes-card-val { color: var(--text-primary); font-weight: 700; }
+.mes-card-total .mes-card-nombre, .mes-card-total .mes-card-val { color: var(--text-primary); font-weight: 600; }
 
 /* Loading */
 .loading-list { display: flex; flex-direction: column; gap: 0.5rem; }

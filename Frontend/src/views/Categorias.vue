@@ -103,7 +103,7 @@ import { useToast } from '@/composables/useToast'
 import { categoriasService } from '@/services/api'
 import { fmtCOP } from '@/utils'
 import type { Categoria, CategoriaGastos, Gasto } from '@/types'
-import { LayoutGrid, SquareActivity, CircleDashed, Plus, Search, X } from 'lucide-vue-next'
+import { LayoutGrid, SquareActivity, CircleDashed, Plus, Search, X } from '@lucide/vue'
 import CategoryCard from '@/components/Category/CategoryCard.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 
@@ -276,8 +276,8 @@ onMounted(async () => {
   display: flex; align-items: center; justify-content: center;
   color: var(--kc); background: color-mix(in srgb, var(--kc) 13%, transparent);
 }
-.kpi-label { font-size: 0.68rem; font-weight: 500; color: var(--text-subtle); letter-spacing: 0.08em; text-transform: uppercase; }
-.kpi-value { font-family: var(--ff-mono); font-variant-numeric: tabular-nums; font-size: 1.45rem; font-weight: 700; color: var(--text-primary); }
+.kpi-label { font-size: 0.68rem; font-weight: 500; color: var(--text-subtle); }
+.kpi-value { font-family: var(--ff-mono); font-variant-numeric: tabular-nums; font-size: 1.45rem; font-weight: 600; color: var(--text-primary); }
 
 /* Modal de movimientos */
 .modal-backdrop {
@@ -296,7 +296,7 @@ onMounted(async () => {
 }
 .icon-close:hover { color: var(--text-primary); background: var(--surface2); }
 .modal-head  { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
-.modal-title { font-size: 1rem; font-weight: 700; margin: 0; }
+.modal-title { font-size: 1rem; font-weight: 600; margin: 0; }
 .mov-total {
   display: flex; justify-content: space-between; align-items: baseline;
   font-size: 0.78rem; color: var(--text-secondary);
@@ -309,7 +309,7 @@ onMounted(async () => {
 .mov-info    { display: flex; flex-direction: column; min-width: 0; }
 .mov-detalle { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mov-fecha   { font-size: 0.68rem; color: var(--text-subtle); }
-.mov-monto   { font-family: var(--ff-mono); font-variant-numeric: tabular-nums; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); flex-shrink: 0; }
+.mov-monto   { font-family: var(--ff-mono); font-variant-numeric: tabular-nums; font-size: 0.85rem; font-weight: 600; color: var(--text-primary); flex-shrink: 0; }
 .empty       { font-size: 0.72rem; color: var(--text-muted); padding: 1rem 0; text-align: center; }
 
 /* Filter bar */

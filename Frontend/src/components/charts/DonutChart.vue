@@ -75,7 +75,7 @@ onBeforeUnmount(() => chart?.destroy())
 }
 .donut-pct {
   font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
 }
 </style>

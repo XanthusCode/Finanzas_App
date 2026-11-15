@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { LogOut } from 'lucide-vue-next'
+import { LogOut } from '@lucide/vue'
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'

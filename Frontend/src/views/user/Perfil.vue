@@ -240,7 +240,7 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Sun, Moon, ArrowLeft, Pencil, X, Check, Mail, MessageCircle, Unlink, Link2, ExternalLink, KeyRound, BellRing,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import { userFromToken } from '@/utils'
@@ -404,7 +404,7 @@ async function cambiarPassword() {
 .pf-title {
   margin-bottom: 1.25rem;
   font-family: var(--ff-body);
-  font-size: 0.74rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 0.74rem; font-weight: 500;
   color: var(--text-primary);
 }
 
@@ -413,14 +413,14 @@ async function cambiarPassword() {
 .identity-avatar {
   display: grid; place-items: center; flex-shrink: 0;
   width: 56px; height: 56px; border-radius: 16px;
-  background: var(--avatar-gradient);
+  background: var(--avatar-bg);
   box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px var(--border-hover);
-  font-size: 1.05rem; font-weight: 700; letter-spacing: 0.04em; color: #fff;
+  font-size: 1.05rem; font-weight: 600; letter-spacing: 0.04em; color: #fff;
 }
 .identity-main { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; flex: 1; }
 .name-row { display: flex; align-items: center; gap: 0.35rem; min-width: 0; }
 .name {
-  font-size: 1.15rem; font-weight: 700; color: var(--text-primary);
+  font-size: 1.15rem; font-weight: 600; color: var(--text-primary);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .name-row .icon-btn { opacity: 0.55; transition: opacity 0.15s, color 0.15s, background 0.15s; }
@@ -471,7 +471,7 @@ async function cambiarPassword() {
 .step-n {
   display: grid; place-items: center; flex-shrink: 0;
   width: 22px; height: 22px; border-radius: 999px;
-  font-family: var(--ff-mono); font-size: 0.68rem; font-weight: 700;
+  font-family: var(--ff-mono); font-size: 0.68rem; font-weight: 600;
   color: var(--accent-strong); background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 .step-body { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; min-width: 0; }
@@ -565,7 +565,7 @@ async function cambiarPassword() {
 .pw-form { display: flex; flex-direction: column; gap: 1rem; }
 .pw-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
 .field { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
-.field label { margin: 0; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-subtle); }
+.field label { margin: 0; font-size: 0.68rem; font-weight: 500; color: var(--text-subtle); }
 .pf-input {
   width: 100%; height: 44px; padding: 0 0.9rem;
   font: inherit; font-size: 0.86rem; color: var(--text-primary);

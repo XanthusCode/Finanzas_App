@@ -227,8 +227,8 @@ onMounted(() => { if (!store.resumen) store.cargarDatos() })
 
 .resultado-comparacion { display: flex; align-items: center; gap: 1.5rem; }
 .resultado-col   { display: flex; flex-direction: column; gap: 0.35rem; }
-.resultado-label { font-size: 0.64rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
-.resultado-val   { font-family: var(--ff-mono); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+.resultado-label { font-size: 0.64rem; font-weight: 500; color: var(--text-secondary); }
+.resultado-val   { font-family: var(--ff-mono); font-weight: 600; line-height: 1; }
 .resultado-val--actual { font-size: 1.2rem; color: var(--text-subtle); }
 .resultado-val--sim    { font-size: 1.85rem; color: var(--text-primary); }
 .resultado-arrow {
@@ -246,7 +246,7 @@ onMounted(() => { if (!store.resumen) store.cargarDatos() })
   background: color-mix(in srgb, var(--dc) 12%, transparent);
   transition: color 0.2s ease, background 0.2s ease;
 }
-.delta-badge span { font-family: var(--ff-mono); font-size: 1.1rem; font-weight: 700; }
+.delta-badge span { font-family: var(--ff-mono); font-size: 1.1rem; font-weight: 600; }
 .delta-badge small { font-size: 0.68rem; opacity: 0.85; }
 .btn-ghost { background: transparent; border-color: transparent; color: var(--text-secondary); }
 .btn-ghost:hover:not(:disabled) { background: var(--surface2); border-color: var(--border); color: var(--text-primary); }
@@ -259,7 +259,7 @@ onMounted(() => { if (!store.resumen) store.cargarDatos() })
 .sim-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0 0.4rem 0.6rem; }
 .sim-head h2 {
   font-family: var(--ff-body);
-  font-size: 0.74rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 0.74rem; font-weight: 500;
   color: var(--text-primary);
 }
 .sim-hint { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.66rem; color: var(--text-muted); }
@@ -280,7 +280,7 @@ onMounted(() => { if (!store.resumen) store.cargarDatos() })
 
 .sim-cat { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
 .sim-cat-name { font-size: 0.8rem; font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sim-diff { font-family: var(--ff-mono); font-size: 0.66rem; font-weight: 700; }
+.sim-diff { font-family: var(--ff-mono); font-size: 0.66rem; font-weight: 600; }
 .sim-diff--muted { color: var(--text-muted); font-weight: 400; }
 .diff-good { color: var(--c-pos); }
 .diff-bad  { color: var(--c-want); }
@@ -326,7 +326,7 @@ onMounted(() => { if (!store.resumen) store.cargarDatos() })
 .sim-input {
   height: 36px; min-height: 36px;
   padding: 0 0.7rem;
-  font-family: var(--ff-mono); font-size: 0.8rem; font-weight: 700;
+  font-family: var(--ff-mono); font-size: 0.8rem; font-weight: 600;
   text-align: right;
   background: transparent;
   border: 1px solid var(--border-hover);
@@ -337,12 +337,12 @@ onMounted(() => { if (!store.resumen) store.cargarDatos() })
 /* ── Totales ── */
 .totales-card { position: sticky; top: 88px; padding: 1.2rem 1.3rem; }
 .totales-card:hover { border-color: var(--border); }
-.totales-title { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.6rem; }
+.totales-title { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.6rem; }
 .totales-row   { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
 .totales-label { font-size: 0.75rem; color: var(--text-secondary); }
-.totales-val   { font-family: var(--ff-mono); font-size: 0.82rem; font-weight: 700; color: var(--text-primary); }
+.totales-val   { font-family: var(--ff-mono); font-size: 0.82rem; font-weight: 600; color: var(--text-primary); }
 .totales-ahorro { display: flex; flex-direction: column; gap: 0.4rem; padding-top: 0.9rem; }
-.totales-big { font-family: var(--ff-mono); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+.totales-big { font-family: var(--ff-mono); font-size: 1.5rem; font-weight: 600; }
 .totales-big.is-pos { color: var(--c-pos); }
 .totales-big.is-neg { color: var(--c-neg); }
 .tasa-bar  { height: 8px; border-radius: 99px; overflow: hidden; background: color-mix(in srgb, var(--text-muted) 22%, var(--surface2)); margin-top: 0.2rem; }

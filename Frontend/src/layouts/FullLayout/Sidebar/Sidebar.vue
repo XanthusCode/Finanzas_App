@@ -66,7 +66,7 @@
 
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
-import { ChevronRight, X } from 'lucide-vue-next'
+import { ChevronRight, X } from '@lucide/vue'
 import { menu } from './SidebarItems'
 import AppLogo from '@/components/common/AppLogo.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -131,10 +131,9 @@ function hideTooltip() { tooltip.visible = false }
 }
 
 .sidebar-logo {
-  font-family: var(--ff-display);
-  font-weight: 800;
-  font-size: 1.15rem;
-  letter-spacing: 0.04em;
+  font-family: var(--ff-body);
+  font-weight: 600;
+  font-size: 1.0625rem;
   color: var(--text-primary);
 }
 
@@ -157,7 +156,7 @@ function hideTooltip() { tooltip.visible = false }
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 24px;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
@@ -171,13 +170,11 @@ function hideTooltip() { tooltip.visible = false }
 }
 
 .nav-group-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #64748b;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  padding: 0 0.75rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  padding: 0 12px;
+  margin-bottom: 6px;
   white-space: nowrap;
 }
 
@@ -185,14 +182,13 @@ function hideTooltip() { tooltip.visible = false }
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  height: 40px;
-  padding: 0 0.75rem;
-  border-radius: 10px;
-  font-size: 0.82rem;
+  gap: 10px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   text-decoration: none;
-  letter-spacing: 0.02em;
   transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
 .nav-item:hover { background: var(--surface2); color: var(--text-primary); }
@@ -213,9 +209,9 @@ function hideTooltip() { tooltip.visible = false }
 /* Activo: tinte de acento + barra lateral, sin gritar */
 .nav-item--active,
 .nav-item--active:hover {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  color: var(--accent-strong);
-  font-weight: 600;
+  background: var(--surface2);
+  color: var(--text-primary);
+  font-weight: 500;
 }
 .nav-item--active::before {
   content: '';
@@ -253,11 +249,11 @@ function hideTooltip() { tooltip.visible = false }
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: var(--avatar-gradient);
+  background: var(--avatar-bg);
   box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--border-hover);
   color: #fff;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
 }
 

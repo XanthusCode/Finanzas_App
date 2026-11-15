@@ -1,18 +1,20 @@
 /*
- * Landing: mismo lenguaje visual que Login/Registro (auth.css).
- * Siempre oscura, Inter, luces de fondo, cristal y botón blanco.
+ * Landing: mismo lenguaje visual que Login/Registro (auth.css) y que la app:
+ * fondo y superficies de la app, un solo acento azul, sin luces ni cristal.
  * Todo va bajo .landing para no afectar la app.
  */
 .landing {
-  --l-bg: #07090d;
-  --l-surface: rgba(255, 255, 255, 0.035);
-  --l-surface-2: rgba(255, 255, 255, 0.06);
+  --l-bg: #0f1114;
+  --l-surface: #171a1f;
+  --l-surface-2: #20242a;
   --l-line: rgba(255, 255, 255, 0.08);
   --l-line-2: rgba(255, 255, 255, 0.14);
   --l-text: #f1f5f9;
   --l-sub: #94a3b8;
   --l-muted: #64748b;
   --l-blue: #60a5fa;
+  --l-primary: #2563eb;
+  --l-primary-hover: #3b74f0;
   --l-green: #34d399;
   --l-violet: #a78bfa;
   --l-gold: #d4a85a;
@@ -23,39 +25,32 @@
   overflow-x: clip;
   background: var(--l-bg);
   color: var(--l-text);
-  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--ff-body);
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
 .landing h1, .landing h2, .landing h3, .landing button, .landing input { font-family: inherit; }
 
 /* Logo con su fuente de marca */
-.landing .app-logo { font-family: var(--ff-display); font-weight: 800; letter-spacing: 0.06em; }
+.landing .app-logo { font-family: var(--ff-body); font-weight: 600; }
 .landing .app-logo-mark { color: var(--l-blue); }
 
 /* ── Contenedor y secciones ── */
 .landing .l-container { width: 100%; max-width: 1160px; margin: 0 auto; padding: 0 1.5rem; }
 .landing .l-section { position: relative; padding: 6.5rem 0; }
 .landing .l-section-head { max-width: 640px; margin: 0 auto 3.25rem; text-align: center; }
+/* Etiqueta de sección: texto tenue, no pastilla */
 .landing .l-eyebrow {
-  display: inline-flex; align-items: center; gap: 0.45rem;
-  padding: 0.3rem 0.8rem; margin-bottom: 1.1rem;
-  border-radius: 999px;
-  border: 1px solid var(--l-line-2);
-  background: var(--l-surface);
-  font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; color: var(--l-sub);
+  display: inline-block; margin-bottom: 12px;
+  font-size: 0.875rem; font-weight: 400; color: var(--l-muted);
 }
-.landing .l-eyebrow-dot { width: 6px; height: 6px; border-radius: 99px; background: var(--l-green); box-shadow: 0 0 10px var(--l-green); }
 .landing .l-h2 {
   font-size: clamp(1.9rem, 3.6vw, 2.75rem);
-  font-weight: 800; line-height: 1.1; letter-spacing: -0.035em;
+  font-weight: 500; line-height: 1.1; letter-spacing: -0.02em;
   color: var(--l-text);
 }
 .landing .l-lead { margin-top: 1rem; font-size: 1rem; line-height: 1.65; color: var(--l-sub); }
-.landing .l-grad {
-  background: linear-gradient(90deg, #60a5fa, #34d399);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
+.landing .l-accent { color: var(--l-blue); }
 
 /* ── Botones ── */
 .landing .l-btn {
@@ -67,11 +62,9 @@
   transition: transform 0.15s var(--ease-out), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
 }
 .landing .l-btn:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.45); }
-.landing .l-btn--white {
-  background: #f8fafc; color: #0b0f17;
-  box-shadow: 0 10px 30px -10px rgba(255, 255, 255, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.08);
-}
-.landing .l-btn--white:hover { background: #fff; transform: translateY(-1px); box-shadow: 0 16px 36px -12px rgba(255, 255, 255, 0.45), inset 0 -2px 0 rgba(0, 0, 0, 0.08); }
+/* Mismo botón principal que la app (.btn-primary) */
+.landing .l-btn--primary { background: var(--l-primary); color: #fff; }
+.landing .l-btn--primary:hover { background: var(--l-primary-hover); }
 .landing .l-btn--ghost { background: var(--l-surface); border-color: var(--l-line-2); color: var(--l-text); }
 .landing .l-btn--ghost:hover { background: var(--l-surface-2); border-color: rgba(255, 255, 255, 0.24); }
 .landing .l-btn--sm { height: 38px; padding: 0 1rem; font-size: 0.82rem; border-radius: 10px; }
@@ -79,15 +72,12 @@
 .landing .l-btn .l-arrow { transition: transform 0.2s var(--ease-out); }
 .landing .l-btn:hover .l-arrow { transform: translateX(3px); }
 
-/* ── Cristal ── */
-.landing .l-glass {
+/* ── Tarjeta (igual que .card de la app: superficie sólida, borde, sin sombra) ── */
+.landing .l-card {
   position: relative;
   background: var(--l-surface);
   border: 1px solid var(--l-line);
-  border-radius: 20px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 24px 48px -28px rgba(0, 0, 0, 0.85);
+  border-radius: 16px;
 }
 .landing .l-icon {
   --ic: var(--l-blue);
@@ -96,12 +86,6 @@
   color: var(--ic);
   background: color-mix(in srgb, var(--ic) 14%, transparent);
   border: 1px solid color-mix(in srgb, var(--ic) 22%, rgba(255, 255, 255, 0.06));
-}
-
-/* ── Luces ── */
-.landing .l-glow {
-  position: absolute; border-radius: 50%; pointer-events: none;
-  filter: blur(120px);
 }
 
 /* ── Aparición al hacer scroll (Landing.vue agrega .is-visible) ── */

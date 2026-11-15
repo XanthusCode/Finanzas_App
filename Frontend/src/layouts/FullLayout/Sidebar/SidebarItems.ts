@@ -11,14 +11,14 @@ import {
   TrendingUp,
   History,
   Tags
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 export const menu = [
   {
     label: 'Registro',
     items: [
       {
-        title: 'Dashboard',
+        title: 'Resumen',
         icon: LayoutDashboard,
         route: '/dashboard'
       },

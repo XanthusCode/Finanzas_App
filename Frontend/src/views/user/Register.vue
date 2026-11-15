@@ -1,16 +1,11 @@
 <template>
   <div class="auth-page">
-    <!-- Luces de fondo (se filtran a través del cristal) -->
-    <div class="glow glow--blue" aria-hidden="true" />
-    <div class="glow glow--green" aria-hidden="true" />
-    <div class="glow glow--violet" aria-hidden="true" />
-    <div class="grain" aria-hidden="true" />
 
     <div class="auth-shell">
       <!-- ── Showcase: ventajas en bento ── -->
       <section class="showcase" aria-label="Qué incluye Zaldo">
         <div class="brand"><AppLogo /></div>
-        <h2 class="showcase-title">Tus finanzas, <span>bajo control</span>.</h2>
+        <h2 class="showcase-title">Anota un gasto en <span>10 segundos</span>.</h2>
         <p class="showcase-sub">Crea tu cuenta en menos de un minuto. Gratis, sin tarjeta de crédito.</p>
 
         <ul class="bento bento--features">
@@ -22,11 +17,11 @@
         </ul>
       </section>
 
-      <!-- ── Formulario: cristal esmerilado ── -->
+      <!-- ── Formulario ── -->
       <section class="glass">
         <div class="glass-logo"><AppLogo /></div>
         <h1 class="auth-title">Crea tu cuenta</h1>
-        <p class="auth-subtitle">Empieza a controlar tus finanzas hoy</p>
+        <p class="auth-subtitle">Gratis y sin conectar tu banco</p>
 
         <form class="auth-form" novalidate @submit.prevent="onSubmit">
           <div class="field">
@@ -141,7 +136,7 @@ import { useRouter, RouterLink } from 'vue-router'
 import {
   UserRound, Mail, LockKeyhole, Eye, EyeOff, ArrowRight, CircleAlert, ShieldCheck, Check, Circle,
   LayoutDashboard, Receipt, PiggyBank, MessageCircle,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth'
 import { z } from 'zod'
 import { passwordRequirements, passwordSchema } from '@/schemas'

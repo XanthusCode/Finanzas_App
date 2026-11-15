@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { Mail } from 'lucide-vue-next'
+import { Mail } from '@lucide/vue'
 import { scrollToSection } from '@/composables/useLanding'
 import AppLogo from '@/components/common/AppLogo.vue'
 
@@ -50,7 +50,7 @@ const year = new Date().getFullYear()
 .lfoot-logo { font-size: 1.1rem; }
 .lfoot-tagline { margin-top: 0.85rem; max-width: 280px; font-size: 0.84rem; line-height: 1.6; color: var(--l-sub); }
 .lfoot-col { display: flex; flex-direction: column; align-items: flex-start; gap: 0.6rem; }
-.lfoot-heading { margin-bottom: 0.3rem; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--l-text); }
+.lfoot-heading { margin-bottom: 0.3rem; font-size: 0.72rem; font-weight: 600; color: var(--l-text); }
 .lfoot-link {
   display: inline-flex; align-items: center; gap: 0.4rem;
   padding: 0; background: none; border: none;

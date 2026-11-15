@@ -60,7 +60,7 @@
             <ShieldCheck v-if="s.tipo === 'LE_DEBO'" :size="26" :stroke-width="1.8" />
             <HandCoins v-else :size="24" :stroke-width="1.8" />
           </span>
-          <p class="empty-title">{{ s.tipo === 'LE_DEBO' ? '¡Todo al día! No tienes deudas pendientes' : 'Nadie te debe dinero' }}</p>
+          <p class="empty-title">{{ s.tipo === 'LE_DEBO' ? 'Todo al día: no tienes deudas pendientes' : 'Nadie te debe dinero' }}</p>
           <p class="empty-sub">{{ s.tipo === 'LE_DEBO' ? 'Sigue así, tus cuentas están limpias.' : 'Cuando le prestes a alguien, regístralo aquí para no olvidarlo.' }}</p>
         </div>
 
@@ -109,7 +109,7 @@
               <button v-else class="btn btn-sm btn-ghost" title="Volver a marcarla como pendiente" @click="togglePagada(d)">
                 <RotateCcw :size="13" :stroke-width="2.2" /> Reabrir
               </button>
-              <button class="icon-btn icon-btn--danger" title="Eliminar" aria-label="Eliminar deuda" @click="eliminar(d)">
+              <button class="icon-btn icon-btn--danger" title="Eliminar" aria-label="Eliminar deuda" @click="deudaABorrar = d">
                 <Trash2 :size="14" :stroke-width="1.9" />
               </button>
             </div>
@@ -199,6 +199,14 @@
         </div>
       </div>
     </div>
+
+    <ConfirmModal
+      :model-value="!!deudaABorrar"
+      title="Eliminar deuda"
+      :message="`¿Eliminar la deuda con ${deudaABorrar?.persona ?? ''}? También se borran sus abonos y los movimientos que generó en tus cuentas. Esta acción no se puede deshacer.`"
+      @update:model-value="v => { if (!v) deudaABorrar = null }"
+      @confirm="deudaABorrar && eliminar(deudaABorrar)"
+    />
   </div>
 </template>
 
@@ -214,9 +222,11 @@ import { fmtCOP as fmt } from '@/utils'
 import { useToast } from '@/composables/useToast'
 import { useFinanceStore } from '@/stores/finance'
 import CurrencyInput from '@/components/common/CurrencyInput.vue'
+import ConfirmModal from '@/components/common/ConfirmModal.vue'
 
 const toast = useToast()
 const store = useFinanceStore()
+const deudaABorrar = ref<Deuda | null>(null)
 
 function cuentaNombre(id?: string) {
   if (!id) return ''
@@ -414,7 +424,7 @@ onMounted(() => {
 .resumen-card.is-pos { --rc: var(--c-pos); }
 .resumen-card.is-neg { --rc: var(--c-neg); }
 .resumen-top   { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
-.resumen-label { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
+.resumen-label { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); }
 .resumen-icon {
   --ic: var(--text-secondary);
   display: grid; place-items: center;
@@ -426,7 +436,7 @@ onMounted(() => {
 .resumen-icon--neg { --ic: var(--c-neg); }
 .resumen-val {
   font-family: var(--ff-mono); font-variant-numeric: tabular-nums;
-  font-size: 1.45rem; font-weight: 700; letter-spacing: -0.02em;
+  font-size: 1.45rem; font-weight: 600;
   color: var(--rc);
 }
 .resumen-count { font-size: 0.7rem; color: var(--text-muted); }
@@ -447,7 +457,7 @@ onMounted(() => {
 .section-title { display: flex; align-items: center; gap: 0.5rem; }
 .section-title h2 {
   font-family: var(--ff-body);
-  font-size: 0.76rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 0.76rem; font-weight: 500;
   color: var(--text-primary);
 }
 .section-icon { color: var(--sc); }
@@ -458,7 +468,7 @@ onMounted(() => {
 }
 .section-total {
   font-family: var(--ff-mono); font-variant-numeric: tabular-nums;
-  font-size: 0.74rem; font-weight: 700;
+  font-size: 0.74rem; font-weight: 600;
   padding: 0.25rem 0.65rem; border-radius: 999px;
   color: var(--sc); background: color-mix(in srgb, var(--sc) 12%, transparent);
 }
@@ -489,14 +499,14 @@ onMounted(() => {
 .deuda-avatar {
   display: grid; place-items: center; flex-shrink: 0; align-self: flex-start;
   width: 40px; height: 40px; border-radius: 999px;
-  font-size: 0.74rem; font-weight: 700; letter-spacing: 0.02em;
+  font-size: 0.74rem; font-weight: 600; letter-spacing: 0.02em;
   color: var(--sc);
   background: color-mix(in srgb, var(--sc) 14%, transparent);
 }
 
 .deuda-info    { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.25rem; }
 .deuda-top     { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-.deuda-persona { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+.deuda-persona { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
 .deuda-desc    {
   font-size: 0.74rem; color: var(--text-subtle);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -524,7 +534,7 @@ onMounted(() => {
 .deuda-monto-col { display: flex; flex-direction: column; align-items: flex-end; gap: 0.1rem; }
 .deuda-monto {
   font-family: var(--ff-mono); font-variant-numeric: tabular-nums;
-  font-size: 1rem; font-weight: 700; color: var(--text-primary);
+  font-size: 1rem; font-weight: 600; color: var(--text-primary);
 }
 .deuda-monto-sub { font-size: 0.64rem; color: var(--text-muted); }
 
@@ -592,7 +602,7 @@ onMounted(() => {
   max-height: calc(100vh - 4rem); overflow-y: auto;
   box-shadow: var(--shadow-pop);
 }
-.modal-title  { font-size: 1rem; font-weight: 700; margin: 0; }
+.modal-title  { font-size: 1rem; font-weight: 600; margin: 0; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; }
 
 .field-group { display: flex; flex-direction: column; gap: 0.35rem; }

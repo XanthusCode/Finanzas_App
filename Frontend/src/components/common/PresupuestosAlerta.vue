@@ -64,8 +64,6 @@ onMounted(async () => {
 .alerta-titulo {
   font-size: 0.65rem;
   color: var(--text-secondary);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   margin-bottom: 0.75rem;
 }
 

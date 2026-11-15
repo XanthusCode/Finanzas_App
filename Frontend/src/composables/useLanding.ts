@@ -22,17 +22,6 @@ export const features: LandingFeature[] = [
   { icon: Search,     title: 'Búsqueda global',       desc: 'Ctrl + K: encuentra "Netflix" o "$50.000" en cualquier mes.',   color: '#94a3b8' },
 ]
 
-export interface LandingStat {
-  value: string
-  label: string
-}
-
-export const stats: LandingStat[] = [
-  { value: '12',   label: 'módulos financieros en un solo lugar' },
-  { value: '0',    label: 'conexiones bancarias necesarias' },
-  { value: '1',    label: 'mensaje de WhatsApp para registrar un gasto' },
-]
-
 export interface LandingStep {
   icon: typeof Wallet
   title: string
@@ -43,17 +32,6 @@ export const steps: LandingStep[] = [
   { icon: ListChecks,      title: 'Crea tu cuenta',            desc: 'En menos de un minuto y sin conectar tu banco ni tarjeta.' },
   { icon: Wallet,          title: 'Registra tus movimientos',  desc: 'Desde la app o escribiéndole al bot de WhatsApp, como un chat.' },
   { icon: LayoutDashboard, title: 'Decide con claridad',       desc: 'Tu dashboard te dice cuánto te queda, en qué se va y cómo cerrarás el mes.' },
-]
-
-export interface LandingTestimonial {
-  quote: string
-  author: string
-}
-
-export const testimonials: LandingTestimonial[] = [
-  { quote: 'La app reemplazó por completo mi libreta de gastos en papel. La experiencia es muy buena.', author: 'Usuario beta' },
-  { quote: 'Me gustó mucho en general — se siente útil de verdad para llevar el control de mis finanzas.', author: 'Usuario beta' },
-  { quote: 'Solo hacen falta pequeños detalles para que sea aún más intuitiva, pero ya la uso todos los días.', author: 'Usuario beta' },
 ]
 
 export interface LandingFaqItem {

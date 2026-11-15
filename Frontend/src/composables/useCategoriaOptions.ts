@@ -2,7 +2,7 @@ import {
   Tag, Utensils, Coffee, Car, Motorbike, Fuel,Gem, Home, Shirt, HeartPulse, Dumbbell, GraduationCap,
   Plane, PawPrint, Gift, Zap, Wifi, Phone, Gamepad2, Film, ShoppingBag,Cog,
   Bot, Laptop, Droplets, HandCoins, Music, Pill, Landmark, Baby, Wrench, Beer, Scissors,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 export const COLOR_PALETTE = [
   '#6a8caf', // azul polvo

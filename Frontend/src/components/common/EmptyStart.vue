@@ -3,7 +3,7 @@
   <section v-if="variante === 'nuevo'" class="empty-start">
     <div class="hero">
       <span class="hero-icon"><Sparkles :size="28" :stroke-width="1.8" /></span>
-      <h2 class="hero-title">¡Empecemos! Tu dashboard se arma solo</h2>
+      <h2 class="hero-title">Tu resumen se arma con lo que registres</h2>
       <p class="hero-sub">Registra tus movimientos y aquí verás cuánto ganas, en qué gastas y cuánto te queda cada mes.</p>
       <RouterLink to="/gastos?nuevo=1" class="btn btn-primary btn-hero">
         <Plus :size="17" :stroke-width="2.4" />
@@ -60,7 +60,7 @@ import { ref, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import {
   Sparkles, Plus, ArrowRight, Banknote, Receipt, Landmark, MessageCircle, CalendarPlus, Repeat,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { useFinanceStore } from '@/stores/finance'
 import { useToast } from '@/composables/useToast'
 
@@ -122,7 +122,7 @@ async function copiarRecurrentes() {
   background: color-mix(in srgb, var(--accent) 16%, var(--surface2));
   box-shadow: none;
 }
-.hero-title { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; color: var(--text-primary); }
+.hero-title { font-size: 1.35rem; font-weight: 600; color: var(--text-primary); }
 .hero-sub   { font-size: 0.82rem; line-height: 1.55; color: var(--text-subtle); max-width: 460px; }
 
 .btn-hero { min-height: 46px; padding: 0.7rem 1.4rem; font-size: 0.86rem; border-radius: 12px; text-decoration: none; margin-top: 0.75rem; }
@@ -144,10 +144,10 @@ async function copiarRecurrentes() {
   text-decoration: none;
   transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
 }
-.step:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); background: var(--surface2); transform: translateY(-2px); }
+.step:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); background: var(--surface2); }
 .step-num {
   position: absolute; top: 0.9rem; right: 1rem;
-  font-family: var(--ff-mono); font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
+  font-family: var(--ff-mono); font-size: 0.7rem; font-weight: 600; color: var(--text-muted);
 }
 .step-icon {
   display: grid; place-items: center;
@@ -155,7 +155,7 @@ async function copiarRecurrentes() {
   color: var(--sc); background: color-mix(in srgb, var(--sc) 14%, transparent);
 }
 .step-text { display: flex; flex-direction: column; gap: 0.25rem; }
-.step-text strong { font-size: 0.86rem; font-weight: 700; color: var(--text-primary); }
+.step-text strong { font-size: 0.86rem; font-weight: 600; color: var(--text-primary); }
 .step-text span   { font-size: 0.72rem; line-height: 1.45; color: var(--text-subtle); }
 .step-arrow { color: var(--text-muted); margin-top: auto; transition: transform 0.15s ease, color 0.15s ease; }
 .step:hover .step-arrow { color: var(--primary); transform: translateX(3px); }

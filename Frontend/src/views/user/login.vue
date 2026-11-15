@@ -1,17 +1,12 @@
 <template>
   <div class="auth-page">
-    <!-- Luces de fondo (se filtran a través del cristal) -->
-    <div class="glow glow--blue" aria-hidden="true" />
-    <div class="glow glow--green" aria-hidden="true" />
-    <div class="glow glow--violet" aria-hidden="true" />
-    <div class="grain" aria-hidden="true" />
 
     <div class="auth-shell">
-      <!-- ── Showcase: widgets de la app flotando (bento) ── -->
+      <!-- ── Showcase: widgets de la app (bento) ── -->
       <section class="showcase" aria-label="Vista previa de Zaldo">
         <div class="brand"><AppLogo /></div>
-        <h2 class="showcase-title">Tu dinero, <span>claro</span> por fin.</h2>
-        <p class="showcase-sub">Gastos, metas, cuentas y presupuestos en un solo lugar. Así se ve tu mes en Zaldo:</p>
+        <h2 class="showcase-title">Mira cuánto te <span>queda</span> este mes.</h2>
+        <p class="showcase-sub">Tus gastos, metas y cuentas te esperan donde los dejaste. Así se ve un mes en Zaldo:</p>
 
         <div class="bento">
           <!-- Saldo total + sparkline -->
@@ -146,7 +141,7 @@ import { ref, reactive } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import {
   Mail, LockKeyhole, Eye, EyeOff, ArrowRight, CircleAlert, ShieldCheck, TrendingUp, MessageCircle, Check,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 import { useAuthStore } from '@/stores/auth'
 import { z } from 'zod'
 import AppLogo from '@/components/common/AppLogo.vue'

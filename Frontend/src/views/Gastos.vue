@@ -42,11 +42,6 @@
             </div>
           </Transition>
         </div>
-
-        <button class="btn btn-primary" @click="nuevoGastoPrincipal">
-          <Plus :size="15" :stroke-width="2.4" />
-          Nuevo gasto
-        </button>
       </div>
     </div>
 
@@ -336,7 +331,7 @@ async function onImportCSV(e: Event) {
     if (cols.length < 4) return []
     const [tipo, categoria, detalle, montoStr, recurrente] = cols
     const monto = parseFloat(montoStr ?? '0')
-    if (!tipo || !categoria || isNaN(monto)) return []
+    if (!tipo || !categoria || isNaN(monto) || monto <= 0) return []
     return [{ tipo: tipo as 'FIJO' | 'VARIABLE', categoria, detalle: detalle ?? '', monto, esRecurrente: recurrente === 'Sí' }]
   })
   if (csvInput.value) csvInput.value.value = ''
@@ -497,13 +492,13 @@ onBeforeUnmount(() => {
 .card-header-right { display: flex; align-items: center; gap: 0.6rem; }
 .card-title  {
   display: inline-flex; align-items: center; gap: 0.5rem;
-  font-size: 0.68rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 0.68rem; font-weight: 500; color: var(--text-secondary);
 }
 .total-badge {
   font-family: var(--ff-mono);
   font-variant-numeric: tabular-nums;
   font-size: 0.74rem;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
   color: var(--ca);
@@ -526,7 +521,7 @@ onBeforeUnmount(() => {
 .kpi-top   { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
 .kpi-label {
   display: inline-flex; align-items: center; gap: 0.5rem;
-  font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 0.66rem; font-weight: 500; color: var(--text-secondary);
 }
 .kpi-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--ca); flex-shrink: 0; }
 .kpi-icon {
@@ -539,24 +534,21 @@ onBeforeUnmount(() => {
   font-family: var(--ff-mono);
   font-variant-numeric: tabular-nums;
   font-size: 1.45rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 600;
   color: var(--text-primary);
 }
 .kpi-sub { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.3rem; }
 
 /* ── Búsqueda + filtro ── */
+/* Filter bar */
 .filter-bar {
   display: flex;
   gap: 0.6rem;
   align-items: center;
   margin-bottom: 1.25rem;
 }
-.search-wrap { flex: 1 1 auto; width: auto; max-width: none; }
-.search-icon {
-  position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
-  color: var(--text-muted); pointer-events: none;
-}
+.search-wrap {  position: relative;  flex: 1 1 auto; width: auto; max-width: none; }
+.search-icon  { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); }
 .search-input { width: 100%; height: 38px; padding-left: 2.2rem; padding-right: 2rem; border-radius: 10px; background: var(--surface); border-color: var(--border-hover); }
 .search-clear {
   position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
@@ -565,6 +557,13 @@ onBeforeUnmount(() => {
   background: var(--surface2); border: none; color: var(--text-muted); cursor: pointer;
 }
 .search-clear:hover { color: var(--text-primary); }
+.filter-count {  font-family: var(--ff-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0; /* Para que no se aplaste */ }
+
+
 .field-icon {
   position: absolute;
   left: 0.8rem;

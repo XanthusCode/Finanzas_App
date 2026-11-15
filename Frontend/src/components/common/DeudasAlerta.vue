@@ -9,7 +9,7 @@
     <template v-else>
       <div v-if="vencidas.length === 0 && proximas.length === 0" class="alerta-ok">
         <span class="alerta-ok-icon"><ShieldCheck :size="26" :stroke-width="1.8" /></span>
-        <p class="alerta-ok-title">{{ sinPendientes ? '¡Felicidades! No tienes deudas pendientes' : 'Todo al día' }}</p>
+        <p class="alerta-ok-title">{{ sinPendientes ? 'No tienes deudas pendientes' : 'Todo al día' }}</p>
         <p class="alerta-ok-sub">{{ sinPendientes ? 'Sigue así, tus finanzas están limpias.' : 'Ninguna deuda vence en los próximos 7 días.' }}</p>
       </div>
 
@@ -34,7 +34,7 @@ import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import type { Deuda } from '@/types'
 import { deudasService } from '@/services/api'
-import { ShieldCheck } from 'lucide-vue-next'
+import { ShieldCheck } from '@lucide/vue'
 
 const deudas  = ref<Deuda[]>([])
 const loading = ref(false)
@@ -84,8 +84,6 @@ onMounted(async () => {
   font-size: 0.66rem;
   font-weight: 500;
   color: var(--text-secondary);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   margin-bottom: 0.75rem;
 }
 

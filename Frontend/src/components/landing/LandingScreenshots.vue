@@ -1,10 +1,9 @@
 <template>
   <section class="l-section shots">
-    <div class="l-glow sg1" aria-hidden="true" />
     <div class="l-container">
       <div class="l-section-head reveal">
         <span class="l-eyebrow">En acción</span>
-        <h2 class="l-h2">Así se ve tu dinero, <span class="l-grad">de un vistazo</span></h2>
+        <h2 class="l-h2">Así se ve tu dinero, <span class="l-accent">de un vistazo</span></h2>
       </div>
 
       <div class="tabs reveal" role="tablist" aria-label="Vistas de la app">
@@ -95,7 +94,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { LayoutDashboard, Receipt, PiggyBank, Gauge, House, ShoppingCart, Wifi, Car } from 'lucide-vue-next'
+import { LayoutDashboard, Receipt, PiggyBank, Gauge, House, ShoppingCart, Wifi, Car } from '@lucide/vue'
 
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -130,7 +129,6 @@ const BARRAS: [number, number][] = [[62, 48], [70, 55], [58, 40], [80, 62], [74,
 
 <style scoped>
 .shots { overflow: hidden; }
-.sg1 { width: 700px; height: 500px; bottom: -120px; left: 50%; transform: translateX(-50%); background: rgba(16, 185, 129, 0.14); }
 
 .tabs {
   display: flex; width: max-content; margin: 0 auto 1.75rem; gap: 2px;
@@ -153,8 +151,7 @@ const BARRAS: [number, number][] = [[62, 48], [70, 55], [58, 40], [80, 62], [74,
   max-width: 920px; margin: 0 auto;
   border-radius: 20px; overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: linear-gradient(180deg, rgba(23, 26, 31, 0.92), rgba(15, 17, 20, 0.96));
-  box-shadow: 0 40px 100px -40px rgba(16, 185, 129, 0.3), 0 30px 60px -30px rgba(0, 0, 0, 0.9);
+  background: var(--l-surface);
 }
 .win-bar { display: flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
 .dot { width: 10px; height: 10px; border-radius: 99px; background: rgba(255, 255, 255, 0.14); }
@@ -164,9 +161,9 @@ const BARRAS: [number, number][] = [[62, 48], [70, 55], [58, 40], [80, 62], [74,
 .panel { padding: 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.06); }
 .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .kpi { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.06); }
-.kpi-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-sub); }
+.kpi-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.6rem; color: var(--l-sub); }
 .kpi-top i { width: 20px; height: 20px; border-radius: 6px; background: color-mix(in srgb, var(--kc) 22%, transparent); }
-.kpi strong { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; }
+.kpi strong { font-size: 1.15rem; font-weight: 600; }
 .kpi strong.pos { color: var(--l-green); }
 
 .dash-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 12px; flex: 1; }
@@ -180,12 +177,12 @@ const BARRAS: [number, number][] = [[62, 48], [70, 55], [58, 40], [80, 62], [74,
 .legend { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 0.74rem; color: var(--l-sub); }
 .legend li { display: flex; align-items: center; gap: 7px; }
 .legend i { width: 8px; height: 8px; border-radius: 99px; }
-.legend b { margin-left: auto; padding-left: 10px; color: var(--l-text); font-weight: 700; }
+.legend b { margin-left: auto; padding-left: 10px; color: var(--l-text); font-weight: 600; }
 .bars-panel { display: flex; align-items: flex-end; gap: 5%; padding-bottom: 0; }
 .col { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 3px; height: 100%; }
 .b { width: 40%; max-width: 16px; border-radius: 4px 4px 0 0; }
-.b-in  { background: linear-gradient(to top, rgba(59, 130, 246, 0.45), #3b82f6); }
-.b-out { background: linear-gradient(to top, rgba(244, 63, 94, 0.4), #f43f5e); }
+.b-in  { background: #3b82f6; }
+.b-out { background: #f43f5e; }
 
 .list { display: flex; flex-direction: column; gap: 2px; padding: 6px; }
 .list-row { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 10px; }
@@ -196,17 +193,17 @@ const BARRAS: [number, number][] = [[62, 48], [70, 55], [58, 40], [80, 62], [74,
 .list-main small { font-size: 0.68rem; color: var(--l-sub); }
 .list-tag { padding: 2px 8px; border-radius: 99px; font-size: 0.62rem; color: #fb923c; background: rgba(251, 146, 60, 0.13); }
 .list-tag.is-fijo { color: var(--l-blue); background: rgba(96, 165, 250, 0.13); }
-.list-row strong { font-size: 0.84rem; font-weight: 700; min-width: 92px; text-align: right; }
+.list-row strong { font-size: 0.84rem; font-weight: 600; min-width: 92px; text-align: right; }
 
 .metas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .meta { display: flex; flex-direction: column; gap: 10px; }
 .meta-top { display: flex; align-items: center; gap: 10px; }
-.meta-top b { flex: 1; font-size: 0.86rem; font-weight: 700; }
-.meta-pct { padding: 2px 8px; border-radius: 99px; font-size: 0.66rem; font-weight: 700; color: var(--l-green); background: rgba(52, 211, 153, 0.13); }
-.meta-amt { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.03em; }
+.meta-top b { flex: 1; font-size: 0.86rem; font-weight: 600; }
+.meta-pct { padding: 2px 8px; border-radius: 99px; font-size: 0.66rem; font-weight: 600; color: var(--l-green); background: rgba(52, 211, 153, 0.13); }
+.meta-amt { font-size: 1.4rem; font-weight: 600; }
 .meta-amt small { font-size: 0.74rem; font-weight: 400; color: var(--l-sub); letter-spacing: 0; }
 .meta-track { height: 10px; border-radius: 99px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
-.meta-track span { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #2dd4bf, #34d399); box-shadow: 0 0 12px rgba(52, 211, 153, 0.5); }
+.meta-track span { display: block; height: 100%; border-radius: 99px; background: var(--l-green); }
 .meta-ritmo { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--l-sub); }
 .meta-ritmo svg { color: var(--l-blue); }
 

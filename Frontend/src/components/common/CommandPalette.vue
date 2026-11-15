@@ -98,7 +98,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, type Component } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, SearchX, ArrowDownRight, ArrowUpRight, CornerDownLeft, UserRound } from 'lucide-vue-next'
+import { Search, SearchX, ArrowDownRight, ArrowUpRight, CornerDownLeft, UserRound } from '@lucide/vue'
 import { menu } from '@/layouts/FullLayout/Sidebar/SidebarItems'
 import { busquedaService } from '@/services/api'
 import { useFinanceStore } from '@/stores/finance'
@@ -263,7 +263,7 @@ kbd, .palette-kbd {
 .palette-body { flex: 1; overflow-y: auto; padding: 0.4rem; }
 .palette-group {
   padding: 0.65rem 0.65rem 0.35rem;
-  font-size: 0.62rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 0.62rem; font-weight: 500;
   color: var(--text-muted);
 }
 .palette-item {
@@ -288,7 +288,7 @@ kbd, .palette-kbd {
 .item-monto {
   flex-shrink: 0;
   font-family: var(--ff-mono); font-variant-numeric: tabular-nums;
-  font-size: 0.82rem; font-weight: 700; color: var(--text-primary);
+  font-size: 0.82rem; font-weight: 600; color: var(--text-primary);
 }
 .item-monto.is-pos { color: var(--c-pos); }
 .item-enter { color: var(--text-muted); flex-shrink: 0; }

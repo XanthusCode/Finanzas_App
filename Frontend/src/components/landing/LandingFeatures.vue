@@ -1,16 +1,15 @@
 <template>
   <section id="features" class="l-section features">
-    <div class="l-glow fg1" aria-hidden="true" />
     <div class="l-container">
       <div class="l-section-head reveal">
         <span class="l-eyebrow">Funciones</span>
-        <h2 class="l-h2">Todo lo que necesitas para <span class="l-grad">controlar tu dinero</span></h2>
+        <h2 class="l-h2">Lo que puedes hacer <span class="l-accent">con Zaldo</span></h2>
         <p class="l-lead">Desde el café de todos los días hasta la meta de fin de año.</p>
       </div>
 
       <div class="bento">
         <!-- Dashboard (grande) -->
-        <article class="tile tile--dash l-glass reveal">
+        <article class="tile tile--dash l-card reveal">
           <div class="tile-copy">
             <span class="l-icon" style="--ic: #60a5fa"><LayoutDashboard :size="19" :stroke-width="1.9" /></span>
             <h3>Dashboard que se entiende</h3>
@@ -32,7 +31,7 @@
         </article>
 
         <!-- WhatsApp (ancha) -->
-        <article class="tile tile--wa l-glass reveal">
+        <article class="tile tile--wa l-card reveal">
           <div class="tile-copy">
             <span class="l-icon" style="--ic: #25d366"><MessageCircle :size="19" :stroke-width="1.9" /></span>
             <h3>Registra gastos por WhatsApp</h3>
@@ -46,14 +45,14 @@
         </article>
 
         <!-- Pequeñas -->
-        <article v-for="f in pequenas" :key="f.title" class="tile tile--sm l-glass reveal">
+        <article v-for="f in pequenas" :key="f.title" class="tile tile--sm l-card reveal">
           <span class="l-icon" :style="{ '--ic': f.color }"><component :is="f.icon" :size="18" :stroke-width="1.9" /></span>
           <h3>{{ f.title }}</h3>
           <p>{{ f.desc }}</p>
         </article>
 
         <!-- IA (ancha) -->
-        <article class="tile tile--wide l-glass tile--ai reveal">
+        <article class="tile tile--wide l-card tile--ai reveal">
           <div class="tile-copy">
             <span class="l-icon" style="--ic: #a78bfa"><Sparkles :size="19" :stroke-width="1.9" /></span>
             <h3>Análisis con IA</h3>
@@ -66,7 +65,7 @@
         </article>
 
         <!-- Búsqueda (ancha) -->
-        <article class="tile tile--wide l-glass reveal">
+        <article class="tile tile--wide l-card reveal">
           <div class="tile-copy">
             <span class="l-icon" style="--ic: #94a3b8"><Search :size="19" :stroke-width="1.9" /></span>
             <h3>Encuéntralo todo</h3>
@@ -84,7 +83,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { LayoutDashboard, MessageCircle, Sparkles, Search, Check, Lightbulb, ArrowDownRight } from 'lucide-vue-next'
+import { LayoutDashboard, MessageCircle, Sparkles, Search, Check, Lightbulb, ArrowDownRight } from '@lucide/vue'
 import { features } from '@/composables/useLanding'
 
 // Las de IA y búsqueda tienen tarjeta ancha propia
@@ -99,7 +98,6 @@ const REGLA = [
 
 <style scoped>
 .features { overflow: hidden; }
-.fg1 { width: 600px; height: 600px; top: 10%; left: 50%; transform: translateX(-50%); background: rgba(37, 99, 235, 0.16); }
 
 .bento {
   position: relative;
@@ -114,8 +112,8 @@ const REGLA = [
   overflow: hidden;
   transition: translate 0.3s var(--ease-out), border-color 0.3s ease, opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
 }
-.tile:hover { translate: 0 -4px; border-color: var(--l-line-2); }
-.tile h3 { font-size: 1rem; font-weight: 700; letter-spacing: -0.015em; color: var(--l-text); margin-top: 0.35rem; }
+.tile:hover { border-color: var(--l-line-2); }
+.tile h3 { font-size: 1rem; font-weight: 600; color: var(--l-text); margin-top: 0.35rem; }
 .tile p  { font-size: 0.84rem; line-height: 1.55; color: var(--l-sub); }
 .tile-copy { display: flex; flex-direction: column; gap: 0.6rem; }
 
@@ -124,19 +122,18 @@ const REGLA = [
 .tile--wa .tile-copy { flex: 1; }
 .tile--wide { grid-column: span 2; flex-direction: row; align-items: center; gap: 1.5rem; }
 .tile--wide .tile-copy { flex: 1; }
-.tile--ai { background: radial-gradient(120% 140% at 0% 0%, rgba(139, 92, 246, 0.12), transparent 55%), var(--l-surface); }
 
 /* Visual dashboard */
 .viz-dash { display: flex; flex-direction: column; gap: 0.75rem; }
 .vd-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
 .vd-kpi { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.85rem; border-radius: 14px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--l-line); }
-.vd-kpi span { font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-sub); }
-.vd-kpi strong { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.03em; }
+.vd-kpi span { font-size: 0.62rem; color: var(--l-sub); }
+.vd-kpi strong { font-size: 1.3rem; font-weight: 600; }
 .vd-kpi strong.pos { color: var(--l-green); }
 .vd-regla { display: flex; flex-direction: column; gap: 0.65rem; padding: 0.95rem; border-radius: 14px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--l-line); }
 .vd-regla-row { display: grid; grid-template-columns: 88px 1fr 40px; align-items: center; gap: 0.7rem; }
 .vd-regla-lbl { font-size: 0.74rem; color: var(--l-text); }
-.vd-regla-pct { font-size: 0.78rem; font-weight: 700; text-align: right; }
+.vd-regla-pct { font-size: 0.78rem; font-weight: 600; text-align: right; }
 .vd-track { position: relative; height: 6px; border-radius: 99px; background: rgba(255, 255, 255, 0.07); }
 .vd-track span { display: block; height: 100%; border-radius: 99px; }
 .vd-track i { position: absolute; top: -3px; bottom: -3px; width: 2px; border-radius: 2px; background: rgba(255, 255, 255, 0.55); }

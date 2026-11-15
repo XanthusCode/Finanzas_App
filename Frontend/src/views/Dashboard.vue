@@ -3,15 +3,17 @@
     <!-- Header -->
     <div class="page-header">
       <div>
-        <div class="section-label">Resumen</div>
-        <h1 class="page-title">Dashboard</h1>
+        <h1 class="page-title">Resumen</h1>
       </div>
-      <div style="display:flex;align-items:center;gap:0.5rem">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem">
         <button class="btn btn-sm" :disabled="descargandoPDF" @click="descargarPDF">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          {{ descargandoPDF ? 'Generando…' : 'Generar PDF' }}
+          <Download :size="16" :stroke-width="1.5" />
+          {{ descargandoPDF ? 'Generando…' : 'Descargar PDF' }}
         </button>
         <MonthSelector :mes="store.mesActual" :anio="store.anioActual" @change="store.cambiarMes" />
+        <RouterLink to="/gastos?nuevo=1" class="btn btn-primary btn-sm">
+          <Plus :size="14" :stroke-width="2.4" /> Registrar gasto
+        </RouterLink>
       </div>
     </div>
 
@@ -49,37 +51,47 @@
       </div>
     </div>
 
+    <!-- Falló la carga: decirlo claro (no confundir con un mes vacío) -->
+    <div v-else-if="store.errorCarga" class="empty-state" role="alert">
+      <CloudOff :size="30" :stroke-width="1.6" class="error-icon" />
+      <p class="error-title">No pudimos cargar tu resumen</p>
+      <p class="error-sub">Tus datos están a salvo. Revisa tu conexión e intenta de nuevo.</p>
+      <button class="btn btn-primary btn-sm" @click="store.cargarDatos()">
+        <RotateCw :size="14" :stroke-width="2.2" /> Reintentar
+      </button>
+    </div>
+
     <!-- Sin movimientos en el mes: bienvenida (usuario nuevo) o accesos rápidos -->
     <EmptyStart v-else-if="store.resumen && mesVacio" :variante="esUsuarioNuevo ? 'nuevo' : 'mes'" />
 
     <template v-else-if="store.resumen">
       <!-- KPIs -->
       <div ref="kpiRef" class="kpi-grid" style="opacity: 0">
-        <div v-for="k in kpiCards" :key="k.key" class="kpi-card" :style="{ '--ca': k.color }">
-          <div class="kpi-top">
-            <span class="kpi-label">{{ k.label }}</span>
-            <span class="kpi-icon"><component :is="k.icon" :size="15" :stroke-width="2" /></span>
+        <!-- Cifra principal del mes: cuánto queda y cómo se reparte el ingreso -->
+        <div class="kpi-card kpi-lead">
+          <span class="kpi-label">Te queda este mes</span>
+          <span class="kpi-value kpi-value--lead" :class="{ 'kpi-value--neg': (resumen?.ahorro ?? 0) < 0 }">{{ fmtAnim(counters.ahorro) }}</span>
+          <span v-if="variacion?.ahorro" class="kpi-change" :class="variacion.ahorro.esBueno ? 'is-good' : 'is-bad'">
+            {{ fmtCambio(variacion.ahorro.v) }} vs {{ mesAnteriorCorto }}
+          </span>
+          <div class="split-bar" role="img" :aria-label="`De tu ingreso: ${Math.round(pcts.fijos)}% en fijos, ${Math.round(pcts.variables)}% en ocasionales y ${Math.round(pcts.ahorro)}% te queda`">
+            <span class="split split--fijos" :style="{ width: pcts.fijos + '%' }" />
+            <span class="split split--var" :style="{ width: pcts.variables + '%' }" />
+            <span class="split split--resto" :style="{ width: pcts.ahorro + '%' }" />
           </div>
-          <div class="kpi-value-row">
-            <span class="kpi-value">{{ fmtAnim(k.value) }}</span>
-            <span
-              v-if="k.variacion"
-              class="kpi-var"
-              :class="k.variacion.esBueno ? 'kpi-var--good' : 'kpi-var--bad'"
-              title="Frente al mes anterior"
-            >
-              <ArrowUpRight v-if="k.variacion.v >= 0" :size="12" :stroke-width="2.5" />
-              <ArrowDownRight v-else :size="12" :stroke-width="2.5" />
-              {{ Math.abs(k.variacion.v) }}%
-            </span>
+          <div class="split-legend">
+            <span><i class="split-dot split--fijos" />Fijos {{ Math.round(pcts.fijos) }}%</span>
+            <span><i class="split-dot split--var" />Ocasionales {{ Math.round(pcts.variables) }}%</span>
+            <span><i class="split-dot split--resto" />Te queda {{ Math.round(pcts.ahorro) }}%</span>
           </div>
-          <div class="kpi-bar-wrap">
-            <div class="kpi-bar" :style="{ width: (k.pct ?? 100) + '%' }" />
-          </div>
-          <div class="kpi-pct">
-            <template v-if="k.pct != null"><strong>{{ Math.round(k.pct) }}%</strong> del ingreso</template>
-            <template v-else>Base del mes</template>
-          </div>
+        </div>
+        <div v-for="k in kpiCards" :key="k.key" class="kpi-card">
+          <span class="kpi-label">{{ k.label }}</span>
+          <span class="kpi-value">{{ fmtAnim(k.value) }}</span>
+          <span v-if="k.variacion" class="kpi-change" :class="k.variacion.esBueno ? 'is-good' : 'is-bad'">
+            {{ fmtCambio(k.variacion.v) }} vs {{ mesAnteriorCorto }}
+          </span>
+          <span v-else class="kpi-change">Sin datos de {{ mesAnteriorCorto }}</span>
         </div>
       </div>
 
@@ -92,21 +104,22 @@
               <div class="anual-meta">
                 en {{ store.cuentas.length }} cuenta{{ store.cuentas.length !== 1 ? 's' : '' }} ·
                 <button type="button" class="anual-ahorro-btn" @click="mostrarDesglose = true">
-                  ahorro {{ store.anioActual }}: {{ fmt(store.resumenAnual?.ahorro) }} ({{ store.resumenAnual?.pctAhorro ?? 0 }}%) ⓘ
+                  balance {{ store.anioActual }}: {{ fmt(store.resumenAnual?.ahorro) }} ({{ store.resumenAnual?.pctAhorro ?? 0 }}%)
+                  <Info :size="14" :stroke-width="1.5" />
                 </button>
               </div>
             </template>
             <template v-else>
-              <div class="kpi-label" style="margin-bottom: 0.5rem">Ahorro {{ store.anioActual }}</div>
+              <div class="kpi-label" style="margin-bottom: 0.5rem">Balance {{ store.anioActual }}</div>
               <div class="anual-big">{{ fmtAnim(counters.ahorroAnual) }}</div>
               <div class="anual-meta">de {{ fmt(store.resumenAnual?.totalIngresos) }} en ingresos este año</div>
-              <RouterLink to="/cuentas" class="anual-cta">Crea tus cuentas para ver tu dinero real →</RouterLink>
+              <RouterLink to="/cuentas" class="anual-cta">Crea tus cuentas para ver tu dinero real</RouterLink>
             </template>
           </div>
         <div class="anual-center">
           <div class="anual-progress-head">
-            <span class="kpi-label">Tasa de ahorro {{ store.anioActual }}</span>
-            <span :class="['health-badge', healthClass]" title="Según el ahorro de este mes">{{ healthLabel }}</span>
+            <span class="kpi-label">Sin gastar {{ store.anioActual }}</span>
+            <span :class="['health-badge', healthClass]" title="Según lo que queda sin gastar este mes">{{ healthLabel }}</span>
           </div>
           <div class="anual-progress-track">
             <div class="anual-progress-fill" :style="{ width: progressWidth + '%' }" />
@@ -131,7 +144,7 @@
           </div>
           <span class="anual-stat-sep" aria-hidden="true" />
           <div class="anual-stat">
-            <span class="anual-stat-label">Tasa</span>
+            <span class="anual-stat-label">Sin gastar</span>
             <strong class="anual-stat-pos">{{ store.resumenAnual?.pctAhorro ?? 0 }}%</strong>
           </div>
         </div>
@@ -141,12 +154,12 @@
       <Teleport to="body">
         <div v-if="mostrarDesglose" class="dd-overlay" @click.self="mostrarDesglose = false">
           <div class="dd-modal">
-            <p class="dd-title">Cómo se calcula el ahorro {{ store.anioActual }}</p>
+            <p class="dd-title">Cómo se calcula el balance {{ store.anioActual }}</p>
             <p class="dd-sub">Suma de (ingresos − gastos) de cada mes que tiene ingresos registrados. No incluye saldos de cuentas, saldo inicial ni préstamos.</p>
             <div class="dd-table-wrap">
               <table class="dd-table">
                 <thead>
-                  <tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Ahorro</th></tr>
+                  <tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Balance</th></tr>
                 </thead>
                 <tbody>
                   <tr v-for="r in mesesConIngreso" :key="r.mes">
@@ -174,32 +187,6 @@
           </div>
         </div>
       </Teleport>
-
-      <!-- Análisis con IA -->
-      <div class="card insights-card" style="margin-bottom: 1rem">
-        <div class="insights-header">
-          <div class="insights-title">
-            <span class="ai-icon"><Sparkles :size="15" :stroke-width="2" /></span>
-            <div>
-              <p class="card-title ai-title">Análisis con IA</p>
-              <p class="insights-hint">Patrones y recomendaciones de tu mes</p>
-            </div>
-          </div>
-          <button class="btn btn-sm btn-ai" :disabled="cargandoInsights" @click="generarInsights">
-            <Sparkles :size="13" :stroke-width="2.2" :class="{ 'ai-spin': cargandoInsights }" />
-            {{ cargandoInsights ? 'Analizando…' : (insights ? 'Actualizar análisis' : 'Analizar mi mes') }}
-          </button>
-        </div>
-        <div v-if="insights" class="insights-lineas">
-          <div v-for="(linea, i) in insightsLineas" :key="i" class="insights-linea">
-            <svg class="insights-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M15.09 14c.18-1 .48-1.6 1.14-2.3A6 6 0 1 0 7.77 11.7c.66.7.96 1.3 1.14 2.3"/></svg>
-            <span>{{ linea }}</span>
-          </div>
-        </div>
-        <p v-else-if="insightsNoDisponible" class="insights-empty">No hay suficientes datos este mes para generar el análisis.</p>
-        <p v-else-if="insightsError" class="insights-empty">No se pudo generar el análisis.</p>
-        <p v-else class="insights-empty">Analiza tus hábitos de gasto este mes con IA.</p>
-      </div>
 
      <div class="two-bottom-grid">
         <!-- Regla 50/30/20 -->
@@ -270,12 +257,6 @@
         <div class="card" style="opacity: 0; max-height: 400px; overflow-y: auto">
           <p class="card-title">Distribución del mes</p>
           <div class="donut-section">
-            <DonutChart
-              :data="distribucion.map(d => d.val)"
-              :labels="distribucion.map(d => d.label)"
-              :colors="distribucion.map(d => d.color)"
-              :center-label="(resumen?.pctAhorro ?? 0) + '%'"
-            />
             <div class="donut-legend">
               <div v-for="item in distribucion" :key="item.label" class="legend-row">
                 <div class="legend-left">
@@ -292,7 +273,7 @@
         </div>
 
         <div class="card" style="opacity: 0; max-height: 400px; overflow-y: auto">
-          <p class="card-title">Gastos fijos <span class="tag tag-red">{{ fmt(resumen?.totalFijos) }}</span></p>
+          <p class="card-title">Gastos fijos <span class="card-total">{{ fmt(resumen?.totalFijos) }}</span></p>
           <div v-if="store.gastosFijos.length === 0" class="empty">Sin gastos registrados</div>
           <div v-for="g in store.gastosFijos" :key="g.id" class="expense-row" style="opacity: 0">
             <div>
@@ -304,7 +285,7 @@
         </div>
 
         <div class="card" style="opacity: 0; max-height: 400px; overflow-y: auto">
-          <p class="card-title">Gastos ocasionales <span class="tag tag-amber">{{ fmt(resumen?.totalVariables) }}</span></p>
+          <p class="card-title">Gastos ocasionales <span class="card-total">{{ fmt(resumen?.totalVariables) }}</span></p>
           <div v-if="store.gastosVariables.length === 0" class="empty">Sin gastos registrados</div>
           <div v-for="g in store.gastosVariables" :key="g.id" class="expense-row" style="opacity: 0">
             <div>
@@ -350,6 +331,32 @@
           </div>
         </div>
       </div>
+
+      <!-- Análisis con IA: complemento, va después de los números del mes -->
+      <div class="card insights-card" style="margin-top: 0.75rem">
+        <div class="insights-header">
+          <div class="insights-title">
+            <span class="ai-icon"><Sparkles :size="16" :stroke-width="1.5" /></span>
+            <div>
+              <p class="card-title ai-title">Análisis con IA</p>
+              <p class="insights-hint">Patrones y recomendaciones de tu mes</p>
+            </div>
+          </div>
+          <button class="btn btn-sm" :disabled="cargandoInsights" @click="generarInsights">
+            <Sparkles :size="16" :stroke-width="1.5" :class="{ 'ai-spin': cargandoInsights }" />
+            {{ cargandoInsights ? 'Analizando…' : (insights ? 'Actualizar análisis' : 'Analizar mi mes') }}
+          </button>
+        </div>
+        <div v-if="insights" class="insights-lineas">
+          <div v-for="(linea, i) in insightsLineas" :key="i" class="insights-linea">
+            <svg class="insights-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M15.09 14c.18-1 .48-1.6 1.14-2.3A6 6 0 1 0 7.77 11.7c.66.7.96 1.3 1.14 2.3"/></svg>
+            <span>{{ linea }}</span>
+          </div>
+        </div>
+        <p v-else-if="insightsNoDisponible" class="insights-empty">No hay suficientes datos este mes para generar el análisis.</p>
+        <p v-else-if="insightsError" class="insights-empty">No se pudo generar el análisis. Intenta de nuevo en unos minutos.</p>
+        <p v-else class="insights-empty">Analiza tus hábitos de gasto este mes con IA.</p>
+      </div>
     </template>
 
     <template v-else>
@@ -366,13 +373,11 @@
 import { computed, ref, reactive, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { animate, stagger } from 'motion'
 import {
-  TrendingUp, Lock, Shuffle, PiggyBank, ArrowUpRight, ArrowDownRight,
-  Sparkles, ChevronLeft, ChevronRight,
-} from 'lucide-vue-next'
+  Sparkles, ChevronLeft, ChevronRight, Plus, CloudOff, RotateCw, Download, Info,
+} from '@lucide/vue'
 import { useFinanceStore } from '@/stores/finance'
 import MonthSelector from '@/components/common/MonthSelector.vue'
 import DeudasAlerta from '@/components/common/DeudasAlerta.vue'
-import DonutChart from '@/components/charts/DonutChart.vue'
 import BarChart from '@/components/charts/BarChart.vue'
 import GastoHeatmap from '@/components/charts/GastoHeatmap.vue'
 import EmptyStart from '@/components/common/EmptyStart.vue'
@@ -424,11 +429,11 @@ const counters     = reactive({ ingresos: 0, fijos: 0, variables: 0, ahorro: 0, 
 const pcts         = reactive({ fijos: 0, variables: 0, ahorro: 0 })
 const progressWidth = ref(0)
 
-// Mismos tonos que --c-need / --c-want / --c-pos (el donut necesita hex)
+// Mismos colores que la barra apilada: los gastos en neutro, lo que queda en verde
 const distribucion = computed(() => [
-  { label: 'Gastos fijos',     val: resumen.value?.totalFijos    ?? 0, color: '#60a5fa' },
-  { label: 'Gastos ocasionales', val: resumen.value?.totalVariables ?? 0, color: '#fb923c' },
-  { label: 'Dinero restante',    val: resumen.value?.ahorro        ?? 0, color: '#10b981' },
+  { label: 'Gastos fijos',       val: resumen.value?.totalFijos     ?? 0, color: 'var(--split-fijos)' },
+  { label: 'Gastos ocasionales', val: resumen.value?.totalVariables ?? 0, color: 'var(--split-var)' },
+  { label: 'Te queda',           val: resumen.value?.ahorro         ?? 0, color: 'var(--c-pos)' },
 ])
 
 const variacion = computed(() => {
@@ -457,18 +462,22 @@ const regla5030 = computed(() => {
   return [
     { label: 'Necesidades', pct: pct(r.totalFijos),     meta: 50, color: 'var(--c-need)' },
     { label: 'Gustos',      pct: pct(r.totalVariables), meta: 30, color: 'var(--c-want)' },
-    { label: 'Ahorro',      pct: Math.max(0, pct(r.ahorro)), meta: 20, color: 'var(--c-pos)' },
+    { label: 'Sin gastar',      pct: Math.max(0, pct(r.ahorro)), meta: 20, color: 'var(--c-pos)' },
   ]
 })
 
 const kpiCards = computed(() => [
-  { key: 'ingresos',  label: 'Ingresos',                icon: TrendingUp, color: 'var(--accent-strong)', value: counters.ingresos,  variacion: variacion.value?.ingresos,  pct: null },
-  { key: 'fijos',     label: 'Gastos fijos',            icon: Lock,       color: 'var(--c-need)',        value: counters.fijos,     variacion: variacion.value?.fijos,     pct: pcts.fijos },
-  { key: 'variables', label: 'Gastos ocasionales',      icon: Shuffle,    color: 'var(--c-want)',        value: counters.variables, variacion: variacion.value?.variables, pct: pcts.variables },
-  { key: 'ahorro',    label: 'Dinero restante del mes', icon: PiggyBank,  color: 'var(--c-pos)',         value: counters.ahorro,    variacion: variacion.value?.ahorro,    pct: pcts.ahorro },
+  { key: 'ingresos',  label: 'Ingresos',           value: counters.ingresos,  variacion: variacion.value?.ingresos },
+  { key: 'fijos',     label: 'Gastos fijos',       value: counters.fijos,     variacion: variacion.value?.fijos },
+  { key: 'variables', label: 'Gastos ocasionales', value: counters.variables, variacion: variacion.value?.variables },
 ])
 
+// "oct", "nov"…: referencia de los cambios ("+3% vs oct")
+const mesAnteriorCorto = computed(() => (MESES[(store.mesActual + 10) % 12] ?? '').toLowerCase())
+const fmtCambio = (v: number) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v) + '%'
+
 const healthLabel = computed(() => {
+  if (store.gastos.length < 5) return 'Pocos datos'
   const p = resumen.value?.pctAhorro ?? 0
   if (p >= 30) return 'Excelente'
   if (p >= 20) return 'Muy bien'
@@ -477,6 +486,7 @@ const healthLabel = computed(() => {
   return 'Déficit'
 })
 const healthClass = computed(() => {
+  if (store.gastos.length < 5) return 'health-amber'
   const p = resumen.value?.pctAhorro ?? 0
   if (p >= 20) return 'health-green'
   if (p >= 0)  return 'health-amber'
@@ -510,8 +520,8 @@ watch(() => store.resumen, async (val) => {
     animate(kpiRef.value, { opacity: 1 } as any, { duration: 0 })
     animate(
       Array.from(kpiRef.value.querySelectorAll('.kpi-card')),
-      { opacity: [0, 1], y: [14, 0] } as any,
-      { delay: stagger(0.09), duration: 0.3, ease: 'easeOut' }
+      { opacity: [0, 1], y: [8, 0] } as any,
+      { delay: stagger(0.05), duration: 0.35, ease: [0.22, 1, 0.36, 1] }
     )
   }
 
@@ -529,7 +539,7 @@ watch(() => store.resumen, async (val) => {
 
   // 4. Banner slide-in (Motion on single HTMLElement is fine)
   if (bannerRef.value) {
-    animate(bannerRef.value, { opacity: [0, 1], x: [-24, 0] } as any, { duration: 0.45, delay: 0.28, ease: 'easeOut' })
+    animate(bannerRef.value, { opacity: [0, 1] } as any, { duration: 0.35, delay: 0.2, ease: [0.22, 1, 0.36, 1] })
   }
 
   // 5. Bottom grid cards stagger with manual delay offset
@@ -747,50 +757,40 @@ async function descargarPDF() {
   font-family: var(--ff-mono);
 }
 
-/* KPI Grid */
-.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem; margin-bottom: 1rem; }
+/* Cifras del mes: una principal (lo que queda) y tres compactas, solo números */
+.dash {
+  /* Gastos en tonos neutros; el único color de la barra es lo que te queda */
+  --split-fijos: color-mix(in srgb, var(--text-primary) 52%, transparent);
+  --split-var:   color-mix(in srgb, var(--text-primary) 24%, transparent);
+}
+.kpi-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
 .kpi-card {
-  position: relative;
   display: flex;
   flex-direction: column;
+  gap: 8px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  padding: 1.15rem 1.25rem 1.1rem;
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-  transition: border-color 0.2s ease;
+  padding: 20px;
 }
-.kpi-card:hover { border-color: var(--border-hover); }
-.kpi-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; }
-.kpi-label { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
-.kpi-icon {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  flex-shrink: 0;
-  color: var(--ca);
-  background: color-mix(in srgb, var(--ca) 13%, transparent);
-}
-.kpi-value-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
-.kpi-value { font-size: 1.45rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; line-height: 1.1; }
-.kpi-var {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 0.66rem;
-  font-weight: 500;
-  padding: 0.15rem 0.45rem 0.15rem 0.3rem;
-  border-radius: 999px;
-}
-.kpi-var--good { color: var(--c-pos); background: color-mix(in srgb, var(--c-pos) 13%, transparent); }
-.kpi-var--bad  { color: var(--c-neg); background: color-mix(in srgb, var(--c-neg) 13%, transparent); }
-.kpi-bar-wrap { height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; margin-top: auto; margin-bottom: 0.55rem; }
-.kpi-bar { height: 100%; border-radius: 99px; max-width: 100%; background: var(--ca); }
-.kpi-pct { font-size: 0.68rem; font-weight: 400; color: var(--text-muted); }
-.kpi-pct strong { font-weight: 500; color: var(--text-secondary); }
+.kpi-label { font-size: 0.8125rem; color: var(--text-secondary); }
+.kpi-value { font-size: 1.75rem; font-weight: 500; color: var(--text-primary); line-height: 1; font-variant-numeric: tabular-nums; }
+.kpi-value--lead { font-size: 2.5rem; }
+.kpi-value--neg { color: var(--c-neg); }
+.kpi-change { font-family: var(--ff-mono); font-size: 0.75rem; color: var(--text-muted); }
+.kpi-change.is-good { color: var(--c-pos); }
+.kpi-change.is-bad  { color: var(--c-neg); }
+/* Las compactas comparten la altura de la principal: la cifra abajo, como en un recibo */
+.kpi-card:not(.kpi-lead) .kpi-value { margin-top: auto; }
+
+.split-bar { display: flex; gap: 2px; height: 8px; margin-top: auto; padding-top: 8px; box-sizing: content-box; }
+.split { height: 8px; border-radius: 2px; transition: width 0.4s var(--ease-out); }
+.split--fijos { background: var(--split-fijos); }
+.split--var   { background: var(--split-var); }
+.split--resto { background: var(--c-pos); }
+.split-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.split-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.split-dot { width: 8px; height: 8px; border-radius: 2px; }
 
 /* Ahorro anual banner: saldo | progreso | métricas */
 .anual-banner {
@@ -801,22 +801,22 @@ async function descargarPDF() {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  padding: 1.35rem 1.6rem;
-  margin-bottom: 1rem;
-  box-shadow: var(--shadow-card);
+  padding: 20px 24px;
+  margin-bottom: 16px;
 }
 .anual-left { min-width: 0; }
-.anual-big { font-size: 2rem; font-weight: 700; color: var(--text-primary); line-height: 1; letter-spacing: -0.03em; margin-bottom: 0.45rem; }
-.anual-meta { font-size: 0.68rem; color: var(--text-muted); }
+.anual-big { font-size: 1.75rem; font-weight: 500; color: var(--text-primary); line-height: 1; margin-bottom: 8px; }
+.anual-meta { font-size: 0.75rem; color: var(--text-muted); }
 .anual-big--neg { color: var(--c-neg); }
 .anual-cta {
-  display: inline-block; margin-top: 0.7rem; font-size: 0.68rem; font-weight: 600;
+  display: inline-block; margin-top: 12px; font-size: 0.8125rem; font-weight: 500;
   color: var(--accent); text-decoration: none;
 }
 .anual-cta:hover { text-decoration: underline; }
 .anual-ahorro-btn {
   background: none; border: none; padding: 0; cursor: pointer;
   font: inherit; color: var(--text-secondary); text-decoration: underline dotted;
+  display: inline-flex; align-items: center; gap: 4px;
 }
 .anual-ahorro-btn:hover { color: var(--text-primary); }
 
@@ -831,7 +831,7 @@ async function descargarPDF() {
   display: flex; flex-direction: column; gap: 0.75rem;
   box-shadow: var(--shadow-pop);
 }
-.dd-title { font-family: var(--ff-display); font-weight: 700; font-size: 1rem; }
+.dd-title { font-family: var(--ff-display); font-weight: 600; font-size: 1rem; }
 .dd-sub   { font-size: 0.68rem; color: var(--text-muted); line-height: 1.4; }
 .dd-table-wrap { overflow-x: auto; }
 .dd-table { width: 100%; border-collapse: collapse; font-size: 0.74rem; }
@@ -839,7 +839,7 @@ async function descargarPDF() {
 .dd-table th:first-child, .dd-table td:first-child { text-align: left; }
 .dd-table thead th { color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
 .dd-table tbody td { border-bottom: 1px solid var(--border); }
-.dd-table tfoot td { font-weight: 700; padding-top: 0.55rem; }
+.dd-table tfoot td { font-weight: 600; padding-top: 0.55rem; }
 .dd-in  { color: var(--c-pos); }
 .dd-out { color: var(--c-neg); }
 .dd-note {
@@ -852,9 +852,9 @@ async function descargarPDF() {
 .anual-progress-fill {
   height: 100%;
   max-width: 100%;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--c-pos) 70%, transparent), var(--c-pos));
+  background: var(--c-pos);
   border-radius: 99px;
-  transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.5s var(--ease-out);
 }
 .anual-progress-goal {
   position: absolute;
@@ -863,53 +863,32 @@ async function descargarPDF() {
   border-radius: 2px;
   background: var(--text-secondary);
 }
-.anual-progress-labels { position: relative; display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--text-muted); }
+.anual-progress-labels { position: relative; display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); font-family: var(--ff-mono); }
 .anual-goal-label { position: absolute; left: 20%; transform: translateX(-50%); color: var(--text-secondary); }
 
 .anual-stats { display: flex; align-items: center; gap: 1.25rem; }
 .anual-stat { display: flex; flex-direction: column; gap: 0.3rem; }
-.anual-stat-label { font-size: 0.62rem; font-weight: 500; color: var(--text-subtle); letter-spacing: 0.1em; text-transform: uppercase; }
-.anual-stat strong { font-size: 0.92rem; font-weight: 700; color: var(--text-primary); }
+.anual-stat-label { font-size: 0.75rem; color: var(--text-muted); }
+.anual-stat strong { font-size: 0.9375rem; font-weight: 500; color: var(--text-primary); }
 .anual-stat .anual-stat-pos { color: var(--c-pos); }
 .anual-stat-sep { width: 1px; height: 30px; background: var(--border-hover); }
 
-.health-badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.64rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  padding: 0.2rem 0.65rem;
-  border-radius: 999px;
-}
-.health-green { color: var(--c-pos);  background: color-mix(in srgb, var(--c-pos) 12%, transparent); }
-.health-amber { color: var(--c-want); background: color-mix(in srgb, var(--c-want) 12%, transparent); }
-.health-red   { color: var(--c-neg);  background: color-mix(in srgb, var(--c-neg) 12%, transparent); }
+.health-badge { font-size: 0.8125rem; }
+.health-green { color: var(--c-pos); }
+.health-amber { color: var(--c-warn); }
+.health-red   { color: var(--c-neg); }
 
 /* Insights con IA */
-.insights-card {
-  border-color: color-mix(in srgb, var(--c-ai) 22%, var(--border));
-  background:
-    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--c-ai) 7%, transparent), transparent 55%),
-    var(--surface);
-}
 .insights-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 .insights-title { display: flex; align-items: center; gap: 0.75rem; }
 .ai-icon {
   display: grid; place-items: center;
   width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
-  color: var(--c-ai);
-  background: color-mix(in srgb, var(--c-ai) 14%, transparent);
+  color: var(--text-secondary);
+  background: var(--surface2);
 }
-.card-title.ai-title { margin-bottom: 0; color: var(--c-ai); font-weight: 500; }
-.insights-hint { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem; }
-.btn-ai {
-  border: none;
-  color: #fff;
-  background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-  box-shadow: 0 4px 14px -4px color-mix(in srgb, #8b5cf6 55%, transparent), inset 0 1px 0 rgba(255,255,255,0.18);
-}
-.btn-ai:hover { color: #fff; background: linear-gradient(135deg, #9b70f8, #5592f7); }
+.card-title.ai-title { margin-bottom: 0; color: var(--text-primary); }
+.insights-hint { font-size: 0.8125rem; color: var(--text-muted); margin-top: 2px; }
 .ai-spin { animation: aiSpin 1.2s linear infinite; }
 @keyframes aiSpin { to { transform: rotate(360deg); } }
 .insights-lineas { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.6rem; }
@@ -918,78 +897,82 @@ async function descargarPDF() {
   grid-template-columns: auto 1fr;
   align-items: flex-start;
   gap: 0.6rem;
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   color: var(--text-primary);
   line-height: 1.55;
-  padding: 0.75rem 0.9rem;
+  padding: 12px 16px;
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 12px;
 }
-.insights-icon { flex-shrink: 0; margin-top: 0.15rem; color: var(--c-ai); }
-.insights-empty { font-size: 0.78rem; color: var(--text-secondary); }
+.insights-icon { flex-shrink: 0; margin-top: 4px; color: var(--text-muted); }
+.insights-empty { font-size: 0.875rem; color: var(--text-secondary); }
 
 /* Regla 50/30/20 */
 .regla-rows { display: flex; flex-direction: column; gap: 1.1rem; }
 .regla-row { display: flex; align-items: center; gap: 1.25rem; }
 .regla-main { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
-.regla-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.76rem; color: var(--text-primary); font-weight: 500; }
+.regla-label { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--text-primary); }
 .regla-dot { width: 8px; height: 8px; border-radius: 99px; flex-shrink: 0; }
 .regla-vals { display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; min-width: 64px; }
-.regla-vals strong { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
-.regla-vals span { font-size: 0.62rem; color: var(--text-muted); }
+.regla-vals strong { font-size: 0.9375rem; font-weight: 500; color: var(--text-primary); }
+.regla-vals span { font-size: 0.75rem; color: var(--text-muted); font-family: var(--ff-mono); }
 .regla-bar-wrap { position: relative; height: 6px; background: var(--surface2); border-radius: 99px; }
 .regla-bar { height: 100%; border-radius: 99px; max-width: 100%; transition: width 0.5s ease; }
 .regla-goal { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text-secondary); border-radius: 2px; transform: translateX(-1px); }
 
 /* 3-col bottom */
-.bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.85rem; }
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 
 /* 2-col bottom */
-.two-bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.two-bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-.card-title { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; justify-content: space-between; }
+.card-title { font-size: 0.875rem; font-weight: 500; color: var(--text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.card-total { font-family: var(--ff-mono); font-size: 0.8125rem; font-weight: 400; color: var(--text-secondary); }
 
 /* Donut section */
 .donut-section { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-.donut-legend { width: 100%; display: flex; flex-direction: column; gap: 0.6rem; }
+.donut-legend { width: 100%; display: flex; flex-direction: column; gap: 12px; }
 .legend-row { display: flex; justify-content: space-between; align-items: center; }
 .legend-left { display: flex; align-items: center; gap: 0.5rem; }
-.legend-dot { width: 8px; height: 8px; border-radius: 99px; flex-shrink: 0; }
-.legend-name { font-size: 0.7rem; color: var(--text-secondary); }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.legend-name { font-size: 0.875rem; color: var(--text-secondary); }
 .legend-right { display: flex; align-items: center; gap: 0.5rem; }
-.legend-amt { font-size: 0.7rem; color: var(--text-primary); }
-.legend-pct { font-size: 0.62rem; color: var(--text-muted); min-width: 30px; text-align: right; }
+.legend-amt { font-size: 0.875rem; color: var(--text-primary); }
+.legend-pct { font-family: var(--ff-mono); font-size: 0.75rem; color: var(--text-muted); min-width: 36px; text-align: right; }
 
 /* Expense rows */
-.expense-row { display: flex; justify-content: space-between; align-items: center; padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
+.expense-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .expense-row:last-child { border-bottom: none; }
-.expense-name { font-size: 0.75rem; color: var(--text-primary); }
-.expense-det { font-size: 0.62rem; color: var(--text-muted); margin-top: 0.1rem; }
-.expense-amt { font-size: 0.75rem; color: var(--text-primary); flex-shrink: 0; margin-left: 0.5rem; }
+.expense-name { font-size: 0.875rem; color: var(--text-primary); }
+.expense-det { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+.expense-amt { font-size: 0.875rem; color: var(--text-primary); flex-shrink: 0; margin-left: 8px; font-variant-numeric: tabular-nums; }
 
 /* Empty states */
-.empty { font-size: 0.72rem; color: var(--text-muted); padding: 1rem 0; text-align: center; }
+.empty { font-size: 0.8125rem; color: var(--text-muted); padding: 16px 0; text-align: center; }
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 0; color: var(--text-secondary); font-size: 0.8rem; }
+.error-icon  { color: var(--text-muted); margin-bottom: 0.75rem; }
+.error-title { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
+.error-sub   { margin: 0.3rem 0 1rem; max-width: 320px; text-align: center; color: var(--text-secondary); }
 
 /* Top categorías */
-.top-cat-list  { display: flex; flex-direction: column; gap: 0.55rem; }
+.top-cat-list  { display: flex; flex-direction: column; gap: 8px; }
 .top-cat-row   { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .top-cat-left  { display: flex; align-items: center; gap: 0.5rem; min-width: 160px; }
-.top-cat-rank  { font-size: 0.62rem; color: var(--text-muted); width: 18px; flex-shrink: 0; }
-.top-cat-nombre { font-size: 0.75rem; color: var(--text-primary); }
+.top-cat-rank  { font-family: var(--ff-mono); font-size: 0.75rem; color: var(--text-muted); width: 20px; flex-shrink: 0; }
+.top-cat-nombre { font-size: 0.875rem; color: var(--text-primary); }
 .top-cat-right { display: flex; align-items: center; gap: 0.75rem; flex: 1; }
-.top-cat-bar-wrap { flex: 1; height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
-.top-cat-bar  { height: 100%; background: var(--accent-strong); border-radius: 99px; transition: width 0.4s ease; }
-.top-cat-monto { font-size: 0.72rem; color: var(--text-secondary); min-width: 80px; text-align: right; flex-shrink: 0; }
+.top-cat-bar-wrap { flex: 1; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+.top-cat-bar  { height: 100%; background: var(--split-fijos); border-radius: 2px; transition: width 0.4s var(--ease-out); }
+.top-cat-monto { font-size: 0.8125rem; color: var(--text-secondary); min-width: 88px; text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums; }
 
 /* Suscripciones olvidadas */
 .susc-list { display: flex; flex-direction: column; }
-.susc-row { display: flex; justify-content: space-between; align-items: center; padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
+.susc-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .susc-row:last-child { border-bottom: none; }
-.susc-nombre { font-size: 0.75rem; color: var(--text-primary); }
-.susc-meses { font-size: 0.62rem; color: var(--text-muted); margin-top: 0.1rem; }
-.susc-monto { font-size: 0.75rem; color: var(--c-want); font-weight: 600; flex-shrink: 0; margin-left: 0.5rem; }
+.susc-nombre { font-size: 0.875rem; color: var(--text-primary); }
+.susc-meses { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+.susc-monto { font-size: 0.875rem; color: var(--text-primary); flex-shrink: 0; margin-left: 8px; }
 
 /* Alertas de presupuesto: fila con scroll horizontal + degradado en bordes */
 .alerts-scroller { position: relative; margin-bottom: 1rem; }
@@ -1021,7 +1004,7 @@ async function descargarPDF() {
   box-shadow: var(--shadow-card);
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
-.presupuesto-alert:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+.presupuesto-alert:hover { border-color: var(--border-hover); }
 .alert-warn { --st: var(--c-warn); }
 .alert-full { --st: var(--text-secondary); }
 .alert-over { --st: var(--c-neg); }
@@ -1029,15 +1012,13 @@ async function descargarPDF() {
 .alert-cat  { font-size: 0.8rem; color: var(--text-primary); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .alert-pct-badge {
   flex-shrink: 0;
-  font-size: 0.64rem; font-weight: 500;
-  padding: 0.15rem 0.5rem; border-radius: 999px;
+  font-family: var(--ff-mono); font-size: 0.75rem;
   color: var(--st);
-  background: color-mix(in srgb, var(--st) 13%, transparent);
 }
 .alert-bar-wrap { height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
 .alert-bar { height: 100%; background: var(--st); border-radius: 99px; }
-.alert-nums { font-size: 0.7rem; color: var(--text-muted); }
-.alert-nums strong { color: var(--text-primary); font-weight: 700; }
+.alert-nums { font-size: 0.75rem; color: var(--text-muted); }
+.alert-nums strong { color: var(--text-primary); font-weight: 600; }
 
 .scroll-arrow {
   position: absolute;
@@ -1061,7 +1042,8 @@ async function descargarPDF() {
 @media (max-width: 768px) {
 
   .sk-banner { flex-direction: column; align-items: stretch; gap: 1rem; }
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .kpi-lead { grid-column: 1 / -1; }
 
   .anual-banner { grid-template-columns: 1fr; gap: 1.25rem; padding: 1.15rem 1.2rem; }
   .anual-stats { gap: 1rem; justify-content: space-between; }
@@ -1073,7 +1055,10 @@ async function descargarPDF() {
 }
 
 @media (max-width: 480px) {
-  .kpi-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-card:last-child { grid-column: 1 / -1; }
+  .kpi-value { font-size: 1.375rem; }
+  .kpi-value--lead { font-size: 2.25rem; }
   .anual-big { font-size: 1.5rem; }
 
   .insights-header { flex-direction: column; align-items: stretch; }

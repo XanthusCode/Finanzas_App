@@ -16,6 +16,9 @@
         <span class="empty-icon"><CreditCard :size="24" :stroke-width="1.8" /></span>
         <p class="empty-title">Sin cuotas registradas</p>
         <p class="empty-sub">Cuando registres un gasto en cuotas aparecerá aquí con su seguimiento.</p>
+        <RouterLink to="/gastos?nuevo=1" class="btn btn-primary btn-sm" style="margin-top: 0.75rem">
+          <Plus :size="14" :stroke-width="2.4" /> Registrar compra a cuotas
+        </RouterLink>
       </div>
     </template>
 
@@ -126,7 +129,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { CreditCard, CalendarClock, Wallet, CalendarDays, CircleCheck, Check, ChevronDown } from '@lucide/vue'
+import { RouterLink } from 'vue-router'
+import { CreditCard, CalendarClock, Wallet, CalendarDays, CircleCheck, Check, ChevronDown, Plus } from '@lucide/vue'
 import { gastosService } from '@/services/api'
 import { fmtCOP as fmt } from '@/utils'
 import { guessIcono, guessColor } from '@/composables/useCategoriaOptions'
@@ -237,7 +241,7 @@ onMounted(async () => {
   border-radius: var(--radius-card); box-shadow: var(--shadow-card);
 }
 .res-top   { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
-.res-label { font-size: 0.64rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
+.res-label { font-size: 0.64rem; font-weight: 500; color: var(--text-secondary); }
 .res-icon {
   --ic: var(--accent-strong);
   display: grid; place-items: center;
@@ -247,7 +251,7 @@ onMounted(async () => {
 .res-icon--warn { --ic: var(--c-want); }
 .res-val {
   font-family: var(--ff-mono);
-  font-size: 1.45rem; font-weight: 700; letter-spacing: -0.02em;
+  font-size: 1.45rem; font-weight: 600;
   color: var(--text-primary);
 }
 .res-sub { font-size: 0.68rem; color: var(--text-muted); }
@@ -265,7 +269,7 @@ onMounted(async () => {
 }
 .planes-head h2 {
   font-family: var(--ff-body);
-  font-size: 0.76rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 0.76rem; font-weight: 500;
   color: var(--text-primary);
 }
 .planes-count {
@@ -307,7 +311,7 @@ onMounted(async () => {
 .plan-icon--done { color: var(--c-pos); background: color-mix(in srgb, var(--c-pos) 13%, transparent); }
 .plan-info { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
 .plan-detalle {
-  font-size: 0.9rem; font-weight: 700; color: var(--text-primary);
+  font-size: 0.9rem; font-weight: 600; color: var(--text-primary);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .plan-cat { font-size: 0.72rem; color: var(--text-subtle); }
@@ -315,7 +319,7 @@ onMounted(async () => {
 .plan-right  { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; flex-shrink: 0; }
 .plan-monto  {
   font-family: var(--ff-mono);
-  font-size: 1rem; font-weight: 700; color: var(--text-primary); white-space: nowrap;
+  font-size: 1rem; font-weight: 600; color: var(--text-primary); white-space: nowrap;
 }
 .plan-monto small { font-size: 0.7rem; font-weight: 400; color: var(--text-subtle); margin-left: 1px; }
 .plan-cuotas { font-size: 0.7rem; color: var(--text-subtle); }
@@ -330,7 +334,7 @@ onMounted(async () => {
   background: linear-gradient(90deg, color-mix(in srgb, var(--c-need) 70%, transparent), var(--c-need));
   transition: width 0.6s cubic-bezier(0.2, 0, 0, 1);
 }
-.plan-pct { font-family: var(--ff-mono); font-size: 0.82rem; font-weight: 700; color: var(--text-primary); min-width: 40px; text-align: right; }
+.plan-pct { font-family: var(--ff-mono); font-size: 0.82rem; font-weight: 600; color: var(--text-primary); min-width: 40px; text-align: right; }
 
 .plan-footer {
   display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
@@ -338,7 +342,7 @@ onMounted(async () => {
 }
 .plan-meta { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; color: var(--text-subtle); }
 .plan-meta svg { color: var(--text-muted); }
-.plan-meta strong { font-family: var(--ff-mono); font-weight: 700; color: var(--text-primary); }
+.plan-meta strong { font-family: var(--ff-mono); font-weight: 600; color: var(--text-primary); }
 .plan-meta-sep { color: var(--text-muted); }
 
 .plan-row--done { opacity: 0.75; }

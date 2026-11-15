@@ -1,7 +1,8 @@
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Gasto, Ingreso, Resumen, GastoCategoriaAnual, Categoria, Presupuesto, Meta, MovimientoMetaPayload, Cuenta } from '@/types'
 import { gastosService, ingresosService, resumenService, categoriasService, presupuestosService, metasService, cuentasService } from '@/services/api'
+import { useToast } from '@/composables/useToast'
 
 export const useFinanceStore = defineStore('finance', () => {
   const gastos     = ref<Gasto[]>([])
@@ -9,6 +10,8 @@ export const useFinanceStore = defineStore('finance', () => {
   const resumen    = ref<Resumen | null>(null)
   const resumenAnterior = ref<Resumen | null>(null)
   const loading    = ref(false)
+  // true si la última carga del mes falló (para no confundir "error" con "mes vacío")
+  const errorCarga = ref(false)
   const categorias = ref<Categoria[]>([])
   const presupuestos = ref<Presupuesto[]>([])
   const metas      = ref<Meta[]>([])
@@ -21,9 +24,20 @@ export const useFinanceStore = defineStore('finance', () => {
   const resumenAnual = ref<Resumen | null>(null)
   const promptRecurrentes         = ref(false)
   const promptIngresosRecurrentes = ref(false)
+  const toast    = useToast()
 
-  const gastosFijos     = computed(() => gastos.value.filter(g => g.tipo === 'FIJO'))
-  const gastosVariables = computed(() => gastos.value.filter(g => g.tipo === 'VARIABLE'))
+  // Más recientes primero según la fecha del formulario (el día del gasto, no el día en que
+  // se anotó). Mismo día: el último anotado arriba. Sin fecha (fijos copiados o cuotas aún
+  // por cobrar): al final del mes.
+  const ms = (f?: string) => (f ? Date.parse(f) || 0 : 0)
+  const dia = (g: Gasto) => g.fecha?.slice(0, 10) ?? ''
+  const porReciente = (a: Gasto, b: Gasto) =>
+    dia(b).localeCompare(dia(a)) || ms(b.creadoEn) - ms(a.creadoEn)
+
+  const gastosFijos     = computed(() => gastos.value.filter(g => g.tipo === 'FIJO').sort(porReciente))
+  const gastosVariables = computed(() => gastos.value.filter(g => g.tipo === 'VARIABLE').sort(porReciente))
+  const ingresosOrdenados = computed(() => [...ingresos.value].sort((a, b) => ms(b.creadoEn) - ms(a.creadoEn)))
+
   const categoriasActivas = computed(() => categorias.value.filter(c => c.activa))
 
   async function cargarCuentas() {
@@ -54,6 +68,7 @@ export const useFinanceStore = defineStore('finance', () => {
 
   async function cargarDatos() {
     loading.value = true
+    errorCarga.value = false
     gastos.value = []
     ingresos.value = []
     resumen.value = null
@@ -62,20 +77,28 @@ export const useFinanceStore = defineStore('finance', () => {
       const mesAnterior  = mesActual.value === 1 ? 12 : mesActual.value - 1
       const anioAnterior = mesActual.value === 1 ? anioActual.value - 1 : anioActual.value
 
-      const [rGastos, rIngresos, rResumen, rResumenAnterior] = await Promise.all([
+      const [rGastos, rIngresos, rResumen, rResumenAnterior, rGastosPrevio, rIngresosPrevio] = await Promise.all([
         gastosService.getAll(mesActual.value, anioActual.value),
         ingresosService.getAll(mesActual.value, anioActual.value),
         resumenService.get(mesActual.value, anioActual.value),
-        resumenService.get(mesAnterior, anioAnterior)
+        resumenService.get(mesAnterior, anioAnterior),
+        gastosService.getAll(mesAnterior, anioAnterior),
+        ingresosService.getAll(mesAnterior, anioAnterior)
       ])
+
       gastos.value   = rGastos.data
       ingresos.value = rIngresos.data
       resumen.value  = rResumen.data
       resumenAnterior.value = rResumenAnterior.data
-      promptRecurrentes.value         = !gastos.value.some(g => g.esRecurrente)
-      promptIngresosRecurrentes.value = !ingresos.value.some(i => i.esRecurrente)
+      promptRecurrentes.value = !gastos.value.some(g => g.esRecurrente)
+  && rGastosPrevio.data.some(g => g.esRecurrente)
+promptIngresosRecurrentes.value = !ingresos.value.some(i => i.esRecurrente)
+  && rIngresosPrevio.data.some(i => i.esRecurrente)
+  
     } catch (e) {
       console.error('Error cargando datos:', e)
+      errorCarga.value = true
+      toast.error('No se pudieron cargar tus datos. Revisa tu conexión e intenta de nuevo.')
       gastos.value   = []
       ingresos.value = []
       resumen.value  = null
@@ -259,11 +282,11 @@ export const useFinanceStore = defineStore('finance', () => {
   }
 
   return {
-    gastos, ingresos, resumen, resumenAnterior, loading,
+    gastos, ingresos, resumen, resumenAnterior, loading, errorCarga,
     mesActual, anioActual,
     promptRecurrentes, descartarPromptRecurrentes,
     promptIngresosRecurrentes, descartarPromptIngresosRecurrentes, copiarIngresosRecurrentes,
-    gastosFijos, gastosVariables,
+    gastosFijos, gastosVariables, ingresosOrdenados,
     categorias, categoriasActivas,
     cargarCategorias, agregarCategoria, actualizarCategoria, eliminarCategoria,
     resumenAnual, cargarResumenAnual,
@@ -276,3 +299,6 @@ export const useFinanceStore = defineStore('finance', () => {
     cuentas, cargarCuentas,
   }
 })
+
+// En desarrollo, aplica los cambios del store sin recargar la página
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useFinanceStore, import.meta.hot))

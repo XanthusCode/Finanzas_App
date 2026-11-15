@@ -32,14 +32,12 @@ const formatted = computed(() =>
 .kpi-label {
   font-size: 0.62rem;
   color: var(--text-secondary);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   margin-bottom: 0.4rem;
 }
 .kpi-value {
   font-family: var(--ff-display);
   font-size: 1.3rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
 }
 .kpi-sub {
