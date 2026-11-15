@@ -41,8 +41,13 @@ public class IngresosService(IIngresosRepository repo, IMapper mapper)
         var recurrentes = await _repo.GetRecurrentesAsync(mesPrevio, anioPrevio, userId);
 
         var creados = new List<IngresoDto>();
+        var delMes = (await _repo.GetByMesAsync(mes, anio, userId)).ToList();
+
         foreach (var r in recurrentes)
         {
+            if (delMes.Any(i => i.EsRecurrente && i.Concepto == r.Concepto))
+                continue;
+
             var nuevo = new Ingreso
             {
                 Concepto     = r.Concepto,

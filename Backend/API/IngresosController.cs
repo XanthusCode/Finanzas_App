@@ -19,6 +19,7 @@ public class IngresosController(IngresosService service) : BaseController
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CrearIngresoDto dto)
     {
+        if (!PeriodoValido(dto.Mes, dto.Anio)) return BadRequest("Mes o año inválido.");
         var creado = await _service.CreateAsync(dto, UserId);
         return CreatedAtAction(nameof(GetAll), creado);
     }
@@ -42,6 +43,7 @@ public class IngresosController(IngresosService service) : BaseController
     [HttpPost("copiar-recurrentes")]
     public async Task<IActionResult> CopiarRecurrentes([FromQuery] int mes, [FromQuery] int anio)
     {
+        if (!PeriodoValido(mes, anio)) return BadRequest("Mes o año inválido.");
         var copiados = await _service.CopiarRecurrentesAsync(mes, anio, UserId);
         return Ok(copiados);
     }

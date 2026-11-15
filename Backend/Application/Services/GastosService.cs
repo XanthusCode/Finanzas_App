@@ -155,15 +155,19 @@ namespace Finanzas.Application.Services
             return _mapper.Map<IEnumerable<GastoDto>>(cuotas);
         }
 
-        public async Task<IEnumerable<GastoDto>> CopiarRecurrentesAsync(int mes, int anio, Guid userId)
+        public async Task<IEnumerable<GastoDto>> CopiarRecurrentesAsync(int mes, int anio, Guid userId, bool generadoAuto = false)
         {
             var mesPrevio  = mes == 1 ? 12 : mes - 1;
             var anioPrevio = mes == 1 ? anio - 1 : anio;
             var recurrentes = await _repo.GetRecurrentesAsync(mesPrevio, anioPrevio, userId);
 
             var creados = new List<GastoDto>();
+            var delMes = (await _repo.GetByMesAsync(mes, anio, userId)).ToList();
             foreach (var r in recurrentes)
             {
+                if (delMes.Any(g => g.EsRecurrente && g.Categoria == r.Categoria && g.Detalle == r.Detalle))
+                    continue;
+
                 var nuevo = new Gasto
                 {
                     Categoria    = r.Categoria,
@@ -174,7 +178,8 @@ namespace Finanzas.Application.Services
                     Anio         = anio,
                     EsRecurrente = true,
                     UserId       = userId,
-                    CuentaId     = r.CuentaId
+                    CuentaId     = r.CuentaId,
+                    GeneradoAuto = generadoAuto
                 };
                 var creado = await _repo.CreateAsync(nuevo);
                 creados.Add(_mapper.Map<GastoDto>(creado));

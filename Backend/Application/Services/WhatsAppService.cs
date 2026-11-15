@@ -10,10 +10,7 @@ namespace Finanzas.Application.Services
     // La firma de Twilio se valida en el controller; aquí solo llega el remitente ya confiable.
     // El usuario se identifica por el "From" crudo de Twilio (User.WhatsAppId), que se guarda
     // al enviar "vincular <código>" con el código generado en Perfil.
-    public partial class WhatsAppService(
-        IUserRepository userRepo,
-        IGastosRepository gastosRepo,
-        ICategoriasRepository categoriasRepo)
+    public partial class WhatsAppService( IUserRepository userRepo, IGastosRepository gastosRepo, ICategoriasRepository categoriasRepo, ICuentaRepository cuentaRepo)
     {
         private readonly IUserRepository _userRepo = userRepo;
         private readonly IGastosRepository _gastosRepo = gastosRepo;
@@ -56,7 +53,8 @@ namespace Finanzas.Application.Services
             var detalle = m.Groups[3].Value.Trim();
             if (detalle.Length == 0) detalle = "Gasto por WhatsApp";
 
-            var categoria = await DetectarCategoriaAsync(detalle, user.Id);
+            var (categoria, cuentaId, nombreCuenta, detalleLimpio) = await ResolverAsync(detalle, user.Id);
+            detalle = detalleLimpio;
 
             // Colombia es UTC-5 todo el año. Fecha a medianoche UTC del día local,
             // igual que las fechas "YYYY-MM-DD" que manda el formulario.
@@ -70,10 +68,14 @@ namespace Finanzas.Application.Services
                 Tipo      = TipoGasto.VARIABLE,
                 Mes       = hoy.Month,
                 Anio      = hoy.Year,
-                Fecha     = DateTime.SpecifyKind(hoy, DateTimeKind.Utc)
+                Fecha     = DateTime.SpecifyKind(hoy, DateTimeKind.Utc),
+                CuentaId = cuentaId,
             });
 
-            return $"Registrado: ${monto.ToString("N0", CultureInfo.GetCultureInfo("es-CO"))} - {detalle} ({categoria})";
+            var montoTxt = monto.ToString("N0", CultureInfo.GetCultureInfo("es-CO"));
+            return nombreCuenta is null
+                ? $"Registrado: ${montoTxt} - {detalle} ({categoria})\nSin cuenta: no descuenta de tu saldo. Escríbela así: 25000 uber nequi"
+                : $"Registrado: ${montoTxt} - {detalle} ({categoria} · {nombreCuenta})";
         }
 
         private async Task<string> VincularAsync(string from, string codigo)
@@ -116,5 +118,34 @@ namespace Finanzas.Application.Services
                     sb.Append(ch);
             return sb.ToString();
         }
+
+        private async Task<(string Categoria, Guid? CuentaId, string? NombreCuenta, string Detalle)> ResolverAsync(string detalle, Guid userId)
+        {
+            var texto = SinTildes(detalle);
+            var cuentas = (await cuentaRepo.GetAllAsync(userId)).Where(c => c.Activa).ToList();
+
+            // Si escribió la cuenta, se quita del detalle: "uber nequi" se guarda como "uber"
+            var escrita = cuentas.FirstOrDefault(c => texto.Contains(SinTildes(c.Nombre)));
+            if (escrita is not null)
+            {
+                detalle = Regex.Replace(detalle, Regex.Escape(escrita.Nombre), "", RegexOptions.IgnoreCase).Trim();
+                if (detalle.Length == 0) detalle = "Gasto por WhatsApp";
+            }
+
+            var parecido = (await _gastosRepo.BuscarAsync(detalle, null, userId, 5))
+                .FirstOrDefault(g => g.Detalle.Equals(detalle, StringComparison.OrdinalIgnoreCase));
+
+            // Categoría: la escrita > la de la última vez > Otros
+            var categoria = await DetectarCategoriaAsync(detalle, userId);
+            if (categoria == CategoriaPorDefecto && parecido is not null) categoria = parecido.Categoria;
+
+            // Cuenta: la escrita > la de la última vez > la única que tenga
+            var cuenta = escrita
+                ?? cuentas.FirstOrDefault(c => c.Id == parecido?.CuentaId)
+                ?? (cuentas.Count == 1 ? cuentas[0] : null);
+
+            return (categoria, cuenta?.Id, cuenta?.Nombre, detalle);
+        }
+
     }
 }

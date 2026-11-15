@@ -104,7 +104,7 @@ namespace Finanzas.Infrastructure.Repositories
         // Último momento en que el usuario creó o editó un gasto (señal de que sigue usando la app).
         public async Task<DateTime?> GetUltimaActividadAsync(Guid userId) =>
             await _db.Gastos
-                .Where(g => g.UserId == userId)
+                .Where(g => g.UserId == userId && !g.GeneradoAuto)
                 .MaxAsync(g => (DateTime?)(g.ActualizadoEn ?? g.CreadoEn));
 
         // Búsqueda global: texto en detalle/categoría (sin distinguir mayúsculas) o monto exacto.

@@ -9,10 +9,11 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Finanzas.Application.Services
 {
-    public class AuthService(IUserRepository userRepo, IConfiguration config)
+    public class AuthService(IUserRepository userRepo,ICategoriasRepository categoriasRepo, IConfiguration config)
     {
         private readonly IUserRepository _userRepo = userRepo;
         private readonly IConfiguration _config = config;
+        private static readonly string[] CategoriasIniciales = ["Comida", "Transporte", "Hogar", "Servicios", "Otros"];
 
         public async Task<(bool ok, string error, AuthResponseDto? data)> RegisterAsync(RegisterDto dto)
         {
@@ -28,6 +29,10 @@ namespace Finanzas.Application.Services
             };
 
             await _userRepo.CreateAsync(user);
+
+            foreach (var nombre in CategoriasIniciales)
+                await categoriasRepo.CreateAsync(new Categoria { Nombre = nombre, UserId = user.Id });
+
             return (true, string.Empty, BuildResponse(user));
         }
 

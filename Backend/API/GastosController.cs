@@ -19,6 +19,7 @@ public class GastosController(GastosService service) : BaseController
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CrearGastoDto dto)
     {
+        if (!PeriodoValido(dto.Mes, dto.Anio)) return BadRequest("Mes o año inválido.");
         var creado = await _service.CreateAsync(dto, UserId);
         return CreatedAtAction(nameof(GetAll), creado);
     }
@@ -26,6 +27,7 @@ public class GastosController(GastosService service) : BaseController
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] CrearGastoDto dto)
     {
+        if (!PeriodoValido(dto.Mes, dto.Anio)) return BadRequest("Mes o año inválido.");
         var actualizado = await _service.UpdateAsync(id, dto, UserId);
         if (actualizado is null) return NotFound();
         return Ok(actualizado);
@@ -42,6 +44,7 @@ public class GastosController(GastosService service) : BaseController
     [HttpPost("copiar-recurrentes")]
     public async Task<IActionResult> CopiarRecurrentes([FromQuery] int mes, [FromQuery] int anio)
     {
+        if (!PeriodoValido(mes, anio)) return BadRequest("Mes o año inválido.");
         var copiados = await _service.CopiarRecurrentesAsync(mes, anio, UserId);
         return Ok(copiados);
     }
@@ -49,6 +52,7 @@ public class GastosController(GastosService service) : BaseController
     [HttpPost("importar")]
     public async Task<IActionResult> Importar([FromQuery] int mes, [FromQuery] int anio, [FromBody] IEnumerable<CrearGastoDto> dtos)
     {
+        if (!PeriodoValido(mes, anio)) return BadRequest("Mes o año inválido.");
         var count = await _service.ImportarAsync(dtos, mes, anio, UserId);
         return Ok(new { importados = count });
     }

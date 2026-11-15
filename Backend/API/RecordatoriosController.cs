@@ -7,7 +7,7 @@ namespace Finanzas.API;
 // Se protege con un secreto compartido en el header, no con JWT.
 [Route("[controller]")]
 [ApiController]
-public class RecordatoriosController(RecordatoriosService service, IConfiguration config) : ControllerBase
+public class RecordatoriosController(RecordatoriosService service, AutomatizacionService automatizacionService, IConfiguration config) : ControllerBase
 {
     private readonly RecordatoriosService _service = service;
     private readonly IConfiguration _config = config;
@@ -19,6 +19,7 @@ public class RecordatoriosController(RecordatoriosService service, IConfiguratio
         if (string.IsNullOrWhiteSpace(esperado) || secret != esperado)
             return Unauthorized();
 
+        await automatizacionService.ProcesarAsync();
         var enviados = await _service.ProcesarAsync();
         return Ok(new { enviados });
     }

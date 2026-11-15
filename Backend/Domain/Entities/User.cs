@@ -17,6 +17,9 @@ namespace Finanzas.Domain.Entities
         // nombre de usuario en WhatsApp, un ID opaco "whatsapp:CO.123..."). Por eso se
         // vincula con un código enviado desde WhatsApp y no escribiendo el teléfono.
         public string? WhatsAppId { get; set; }
+
+        public int? RecurrentesCopiadosHasta { get; set; }
+
         public string? WhatsAppCodigo { get; set; }
         public DateTime? WhatsAppCodigoExpira { get; set; }
     }

@@ -19,6 +19,7 @@
         public Guid? GastoOrigenId { get; set; }
         public Guid? CuentaId { get; set; }
         public Guid? DeudaId { get; set; }
+        public bool GeneradoAuto { get; set; }
     }
 
     public enum TipoGasto

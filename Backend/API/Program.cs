@@ -56,6 +56,7 @@ builder.Services.AddScoped<CopilotoService>();
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
 // JWT Authentication
+builder.Services.AddScoped<AutomatizacionService>();
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -128,88 +129,9 @@ using (var scope = app.Services.CreateScope())
     // Todo en un solo ExecuteSqlRaw: cada llamada es un round-trip a Postgres y esto
     // corre en cada cold start de Render, así que menos round-trips = arranque más rápido.
     db.Database.ExecuteSqlRaw("""
-        CREATE TABLE IF NOT EXISTS "Abonos" (
-            "Id" uuid NOT NULL PRIMARY KEY,
-            "DeudaId" uuid NOT NULL,
-            "Monto" numeric(12,2) NOT NULL,
-            "Fecha" timestamp with time zone NOT NULL,
-            CONSTRAINT "FK_Abonos_Deudas_DeudaId" FOREIGN KEY ("DeudaId") REFERENCES "Deudas" ("Id") ON DELETE CASCADE
-        );
-
-        CREATE TABLE IF NOT EXISTS "Cuentas" (
-            "Id" uuid NOT NULL PRIMARY KEY,
-            "UserId" uuid NOT NULL,
-            "Nombre" character varying(100) NOT NULL,
-            "Tipo" text NOT NULL,
-            "Activa" boolean NOT NULL,
-            "CreadoEn" timestamp with time zone NOT NULL,
-            CONSTRAINT "FK_Cuentas_Users_UserId" FOREIGN KEY ("UserId") REFERENCES "Users" ("Id") ON DELETE CASCADE
-        );
-        CREATE TABLE IF NOT EXISTS "MovimientosCuenta" (
-            "Id" uuid NOT NULL PRIMARY KEY,
-            "CuentaId" uuid NOT NULL,
-            "Monto" numeric(12,2) NOT NULL,
-            "Descripcion" character varying(150),
-            "Fecha" timestamp with time zone NOT NULL,
-            CONSTRAINT "FK_MovimientosCuenta_Cuentas_CuentaId" FOREIGN KEY ("CuentaId") REFERENCES "Cuentas" ("Id") ON DELETE CASCADE
-        );
-
-        CREATE TABLE IF NOT EXISTS "MovimientosMeta" (
-            "Id" uuid NOT NULL PRIMARY KEY,
-            "MetaId" uuid NOT NULL,
-            "Monto" numeric(12,2) NOT NULL,
-            "Fecha" timestamp with time zone NOT NULL,
-            CONSTRAINT "FK_MovimientosMeta_Metas_MetaId" FOREIGN KEY ("MetaId") REFERENCES "Metas" ("Id") ON DELETE CASCADE
-        );
-
-        ALTER TABLE "Gastos" ADD COLUMN IF NOT EXISTS "CuentaId" uuid NULL;
-        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "CuentaId" uuid NULL;
-        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "Frecuencia" text NULL;
-        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "DiaPago" integer NULL;
-        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "DeudaId" uuid NULL;
-        ALTER TABLE "Gastos" ADD COLUMN IF NOT EXISTS "Fecha" timestamp with time zone NULL;
-        ALTER TABLE "Gastos" ADD COLUMN IF NOT EXISTS "DeudaId" uuid NULL;
-        ALTER TABLE "Categorias" DROP COLUMN IF EXISTS "Tipo";
-        ALTER TABLE "Metas" ADD COLUMN IF NOT EXISTS "CuentaId" uuid NULL;
-        ALTER TABLE "MovimientosMeta" ADD COLUMN IF NOT EXISTS "Descripcion" character varying(200) NULL;
-        ALTER TABLE "Gastos"   ADD COLUMN IF NOT EXISTS "ActualizadoEn" timestamp with time zone NULL;
-        ALTER TABLE "Ingresos" ADD COLUMN IF NOT EXISTS "ActualizadoEn" timestamp with time zone NULL;
-        ALTER TABLE "Cuentas"  ADD COLUMN IF NOT EXISTS "ActualizadoEn" timestamp with time zone NULL;
-        ALTER TABLE "Metas"    ADD COLUMN IF NOT EXISTS "ActualizadoEn" timestamp with time zone NULL;
-        ALTER TABLE "Deudas"   ADD COLUMN IF NOT EXISTS "ActualizadoEn" timestamp with time zone NULL;
-        ALTER TABLE "Deudas"   ADD COLUMN IF NOT EXISTS "CuentaId" uuid NULL;
-        ALTER TABLE "MovimientosCuenta" ADD COLUMN IF NOT EXISTS "DeudaId" uuid NULL;
-        ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "RecordatoriosActivos" boolean NOT NULL DEFAULT TRUE;
-        ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "UltimoRecordatorioActividadEn" timestamp with time zone NULL;
-        ALTER TABLE "Users" DROP COLUMN IF EXISTS "Telefono";
-        ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "WhatsAppId" character varying(64) NULL;
-        ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "WhatsAppCodigo" character varying(6) NULL;
-        ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "WhatsAppCodigoExpira" timestamp with time zone NULL;
-        CREATE UNIQUE INDEX IF NOT EXISTS "IX_Users_WhatsAppId" ON "Users" ("WhatsAppId") WHERE "WhatsAppId" IS NOT NULL;
-
-        -- Reparación: cuotas que perdieron NumCuotas al editarlas (bug ya corregido en GastosService.UpdateAsync)
-        UPDATE "Gastos" g SET "NumCuotas" = o."NumCuotas"
-        FROM "Gastos" o
-        WHERE g."NumCuotas" IS NULL AND g."CuotaActual" IS NOT NULL
-          AND o."NumCuotas" IS NOT NULL AND o."Id" <> g."Id"
-          AND COALESCE(o."GastoOrigenId", o."Id") = COALESCE(g."GastoOrigenId", g."Id");
-
-        DO $mig$
-        BEGIN
-            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_Gastos_Cuentas_CuentaId') THEN
-                ALTER TABLE "Gastos" ADD CONSTRAINT "FK_Gastos_Cuentas_CuentaId" FOREIGN KEY ("CuentaId") REFERENCES "Cuentas" ("Id") ON DELETE SET NULL;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_Ingresos_Cuentas_CuentaId') THEN
-                ALTER TABLE "Ingresos" ADD CONSTRAINT "FK_Ingresos_Cuentas_CuentaId" FOREIGN KEY ("CuentaId") REFERENCES "Cuentas" ("Id") ON DELETE SET NULL;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_Metas_Cuentas_CuentaId') THEN
-                ALTER TABLE "Metas" ADD CONSTRAINT "FK_Metas_Cuentas_CuentaId" FOREIGN KEY ("CuentaId") REFERENCES "Cuentas" ("Id") ON DELETE SET NULL;
-            END IF;
-            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'FK_Deudas_Cuentas_CuentaId') THEN
-                ALTER TABLE "Deudas" ADD CONSTRAINT "FK_Deudas_Cuentas_CuentaId" FOREIGN KEY ("CuentaId") REFERENCES "Cuentas" ("Id") ON DELETE SET NULL;
-            END IF;
-        END
-        $mig$;
+        ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "RecurrentesCopiadosHasta" integer NULL;
+        ALTER TABLE "Gastos" ADD COLUMN IF NOT EXISTS "GeneradoAuto" boolean NOT NULL DEFAULT FALSE;
+        
         """);
 }
 
