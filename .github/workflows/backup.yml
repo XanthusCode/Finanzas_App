@@ -1,0 +1,91 @@
+name: Backup diario de la base de datos
+
+# Respalda la base de producción (Neon), la cifra y prueba que se pueda restaurar.
+# El repo es público: los logs y los artefactos se pueden ver, así que nunca se
+# imprime la cadena de conexión y solo se sube el archivo cifrado.
+#
+# Secrets necesarios (Settings → Secrets and variables → Actions):
+#   NEON_DATABASE_URL  → cadena de Neon en formato URL: postgresql://usuario:clave@host/neondb?sslmode=require
+#   BACKUP_PASSPHRASE  → contraseña larga para cifrar; guárdala también fuera de GitHub
+#
+# Restaurar en tu PC:
+#   gpg --decrypt finanzas-AAAA-MM-DD.dump.gpg > finanzas.dump
+#   pg_restore --no-owner --no-privileges -d <base destino> finanzas.dump
+
+on:
+  schedule:
+    - cron: "0 7 * * *" # 2:00 a. m. hora Colombia
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    services:
+      # Base temporal para la prueba de restauración
+      restore:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: restore
+          POSTGRES_DB: restore
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      DB_URL: ${{ secrets.NEON_DATABASE_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+
+    steps:
+      - name: Verificar secrets
+        run: |
+          [ -n "$DB_URL" ] || { echo "Falta el secret NEON_DATABASE_URL"; exit 1; }
+          [ ${#BACKUP_PASSPHRASE} -ge 20 ] || { echo "BACKUP_PASSPHRASE falta o tiene menos de 20 caracteres"; exit 1; }
+
+      - name: pg_dump
+        run: |
+          FECHA=$(date -u +%F)
+          echo "ARCHIVO=finanzas-$FECHA.dump" >> "$GITHUB_ENV"
+          # pg_dump 18 sirve para servidores 18 o anteriores. Los errores se ocultan:
+          # pueden incluir el host de la base y los logs de este repo son públicos.
+          if ! docker run --rm -e DB_URL postgres:18 \
+                 sh -c 'pg_dump --format=custom --no-owner --no-privileges "$DB_URL"' \
+                 > "finanzas-$FECHA.dump" 2>/dev/null; then
+            echo "pg_dump falló: revisa NEON_DATABASE_URL (formato postgresql://…?sslmode=require)"; exit 1
+          fi
+          TAM=$(stat -c %s "finanzas-$FECHA.dump")
+          [ "$TAM" -gt 10240 ] || { echo "El dump pesa solo $TAM bytes: algo salió mal"; exit 1; }
+          echo "Dump de $((TAM / 1024)) KB"
+
+      - name: Cifrar (AES-256) y borrar el dump sin cifrar
+        run: |
+          printf '%s' "$BACKUP_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
+            --symmetric --cipher-algo AES256 --output "$ARCHIVO.gpg" "$ARCHIVO"
+          rm -f "$ARCHIVO"
+
+      - name: Probar la restauración desde el archivo cifrado
+        run: |
+          # Se descifra lo mismo que se va a subir: si esto pasa, el backup sirve
+          printf '%s' "$BACKUP_PASSPHRASE" | gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 0 \
+            --decrypt --output prueba.dump "$ARCHIVO.gpg"
+          docker run --rm --network host -v "$PWD:/b" -e PGPASSWORD=restore postgres:18 \
+            pg_restore --no-owner --no-privileges -h localhost -U postgres -d restore /b/prueba.dump \
+            || echo "pg_restore terminó con advertencias; se valida el contenido abajo"
+          rm -f prueba.dump
+
+          # Las tablas principales deben existir y Users no puede estar vacía
+          for t in Users Gastos Ingresos Cuentas MovimientosCuenta; do
+            n=$(docker run --rm --network host -e PGPASSWORD=restore postgres:18 \
+                  psql -h localhost -U postgres -d restore -tAc "SELECT count(*) FROM \"$t\"") \
+              || { echo "La tabla $t no se restauró"; exit 1; }
+            echo "$t: $n filas"
+            if [ "$t" = "Users" ] && [ "$n" -eq 0 ]; then echo "Users quedó vacía"; exit 1; fi
+          done
+
+      - name: Subir el backup cifrado
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARCHIVO }}.gpg
+          path: ${{ env.ARCHIVO }}.gpg
+          retention-days: 30
+          if-no-files-found: error
