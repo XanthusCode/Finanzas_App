@@ -10,7 +10,12 @@
           <Repeat v-if="gasto.esRecurrente" class="recurrente-icon" :size="11" :stroke-width="2.2" aria-label="Recurrente" />
           <span v-if="gasto.numCuotas" class="cuota-badge">{{ gasto.cuotaActual }}/{{ gasto.numCuotas }}</span>
         </div>
-        <div v-if="gasto.detalle" class="row-det">{{ gasto.detalle }}</div>
+        <div v-if="partes.length" class="row-det">
+          <template v-for="(p, i) in partes" :key="i">
+            <span v-if="i > 0" class="row-sep"> · </span>
+            <span :class="{ 'row-meta': p.meta }">{{ p.texto }}</span>
+          </template>
+        </div>
       </div>
     </div>
     <div class="row-right">
@@ -28,13 +33,32 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Pencil, Trash2, Repeat } from '@lucide/vue'
 import type { Gasto } from '@/types'
 import { fmtCOP as fmt } from '@/utils'
 import { guessIcono, guessColor } from '@/composables/useCategoriaOptions'
 
-defineProps<{ gasto: Gasto; resaltado?: boolean }>()
+const props = defineProps<{ gasto: Gasto; resaltado?: boolean }>()
+
+// Detalle · <fecha del formulario>. Los gastos sin fecha (fijos copiados o cuotas aún
+// por cobrar) no muestran día.
+const partes = computed(() => {
+  const g = props.gasto
+  const out: { texto: string; meta: boolean }[] = []
+  if (g.detalle) out.push({ texto: g.detalle, meta: false })
+  if (g.fecha) out.push({ texto: fmtDia(g.fecha), meta: true })
+  return out
+})
 const emit = defineEmits<{ delete: [id: string], edit: [gasto: Gasto], create: [gasto: Gasto] }>()
+
+// "2026-11-10…" → "10 nov 2026". Se usa solo la parte del día: leerla como hora UTC
+// la correría al día anterior en Colombia (−5 h).
+function fmtDia(f: string) {
+  const [y, m, d] = f.slice(0, 10).split('-').map(Number)
+  if (!y || !m || !d) return ''
+  return new Date(y, m - 1, d).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })
+}
 </script>
 
 <style scoped>
@@ -60,13 +84,16 @@ const emit = defineEmits<{ delete: [id: string], edit: [gasto: Gasto], create: [
   font-size: 0.7rem; color: var(--text-subtle); margin-top: 0.2rem;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+/* Fechas como meta: tenues y separadas por " · " */
+.row-meta { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.row-sep  { color: var(--text-muted); white-space: pre; }
 
 .row-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
 .row-monto {
   font-family: var(--ff-mono);
   font-variant-numeric: tabular-nums;
   font-size: 0.84rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
   text-align: right;
 }

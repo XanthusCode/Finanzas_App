@@ -103,7 +103,7 @@
           </div>
           <span class="total-badge">{{ fmt(total) }}</span>
         </div>
-        <template v-for="i in store.ingresos" :key="i.id">
+        <template v-for="i in store.ingresosOrdenados" :key="i.id">
           <div v-if="editando?.id === i.id" class="inline-form-row">
             <form class="ingreso-form" @submit.prevent="onSubmit">
               <div class="form-row">
@@ -505,13 +505,12 @@ onMounted(() => {
 .card-title  {
   font-family: var(--ff-body);
   font-size: 0.78rem; font-weight: 500; color: var(--text-primary);
-  letter-spacing: 0.08em; text-transform: uppercase;
 }
 .card-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem; }
 .total-badge {
   font-family: var(--ff-mono);
   font-variant-numeric: tabular-nums;
-  font-size: 0.8rem; font-weight: 700;
+  font-size: 0.8rem; font-weight: 600;
   padding: 0.3rem 0.75rem;
   border-radius: 999px;
   color: var(--c-pos);
@@ -590,7 +589,7 @@ onMounted(() => {
 .ingreso-row:hover .row-icon { background: var(--surface); }
 .row-text { min-width: 0; }
 .row-name  {
-  font-size: 0.86rem; font-weight: 700; color: var(--text-primary);
+  font-size: 0.86rem; font-weight: 600; color: var(--text-primary);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .row-meta { display: flex; align-items: center; gap: 0.35rem; margin-top: 0.25rem; font-size: 0.7rem; color: var(--text-subtle); }
@@ -602,7 +601,7 @@ onMounted(() => {
 .row-monto {
   font-family: var(--ff-mono);
   font-variant-numeric: tabular-nums;
-  font-size: 0.9rem; font-weight: 700; color: var(--text-primary);
+  font-size: 0.9rem; font-weight: 600; color: var(--text-primary);
 }
 .row-actions {
   display: flex; gap: 0.15rem;
@@ -643,11 +642,11 @@ onMounted(() => {
 /* ── Panel de resumen ── */
 .side-card { position: sticky; top: 88px; display: flex; flex-direction: column; padding: 1.25rem 1.35rem; }
 .side-card:hover { border-color: var(--border); }
-.side-label { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.1em; text-transform: uppercase; }
+.side-label { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); }
 .side-total-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
 .side-total {
   font-family: var(--ff-mono); font-variant-numeric: tabular-nums;
-  font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary);
+  font-size: 1.6rem; font-weight: 600; color: var(--text-primary);
 }
 .side-hint { font-size: 0.68rem; color: var(--text-muted); margin-top: 0.3rem; }
 .var-badge {
@@ -666,7 +665,7 @@ onMounted(() => {
 }
 .side-metric strong {
   font-family: var(--ff-mono); font-variant-numeric: tabular-nums;
-  font-weight: 700; color: var(--text-primary);
+  font-weight: 600; color: var(--text-primary);
 }
 .side-metric strong.pos { color: var(--c-pos); }
 .side-metric strong.neg { color: var(--c-neg); }

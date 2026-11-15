@@ -145,8 +145,17 @@
           <input v-model="movDescripcion" class="input" placeholder="ej. Ahorro del mes" />
         </div>
 
-        <div v-if="historialConSaldo.length > 0" class="mov-historial">
-          <div class="mov-historial-head">
+        <!-- Mientras carga no se sabe si hay movimientos: se ve el círculo.
+             Al terminar, la sección solo queda si la cuenta tiene al menos uno. -->
+        <div v-if="loadingMovimientos || historialConSaldo.length > 0" class="mov-historial">
+          <!-- Cargando: círculo girando centrado en el espacio de la lista -->
+          <div v-if="loadingMovimientos" class="mov-loading" role="status" aria-live="polite">
+            <span class="mov-spinner" aria-hidden="true" />
+            <span>Cargando movimientos…</span>
+          </div>
+
+          <div v-else>
+            <div  class="mov-historial-head">
             <span class="field-label">Movimientos de la cuenta</span>
             <span v-if="movCuenta" class="mov-saldo-actual" :class="movCuenta.saldo >= 0 ? 'total-pos' : 'total-neg'">
               Saldo: {{ fmt(movCuenta.saldo) }}
@@ -164,6 +173,7 @@
                 <span class="mov-row-saldo">{{ fmt(m.saldoTras) }}</span>
               </span>
             </div>
+          </div>
           </div>
         </div>
 
@@ -239,6 +249,7 @@ const LINEA_LABEL: Record<LineaCuenta['tipo'], string> = {
 
 const cuentas = ref<Cuenta[]>([])
 const loading = ref(false)
+const loadingMovimientos = ref(false)
 const guardando = ref(false)
 const formVisible = ref(false)
 const editando = ref<Cuenta | null>(null)
@@ -346,12 +357,29 @@ async function abrirMovimientoModal(c: Cuenta) {
   movDescripcion.value = ''
   movHistorial.value = []
   movModalVisible.value = true
-  const { data } = await cuentasService.getMovimientos(c.id!)
-  movHistorial.value = data
+  // Cuenta sin movimientos: no hay nada que cargar, así que ni círculo ni petición.
+  // Solo se salta con un false explícito, por si el backend aún no manda el campo.
+  if (c.tieneMovimientos === false) return
+  loadingMovimientos.value = true
+  try {
+    // El círculo se queda al menos 400 ms: en local la respuesta llega tan rápido que
+    // si no, solo parpadea. Si la petición tarda más, no agrega espera.
+    const [{ data }] = await Promise.all([
+      cuentasService.getMovimientos(c.id!),
+      new Promise(r => setTimeout(r, 400)),
+    ])
+    // Si mientras tanto se abrió otra cuenta, esta respuesta ya no aplica
+    if (movCuentaId.value === c.id) movHistorial.value = data
+  } catch {
+    if (movCuentaId.value === c.id) toast.error('No se pudieron cargar los movimientos de la cuenta')
+  } finally {
+    if (movCuentaId.value === c.id) loadingMovimientos.value = false
+  }
 }
 
 function cerrarMovimientoModal() {
   movModalVisible.value = false
+  loadingMovimientos.value = false
   movCuentaId.value = null
   movCuenta.value = null
 }
@@ -377,7 +405,6 @@ onMounted(cargar)
 </script>
 
 <style scoped>
-
 .fade-up { font-variant-numeric: tabular-nums; }
 
 /* ── Hero: total en cuentas ── */
@@ -396,10 +423,10 @@ onMounted(cargar)
   box-shadow: var(--shadow-card);
 }
 .hero-main  { display: flex; flex-direction: column; gap: 0.45rem; }
-.hero-label { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.14em; text-transform: uppercase; }
+.hero-label { font-size: 0.66rem; font-weight: 500; color: var(--text-secondary); }
 .hero-val {
   font-family: var(--ff-mono);
-  font-size: 2.4rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1;
+  font-size: 2.4rem; font-weight: 600; line-height: 1;
   color: var(--text-primary);
 }
 .hero-val.is-neg { color: var(--c-neg); }
@@ -441,7 +468,7 @@ onMounted(cargar)
   color: var(--tc); background: color-mix(in srgb, var(--tc) 14%, transparent);
 }
 .tipo-badge {
-  font-size: 0.62rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+  font-size: 0.62rem; font-weight: 500;
   padding: 0.2rem 0.6rem; border-radius: 999px;
   color: var(--tc); background: color-mix(in srgb, var(--tc) 12%, transparent);
 }
@@ -458,7 +485,7 @@ onMounted(cargar)
 .cuenta-nombre { font-size: 0.86rem; font-weight: 500; color: var(--text-secondary); }
 .cuenta-saldo  {
   font-family: var(--ff-mono);
-  font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em;
+  font-size: 1.6rem; font-weight: 600;
   color: var(--text-primary);
 }
 .cuenta-saldo.is-neg { color: var(--c-neg); }
@@ -513,7 +540,7 @@ onMounted(cargar)
   max-height: calc(100vh - 4rem); overflow-y: auto;
   box-shadow: var(--shadow-pop);
 }
-.modal-title  { font-size: 1rem; font-weight: 700; margin: 0; }
+.modal-title  { font-size: 1rem; font-weight: 600; margin: 0; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; }
 
 .field-group { display: flex; flex-direction: column; gap: 0.35rem; }
@@ -533,7 +560,7 @@ onMounted(cargar)
 
 .mov-historial { display: flex; flex-direction: column; gap: 0.3rem; }
 .mov-historial-head { display: flex; justify-content: space-between; align-items: baseline; }
-.mov-saldo-actual { font-size: 0.8rem; font-weight: 700; }
+.mov-saldo-actual { font-size: 0.8rem; font-weight: 600; }
 .mov-hint { font-size: 0.68rem; color: var(--text-muted); margin: -0.1rem 0 0.2rem; }
 .mov-historial-list { display: flex; flex-direction: column; max-height: 320px; overflow-y: auto; }
 .mov-historial-row {
@@ -541,6 +568,20 @@ onMounted(cargar)
   padding: 0.5rem; border-bottom: 1px solid var(--border);
 }
 .mov-historial-row:last-child { border-bottom: none; }
+/* Cargando movimientos: círculo girando */
+.mov-loading {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  min-height: 160px;
+  font-size: 0.8125rem; color: var(--text-muted);
+}
+.mov-spinner {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2.5px solid var(--surface2);
+  border-top-color: var(--accent-strong);
+  animation: movSpin 0.7s linear infinite;
+}
+@keyframes movSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .mov-spinner { animation-duration: 1.6s; } }
 .mov-row-main { min-width: 0; }
 .mov-row-nums { display: flex; flex-direction: column; align-items: flex-end; white-space: nowrap; }
 .mov-row-saldo { font-size: 0.62rem; color: var(--text-muted); }
