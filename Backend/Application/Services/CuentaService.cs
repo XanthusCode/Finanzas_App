@@ -15,9 +15,14 @@ namespace Finanzas.Application.Services
             var items  = await _repo.GetAllAsync(userId);
             var saldos = await _repo.GetSaldosAsync(userId);
 
+            // GetSaldosAsync solo trae las cuentas que tienen alguna línea que cuenta para el saldo,
+            // con los mismos filtros que el historial: si la cuenta no está ahí, su historial viene vacío.
             var dtos = _mapper.Map<List<CuentaDto>>(items);
             foreach (var dto in dtos)
+            {
                 dto.Saldo = saldos.GetValueOrDefault(dto.Id);
+                dto.TieneMovimientos = saldos.ContainsKey(dto.Id);
+            }
 
             return dtos;
         }
@@ -38,6 +43,7 @@ namespace Finanzas.Application.Services
 
             var result = _mapper.Map<CuentaDto>(creada);
             result.Saldo = dto.SaldoInicial;
+            result.TieneMovimientos = dto.SaldoInicial != 0;
             return result;
         }
 
@@ -53,6 +59,7 @@ namespace Finanzas.Application.Services
             var saldos = await _repo.GetSaldosAsync(userId);
             var result = _mapper.Map<CuentaDto>(actualizada);
             result.Saldo = saldos.GetValueOrDefault(id);
+            result.TieneMovimientos = saldos.ContainsKey(id);
             return result;
         }
 
@@ -79,6 +86,7 @@ namespace Finanzas.Application.Services
             var saldos = await _repo.GetSaldosAsync(userId);
             var result = _mapper.Map<CuentaDto>(cuenta);
             result.Saldo = saldos.GetValueOrDefault(cuentaId);
+            result.TieneMovimientos = true;
             return result;
         }
 

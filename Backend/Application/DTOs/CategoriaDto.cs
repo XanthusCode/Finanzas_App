@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Finanzas.Application.DTOs
 {
     public class CategoriaDto
@@ -9,12 +11,14 @@ namespace Finanzas.Application.DTOs
 
     public class CrearCategoriaDto
     {
+        [Required(ErrorMessage = "Escribe un nombre"), StringLength(100)]
         public string Nombre { get; set; } = string.Empty;
         public bool Activa { get; set; } = true;
     }
 
     public class EditarCategoriaDto
     {
+        [Required(ErrorMessage = "Escribe un nombre"), StringLength(100)]
         public string Nombre { get; set; } = string.Empty;
     }
 

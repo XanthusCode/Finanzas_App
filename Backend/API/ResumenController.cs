@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.RateLimiting;
 using Finanzas.Application.Interfaces;
 using Finanzas.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -62,6 +63,7 @@ public class ResumenController(
         return File(pdf, "application/pdf", filename);
     }
 
+    [EnableRateLimiting("ia")]
     [HttpGet("insights")]
     public async Task<IActionResult> GetInsights([FromQuery] int mes, [FromQuery] int anio)
     {

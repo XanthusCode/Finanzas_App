@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.RateLimiting;
 using Finanzas.Application.DTOs;
 using Finanzas.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -57,9 +58,22 @@ public class GastosController(GastosService service) : BaseController
         return Ok(new { importados = count });
     }
 
+    // Mismos formatos que acepta el frontend; el archivo va directo a la IA, así que se acota
+    private static readonly string[] TiposRecibo = ["image/jpeg", "image/png", "application/pdf"];
+    private const long MaxRecibo = 5 * 1024 * 1024;
+
+    [EnableRateLimiting("ia")]
     [HttpPost("importar-recibo")]
-    public async Task<IActionResult> ImportarRecibo(IFormFile recibo)
+    [RequestSizeLimit(MaxRecibo + 64 * 1024)] // + margen para las cabeceras del multipart
+    public async Task<IActionResult> ImportarRecibo(IFormFile? recibo)
     {
+        if (recibo is null || recibo.Length == 0)
+            return BadRequest(new { message = "Adjunta una foto o PDF del recibo." });
+        if (recibo.Length > MaxRecibo)
+            return BadRequest(new { message = "El archivo pesa más de 5 MB." });
+        if (!TiposRecibo.Contains(recibo.ContentType))
+            return BadRequest(new { message = "Formato no soportado. Usa JPG, PNG o PDF." });
+
         var extraido = await _service.EscanearReciboAsync(recibo);
         return Ok(extraido);
     }

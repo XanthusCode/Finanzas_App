@@ -1,5 +1,7 @@
 using Finanzas.Application.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Finanzas.API;
 
@@ -16,7 +18,10 @@ public class RecordatoriosController(RecordatoriosService service, Automatizacio
     public async Task<IActionResult> Procesar([FromHeader(Name = "X-Cron-Secret")] string? secret)
     {
         var esperado = _config["Recordatorios:CronSecret"];
-        if (string.IsNullOrWhiteSpace(esperado) || secret != esperado)
+        // Comparación en tiempo constante: con != el tiempo de respuesta revela cuántos
+        // caracteres iniciales coinciden y el secreto se podría adivinar por partes.
+        if (string.IsNullOrWhiteSpace(esperado) || esperado.StartsWith("CHANGE_ME") || secret is null
+            || !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(secret), Encoding.UTF8.GetBytes(esperado)))
             return Unauthorized();
 
         await automatizacionService.ProcesarAsync();

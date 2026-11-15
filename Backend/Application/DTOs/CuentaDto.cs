@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using Finanzas.Domain.Entities;
+
 namespace Finanzas.Application.DTOs
 {
     public class CuentaDto
@@ -7,20 +10,28 @@ namespace Finanzas.Application.DTOs
         public string Tipo   { get; set; } = string.Empty;
         public bool Activa   { get; set; }
         public decimal Saldo { get; set; }
+        // true si el historial de la cuenta tiene al menos una línea (movimiento, ingreso o gasto)
+        public bool TieneMovimientos { get; set; }
         public DateTime CreadoEn { get; set; }
         public DateTime? ActualizadoEn { get; set; }
     }
 
     public class CrearCuentaDto
     {
+        [Required(ErrorMessage = "Escribe un nombre"), StringLength(60)]
         public string Nombre { get; set; } = string.Empty;
+        [Required, EnumDataType(typeof(TipoCuenta), ErrorMessage = "Tipo de cuenta no válido")]
         public string Tipo   { get; set; } = string.Empty;
+        // Puede ser negativo (p. ej. una tarjeta de crédito con deuda)
+        [Range(-9999999999.99, 9999999999.99)]
         public decimal SaldoInicial { get; set; }
     }
 
     public class EditarCuentaDto
     {
+        [Required(ErrorMessage = "Escribe un nombre"), StringLength(60)]
         public string Nombre { get; set; } = string.Empty;
+        [Required, EnumDataType(typeof(TipoCuenta), ErrorMessage = "Tipo de cuenta no válido")]
         public string Tipo   { get; set; } = string.Empty;
     }
 
@@ -34,7 +45,10 @@ namespace Finanzas.Application.DTOs
 
     public class CrearMovimientoCuentaDto
     {
+        // Firmado: positivo = depósito, negativo = retiro
+        [Range(-9999999999.99, 9999999999.99)]
         public decimal Monto { get; set; }
+        [StringLength(150)]
         public string? Descripcion { get; set; }
     }
 

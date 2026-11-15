@@ -1,3 +1,4 @@
+using Finanzas.Application.Exceptions;
 using Finanzas.Application.DTOs;
 using Finanzas.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -59,7 +60,7 @@ public class CategoriasController(CategoriasService service) : BaseController
             if (!eliminada) return NotFound();
             return NoContent();
         }
-        catch (InvalidOperationException ex)
+        catch (ReglaNegocioException ex)
         {
             return Conflict(ex.Message);
         }

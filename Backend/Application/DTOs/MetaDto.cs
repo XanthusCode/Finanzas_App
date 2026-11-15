@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Finanzas.Domain.Entities;
 
 namespace Finanzas.Application.DTOs
@@ -17,7 +18,9 @@ namespace Finanzas.Application.DTOs
 
     public class CrearMetaDto
     {
+        [Required(ErrorMessage = "Escribe un nombre"), StringLength(80)]
         public string Nombre { get; set; } = string.Empty;
+        [Range(0.01, 9999999999.99, ErrorMessage = "El objetivo debe ser mayor a $0")]
         public decimal MontoObjetivo { get; set; }
         public DateTime? FechaLimite { get; set; }
         public Guid? CuentaId { get; set; }
@@ -25,7 +28,9 @@ namespace Finanzas.Application.DTOs
 
     public class EditarMetaDto
     {
+        [Required(ErrorMessage = "Escribe un nombre"), StringLength(80)]
         public string Nombre { get; set; } = string.Empty;
+        [Range(0.01, 9999999999.99, ErrorMessage = "El objetivo debe ser mayor a $0")]
         public decimal MontoObjetivo { get; set; }
         public DateTime? FechaLimite { get; set; }
         public Guid? CuentaId { get; set; }
@@ -42,6 +47,7 @@ namespace Finanzas.Application.DTOs
     // Monto firmado: positivo = abono, negativo = retiro.
     public class CrearMovimientoMetaDto
     {
+        [Range(-9999999999.99, 9999999999.99)]
         public decimal Monto { get; set; }
 
         // Abono: cuenta desde la que sale el dinero hacia la meta (opcional).
@@ -49,10 +55,13 @@ namespace Finanzas.Application.DTOs
 
         // Retiro: "SIMPLE" (solo ajusta la meta), "GASTO" (crea un gasto) o
         // "TRANSFERENCIA" (mueve el dinero a otra cuenta). Default: SIMPLE.
+        [RegularExpression("^(SIMPLE|GASTO|TRANSFERENCIA)$", ErrorMessage = "Tipo de retiro no válido")]
         public string? TipoRetiro { get; set; }
 
         // Retiro tipo GASTO
+        [StringLength(100)]
         public string? Categoria { get; set; }
+        [StringLength(150)]
         public string? Detalle { get; set; }
 
         // Retiro tipo TRANSFERENCIA

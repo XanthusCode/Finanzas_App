@@ -1,3 +1,4 @@
+using Finanzas.Application.Exceptions;
 using AutoMapper;
 using Finanzas.Application.DTOs;
 using Finanzas.Application.Interfaces;
@@ -55,7 +56,7 @@ namespace Finanzas.Application.Services
 
             var nuevoSaldo = meta.MontoActual + dto.Monto;
             if (nuevoSaldo < 0)
-                throw new InvalidOperationException("No puedes retirar más dinero del disponible en esta meta.");
+                throw new ReglaNegocioException("No puedes retirar más dinero del disponible en esta meta.");
 
             string? descripcion = dto.Monto >= 0
                 ? await ProcesarAbonoAsync(meta, dto, userId)
@@ -83,7 +84,7 @@ namespace Finanzas.Application.Services
             if (dto.CuentaOrigenId is not Guid origenId) return null;
 
             var origen = await _cuentaRepo.GetByIdAsync(origenId, userId)
-                ?? throw new InvalidOperationException("La cuenta de origen no existe.");
+                ?? throw new ReglaNegocioException("La cuenta de origen no existe.");
 
             await _cuentaRepo.AddMovimientoAsync(new MovimientoCuenta
             {
@@ -135,10 +136,10 @@ namespace Finanzas.Application.Services
                 case "TRANSFERENCIA":
                 {
                     if (dto.CuentaDestinoId is not Guid destinoId)
-                        throw new InvalidOperationException("Elige la cuenta destino de la transferencia.");
+                        throw new ReglaNegocioException("Elige la cuenta destino de la transferencia.");
 
                     var destino = await _cuentaRepo.GetByIdAsync(destinoId, userId)
-                        ?? throw new InvalidOperationException("La cuenta destino no existe.");
+                        ?? throw new ReglaNegocioException("La cuenta destino no existe.");
 
                     await _cuentaRepo.AddMovimientoAsync(new MovimientoCuenta
                     {

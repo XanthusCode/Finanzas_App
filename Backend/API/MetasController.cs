@@ -1,3 +1,4 @@
+using Finanzas.Application.Exceptions;
 using Finanzas.Application.DTOs;
 using Finanzas.Application.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -48,7 +49,7 @@ public class MetasController(MetasService service) : BaseController
             var result = await _service.RegistrarMovimientoAsync(id, dto, UserId);
             return result is null ? NotFound() : Ok(result);
         }
-        catch (InvalidOperationException ex)
+        catch (ReglaNegocioException ex)
         {
             return BadRequest(new { message = ex.Message });
         }

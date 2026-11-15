@@ -7,10 +7,15 @@ using System.Text.Json;
 
 namespace Finanzas.Application.Services
 {
-    public class GastosService(IGastosRepository repo, IMapper mapper, GroqService groqService)
+    public class GastosService(IGastosRepository repo, IMapper mapper, GroqService groqService, ICuentaRepository cuentaRepo)
     {
         private readonly IGastosRepository _repo = repo;
         private readonly IMapper _mapper = mapper;
+
+        // El CuentaId viene del cliente: solo se acepta si la cuenta es del usuario
+        // (igual que en Metas y Deudas). Si no, el gasto queda sin cuenta.
+        private async Task<Guid?> CuentaPropiaAsync(Guid? cuentaId, Guid userId) =>
+            cuentaId is Guid id && await cuentaRepo.GetByIdAsync(id, userId) is not null ? id : null;
 
         public async Task<IEnumerable<GastoDto>> GetByMesAsync(int mes, int anio, Guid userId)
         {
@@ -20,6 +25,7 @@ namespace Finanzas.Application.Services
 
         public async Task<GastoDto> CreateAsync(CrearGastoDto dto, Guid userId)
         {
+            dto.CuentaId = await CuentaPropiaAsync(dto.CuentaId, userId);
             var numCuotas = dto.NumCuotas ?? 1;
 
             if (numCuotas <= 1)
@@ -66,6 +72,7 @@ namespace Finanzas.Application.Services
             // El formulario de edición no manda NumCuotas: sin esto, editar una cuota la
             // sacaba del plan (NumCuotas = null) y Cuotas dejaba de contarla.
             var numCuotas = existente.NumCuotas;
+            dto.CuentaId = await CuentaPropiaAsync(dto.CuentaId, userId);
             _mapper.Map(dto, existente);
             existente.NumCuotas = numCuotas;
             var actualizado = await _repo.UpdateAsync(existente);
@@ -86,6 +93,7 @@ namespace Finanzas.Application.Services
             int count = 0;
             foreach (var dto in dtos)
             {
+                dto.CuentaId = await CuentaPropiaAsync(dto.CuentaId, userId);
                 var gasto = _mapper.Map<Gasto>(dto);
                 gasto.UserId = userId;
                 gasto.Mes    = mes;

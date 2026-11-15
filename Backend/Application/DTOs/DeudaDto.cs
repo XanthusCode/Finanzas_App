@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using Finanzas.Domain.Entities;
+
 namespace Finanzas.Application.DTOs
 {
     public class DeudaDto
@@ -18,9 +21,13 @@ namespace Finanzas.Application.DTOs
 
     public class CrearDeudaDto
     {
+        [Required(ErrorMessage = "Escribe el nombre de la persona"), StringLength(80)]
         public string Persona     { get; set; } = string.Empty;
+        [StringLength(200)]
         public string Descripcion { get; set; } = string.Empty;
+        [Range(0.01, 9999999999.99, ErrorMessage = "El monto debe ser mayor a $0")]
         public decimal Monto      { get; set; }
+        [Required, EnumDataType(typeof(TipoDeuda), ErrorMessage = "Tipo de deuda no válido")]
         public string Tipo        { get; set; } = string.Empty;
         public DateTime? FechaLimite { get; set; }
         public Guid? CuentaId     { get; set; }
@@ -35,6 +42,7 @@ namespace Finanzas.Application.DTOs
 
     public class CrearAbonoDto
     {
+        [Range(0.01, 9999999999.99, ErrorMessage = "El abono debe ser mayor a $0")]
         public decimal Monto { get; set; }
     }
 }

@@ -1,3 +1,4 @@
+using Finanzas.Application.Exceptions;
 using AutoMapper;
 using Finanzas.Application.DTOs;
 using Finanzas.Application.Interfaces;
@@ -59,7 +60,7 @@ public class CategoriasService(ICategoriasRepository repo, IGastosRepository gas
         if (existente is null) return false;
 
         if (await gastosRepo.ExistePorCategoriaAsync(existente.Nombre, userId))
-            throw new InvalidOperationException("La categoría está en uso por uno o más gastos.");
+            throw new ReglaNegocioException("La categoría está en uso por uno o más gastos.");
 
         await repo.DeleteAsync(id);
         return true;

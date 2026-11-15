@@ -5,10 +5,14 @@ using Finanzas.Domain.Entities;
 
 namespace Finanzas.Application.Services;
 
-public class IngresosService(IIngresosRepository repo, IMapper mapper)
+public class IngresosService(IIngresosRepository repo, IMapper mapper, ICuentaRepository cuentaRepo)
 {
     private readonly IIngresosRepository _repo = repo;
     private readonly IMapper _mapper = mapper;
+
+    // El CuentaId viene del cliente: solo se acepta si la cuenta es del usuario
+    private async Task<Guid?> CuentaPropiaAsync(Guid? cuentaId, Guid userId) =>
+        cuentaId is Guid id && await cuentaRepo.GetByIdAsync(id, userId) is not null ? id : null;
 
     public async Task<IEnumerable<IngresoDto>> GetByMesAsync(int mes, int anio, Guid userId)
     {
@@ -18,6 +22,7 @@ public class IngresosService(IIngresosRepository repo, IMapper mapper)
 
     public async Task<IngresoDto> CreateAsync(CrearIngresoDto dto, Guid userId)
     {
+        dto.CuentaId = await CuentaPropiaAsync(dto.CuentaId, userId);
         var ingreso = _mapper.Map<Ingreso>(dto);
         ingreso.UserId = userId;
         var creado = await _repo.CreateAsync(ingreso);
@@ -29,6 +34,7 @@ public class IngresosService(IIngresosRepository repo, IMapper mapper)
         var existente = await _repo.GetByIdAsync(id, userId);
         if (existente is null) return null;
 
+        dto.CuentaId = await CuentaPropiaAsync(dto.CuentaId, userId);
         _mapper.Map(dto, existente);
         var actualizada = await _repo.UpdateAsync(existente);
         return _mapper.Map<IngresoDto>(actualizada);

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using Finanzas.Application.DTOs;
 using Finanzas.Application.Services;
@@ -12,6 +13,7 @@ public class AuthController(AuthService authService) : ControllerBase
 {
     private readonly AuthService _authService = authService;
 
+    [EnableRateLimiting("auth")]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
@@ -20,6 +22,7 @@ public class AuthController(AuthService authService) : ControllerBase
         return Ok(data);
     }
 
+    [EnableRateLimiting("auth")]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
@@ -29,6 +32,7 @@ public class AuthController(AuthService authService) : ControllerBase
     }
 
     [Authorize]
+    [EnableRateLimiting("auth")]
     [HttpPut("password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
     {
@@ -67,6 +71,7 @@ public class AuthController(AuthService authService) : ControllerBase
     }
 
     [Authorize]
+    [EnableRateLimiting("auth")]
     [HttpPost("whatsapp/codigo")]
     public async Task<IActionResult> GenerarCodigoWhatsApp()
     {
